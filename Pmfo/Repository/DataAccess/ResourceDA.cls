@@ -10,8 +10,6 @@
   ----------------------------------------------------------------------*/
 block-level on error undo, throw.
 
-using Ccs.BusinessLogic.IGetDataRequest from propath.
-using Ccs.BusinessLogic.IGetDataTableRequest from propath.
 using Ccs.Common.Application from propath.
 using OpenEdge.Core.Collections.IIterator from propath.
 using Pmfo.Core.BusinessLogic.GetDataResponse from propath.
@@ -30,6 +28,8 @@ using Pmfo.Repository.Error.CorruptResourcesError from propath.
 using Pmfo.Util.DatasetUtil from propath.
 using Pmfo.Util.FileUtil from propath.
 using Progress.Lang.Object from propath.
+using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
  
  
 
@@ -296,7 +296,7 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
                               
     end method.    
     
-    method override public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset, input dataset-handle phAlertDataset, output table-handle phwarning ):
+    method override public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
         phDataset:accept-changes ().
         phDataset:write-json ("file",SerializeFullName,true). 
         return new Object().

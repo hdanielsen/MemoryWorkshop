@@ -16,7 +16,6 @@ using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.BusinessLogic.IEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
-using Pmfo.Core.BusinessLogic.IServiceEntity from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Manager.ServiceManager from propath.
@@ -25,9 +24,7 @@ using Progress.Lang.ParameterList from propath.
 using Progress.Reflect.Method from propath.
 using Progress.Reflect.Parameter from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataEventArgs from propath.
-using Pmfo.Core.Common.ServerTypeEnum from propath.
 using Pmfo.Core.BusinessLogic.IClientEntity from propath.
-using Pmfo.Core.BusinessLogic.IClientFilteredEntity from propath.
 using Pmfo.Core.BusinessLogic.IReceiveDataEventArgs from propath.
 
 class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource: 
@@ -124,9 +121,9 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
         if type-of(pEntity,IClientEntity) then
             lSubscribe = true. 
         
-        // we must always call receive in client filtered BE 
-        else if type-of(pEntity,IClientFilteredEntity) then
-            lSubscribe = true. 
+/*        // we must always call receive in client filtered BE*/
+/*        else if type-of(pEntity,IClientFilteredEntity) then */
+/*            lSubscribe = true.                              */
         
         else if type-of(pEntity,IBusinessEntity) then
         do: 
@@ -219,7 +216,7 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
             assign
                 ttEntity.ClassName        = oEntity:getClass():TypeName
                 // it is possible to serialize as object, but error prone as null causes entire row to be ignored  
-                ttEntity.ServerTypes = if valid-object(oEntity:ServerType) then oEntity:ServerType:ToString() else ServerTypeEnum:Default:ToString()  
+            //    ttEntity.ServerTypes = if valid-object(oEntity:ServerType) then oEntity:ServerType:ToString() else ServerTypeEnum:Default:ToString()  
            
                 ttEntity.Public           = oEntity:Public
                 ttEntity.ReadOnly         = oEntity:ReadOnly
@@ -240,8 +237,8 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
                     ttEntity.EntityReferences = GetEntityReferences(cast(oEntity,IBusinessEntity), output ttEntity.IsDataContainer)
                     .
             end.
-            else if type-of(oEntity,IServiceEntity) then
-                ttEntity.TypeName = get-class(IServiceEntity):TypeName.
+           // else if type-of(oEntity,IServiceEntity) then
+             //   ttEntity.TypeName = get-class(IServiceEntity):TypeName.
             else
                 ttEntity.TypeName = get-class(IEntity):TypeName.
             

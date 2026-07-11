@@ -31,6 +31,8 @@ using OpenEdge.Core.Assert from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
+using Pmfo.Core.BusinessLogic.IReceiveDataEventArgs from propath.
+using Pmfo.Util.BufferUtil from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Public         as logical   no-undo get. protected set.
@@ -136,6 +138,17 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         if not lAsserted then 
             AssertDatasetName(DefaultDataset).    
     end constructor.
+    
+     // sub classes can overide this if something must happen before the standard call to Receivebuffer or publish DataReceived
+     // known use cases - all are candidates for better ways to do this -  
+        // - PublicNameBe always loaddata 
+        // - BE that needs to fire DataReceived in children before parent -
+        //      this-object:OnDataReceived(pReceiveDataArgs, phDataset).
+        // - ClientBusinessEntity - has final ReceiveBuffer and Receivebuffer does not have args
+        //   - used for 2 (?) cases that needs to check the IReceiveDataEventArgs to set flag if refresh since it does not handle it
+       
+    method protected void BeforeReceiveData(pReceiveDataArgs as IReceiveDataEventArgs, phDataset  as handle):
+    end method.
     
     method protected void ReceiveBuffer( pParent as IBusinessEntity, pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
     end method.
@@ -269,6 +282,67 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method protected IDataAccess CreateDataAccess():
         return cast(Application:ServiceManager,IServiceManager):CreateDataAccess(Resource).
     end method.
+    
+     /** 
+    Replaces use of BufferUtil:GetKeys 
+    The use of BufferUtil(buffer is a violation of OO encapsulation, but buffers are  
+    managed as pseudo-objects throughout so we allowed this for practical reasons .
+    
+    (BufferUtil:GetKeys is/was intended as a language extension required due to the fact 
+     that buffer:keys cannot be used since we have the sequence as primary index)  
+    **/     
+    
+    method public character GetKeys():
+        if extent(Datasets) <> ? and DatasetUtil:GetNumTopBuffers(Datasets[1]) = 1 then 
+            return BufferUtil:GetInternalKeys(Datasets[1]:get-buffer-handle(1)).
+        return ?.     
+    end.     
+    
+   method public character GetPublicKeys():
+       define variable cKeys as character no-undo.
+       if extent(Datasets) <> ? and DatasetUtil:GetNumTopBuffers(Datasets[1]) = 1 then 
+       do: 
+           cKeys = GetKeys().
+           return BufferUtil:GetPublicFieldNames(Datasets[1]:get-buffer-handle(1), cKeys).
+       end.
+       return ?.    
+   end.     
+    
+    method public character GetPublicTextField():
+        define variable hFld as handle no-undo.
+        define variable i as integer no-undo.
+        define variable cTextFieldIdx as character extent no-undo.
+        define variable hbuffer as handle no-undo.
+        
+        if extent(Datasets) <> ? and DatasetUtil:GetNumTopBuffers(Datasets[1]) = 1 then 
+        do:
+            hBuffer = Datasets[1]:get-buffer-handle(1).      
+            hFld = hBuffer:buffer-field("name") no-error.
+            if valid-handle(hFld) then
+                return hFld:serialize-name.
+            hFld = hBuffer:buffer-field("description") no-error.
+            if valid-handle(hFld) then
+                return hFld:serialize-name.
+            hFld = hBuffer:buffer-field("descr") no-error.
+            if valid-handle(hFld) then
+            do:
+                if hFld:serialize-name = "description" or hFld:serialize-name = "name" then
+                    return hFld:serialize-name.
+                else do i = 1 to hBuffer:num-fields:
+                    hFld = hBuffer:buffer-field(i).
+                    if hFld:serialize-name = "description" then
+                        return hFld:serialize-name.
+                end.       
+            
+            end. 
+        // check if there is an index defined with name textfield
+        // (convention - the assumtion is that it is ok to have an index of such a field) 
+            cTextFieldIdx = BufferUtil:GetFieldsInIndex(hBuffer,"TextField",false).
+            if extent(cTextFieldIdx) = 1 then 
+                return cTextFieldIdx[1].
+        end.        
+        return "".          
+    end.     
     
     
     // default update request for dataset 
