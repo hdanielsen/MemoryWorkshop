@@ -1,0 +1,110 @@
+{"connections": [
+  {
+    "plantId": 1,
+    "name": "Minster",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 2,
+    "name": "Kenton",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 3,
+    "name": "Woodburn",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 4,
+    "name": "Middletown",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 5,
+    "name": "Rockport",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 6,
+    "name": "Tipp City",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 7,
+    "name": "Anderson",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 8,
+    "name": "Talladega",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 9,
+    "name": "Perrysburg",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 10,
+    "name": "Eldridge",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 11,
+    "name": "Portage",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 12,
+    "name": "Monterrey",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 13,
+    "name": "Transport Services",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 14,
+    "name": "Vonore",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 15,
+    "name": "Woodhaven",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 16,
+    "name": "Bowling Green",
+    "connection": "http:\/\/localhost:8870\/Central\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Central\/web"
+  },
+  {
+    "plantId": 17,
+    "name": "Jeffersonville",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  },
+  {
+    "plantId": 18,
+    "name": "Canton",
+    "connection": "http:\/\/localhost:8870\/Eastern\/web",
+    "reportConnection": "http:\/\/localhost:8870\/Eastern\/web"
+  }
+]}

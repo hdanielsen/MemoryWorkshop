@@ -1,0 +1,1238 @@
+{"publicNames": {
+  "entityNames": [
+    {
+      "category": "Table",
+      "name": "activity",
+      "sourceName": "actv"
+    },
+    {
+      "category": "Table",
+      "name": "AdderReq",
+      "sourceName": "AdderReqs"
+    },
+    {
+      "category": "Table",
+      "name": "adjustment",
+      "sourceName": "adjust"
+    },
+    {
+      "category": "Table",
+      "name": "AdjustmentProcess",
+      "sourceName": "AdjustmentProcesss"
+    },
+    {
+      "category": "Table",
+      "name": "agedInvoiceClassification",
+      "sourceName": "agedInvClassif-invc-cfg"
+    },
+    {
+      "category": "Table",
+      "name": "alarmKeyType",
+      "sourceName": "keyTypesForShipAlarm"
+    },
+    {
+      "category": "Table",
+      "name": "alarmTriggerAction",
+      "sourceName": "triggerActionForShipAlarm"
+    },
+    {
+      "category": "CodeTable",
+      "name": "alertedSuperOverride",
+      "sourceName": "Alerted Supervisor Override Codes"
+    },
+    {
+      "category": "Table",
+      "name": "AlertTable",
+      "sourceName": "AlertTables"
+    },
+    {
+      "category": "Table",
+      "name": "areaCoilDimension",
+      "sourceName": "areaCoilDim"
+    },
+    {
+      "category": "Table",
+      "name": "areaLocation",
+      "sourceName": "areaLoc"
+    },
+    {
+      "category": "Table",
+      "name": "areaMetalCategory",
+      "sourceName": "areaMetalCat"
+    },
+    {
+      "category": "CodeTable",
+      "name": "asnHeatLot",
+      "sourceName": "ASN by Heat-Lot"
+    },
+    {
+      "category": "Table",
+      "name": "AutoParam",
+      "sourceName": "AutoParams"
+    },
+    {
+      "category": "Table",
+      "name": "autoReceivingAsnField",
+      "sourceName": "autoReceivingAsnFields"
+    },
+    {
+      "category": "Table",
+      "name": "AutoReceivingPartType",
+      "sourceName": "AutoReceivingPartTypes"
+    },
+    {
+      "category": "Table",
+      "name": "barcodeSelection",
+      "sourceName": "barcodeSelectionOptions"
+    },
+    {
+      "category": "Table",
+      "name": "barcodeTagHeaderOption",
+      "sourceName": "barcodeAiagB5HeaderOptions"
+    },
+    {
+      "category": "CodeTable",
+      "name": "BestSetupHydraulicKnifeType",
+      "sourceName": "Best Setup Hydr Knife Type"
+    },
+    {
+      "category": "CodeTable",
+      "name": "BestSetupLegitimateInitial",
+      "sourceName": "Best Setup Legitimate Initials xx"
+    },
+    {
+      "category": "Table",
+      "name": "BestSetupSpacer",
+      "sourceName": "BestSetupSpacers"
+    },
+    {
+      "category": "Table",
+      "name": "betweenTimeTracking",
+      "sourceName": "BTTracker"
+    },
+    {
+      "category": "Table",
+      "name": "billingUnit",
+      "sourceName": "BillingUnits"
+    },
+    {
+      "category": "Table",
+      "name": "BreakdownWidth",
+      "sourceName": "BreakdownWidths"
+    },
+    {
+      "category": "CodeTable",
+      "name": "orderWarningRequirement",
+      "sourceName": "Require Change Order Warning"
+    },
+    {
+      "category": "Table",
+      "name": "chargeType",
+      "sourceName": "chargeTypes"
+    },
+    {
+      "category": "Table",
+      "name": "chemMaster",
+      "sourceName": "chemMstr"
+    },
+    {
+      "category": "Table",
+      "name": "chemMeasure",
+      "sourceName": "chemMeas"
+    },
+    {
+      "category": "Table",
+      "name": "closeHour",
+      "sourceName": "clshrs"
+    },
+    {
+      "category": "Table",
+      "name": "CoilLineFootageMeasure",
+      "sourceName": "RunParams"
+    },
+    {
+      "category": "CodeTable",
+      "name": "CoilYieldTarget",
+      "sourceName": "Coil Yield Targets"
+    },
+    {
+      "category": "Table",
+      "name": "conditionCode",
+      "sourceName": "condCode"
+    },
+    {
+      "category": "Table",
+      "name": "contactGroupXRef",
+      "sourceName": "contactgroupxref"
+    },
+    {
+      "category": "Table",
+      "name": "corporateEntity",
+      "sourceName": "entity"
+    },
+    {
+      "category": "Table",
+      "name": "coverageHours",
+      "sourceName": "covhrs"
+    },
+    {
+      "category": "Table",
+      "name": "cronParamChoice",
+      "sourceName": "cronParamChoices"
+    },
+    {
+      "category": "CodeTable",
+      "name": "customerCodes",
+      "sourceName": "Cust Codes for Charges"
+    },
+    {
+      "category": "Table",
+      "name": "cutToLengthMeasurement",
+      "sourceName": "ctl-meas"
+    },
+    {
+      "category": "Table",
+      "name": "DailyShipment",
+      "sourceName": "DailyShipments"
+    },
+    {
+      "category": "CodeTable",
+      "name": "defaultPackagingSupplyItem",
+      "sourceName": "Default Packaging Supply List"
+    },
+    {
+      "category": "CodeTable",
+      "name": "deletedMult",
+      "sourceName": "Deleted Mults"
+    },
+    {
+      "category": "CodeTable",
+      "name": "demandType",
+      "sourceName": "PROCESS ORDER DEMAND TYPE"
+    },
+    {
+      "category": "CodeTable",
+      "name": "dockReportFormat",
+      "sourceName": "R0864 Formats"
+    },
+    {
+      "category": "Table",
+      "name": "DriverAdvance",
+      "sourceName": "DriverAdvances"
+    },
+    {
+      "category": "Table",
+      "name": "DriverDivision",
+      "sourceName": "DriverDivisions"
+    },
+    {
+      "category": "Table",
+      "name": "duplicatePartnerDuns",
+      "sourceName": "duplicatePartnerDunsList"
+    },
+    {
+      "category": "CodeTable",
+      "name": "ediPackageCode",
+      "sourceName": "PO PACKAGING CODES - EDI"
+    },
+    {
+      "category": "Table",
+      "name": "ediPart",
+      "sourceName": "e-ford"
+    },
+    {
+      "category": "Table",
+      "name": "ediRetry",
+      "sourceName": "e-rtry"
+    },
+    {
+      "category": "Table",
+      "name": "ediTransaction",
+      "sourceName": "e-tran"
+    },
+    {
+      "category": "Table",
+      "name": "ediExtractTransactionForBatch",
+      "sourceName": "e-xact"
+    },
+    {
+      "category": "Table",
+      "name": "ediExtractBatch",
+      "sourceName": "e-xmit"
+    },
+    {
+      "category": "CodeTable",
+      "name": "plantEdiCustomer",
+      "sourceName": "EDI ID TYPE WITH PLANT"
+    },
+    {
+      "category": "Table",
+      "name": "electronicProcessOrder",
+      "sourceName": "po"
+    },
+    {
+      "category": "CodeTable",
+      "name": "electronicProcessOrderStatus",
+      "sourceName": "PO Status"
+    },
+    {
+      "category": "Table",
+      "name": "equipment",
+      "sourceName": "equip"
+    },
+    {
+      "category": "Table",
+      "name": "errorMessage",
+      "sourceName": "msg"
+    },
+    {
+      "category": "Table",
+      "name": "exceptionCode",
+      "sourceName": "exceptioncodes"
+    },
+    {
+      "category": "Table",
+      "name": "FailedLogon",
+      "sourceName": "FailedLogons"
+    },
+    {
+      "category": "CodeTable",
+      "name": "gaugeTolerance",
+      "sourceName": "Gauge Tolerance Co/Plant/Owner"
+    },
+    {
+      "category": "Table",
+      "name": "Group",
+      "sourceName": "Groups"
+    },    
+    {
+      "category": "Table",
+      "name": "hqSecurityGroup",
+      "sourceName": "hqSecurityGroups"
+    },
+    {
+      "category": "Table",
+      "name": "image",
+      "sourceName": "imageDoc"
+    },
+    {
+      "category": "Table",
+      "name": "initialProductivityIndex",
+      "sourceName": "IPProdvtyIdx"
+    },
+    {
+      "category": "Table",
+      "name": "initialProductivityPartTag",
+      "sourceName": "IPPTag"
+    },
+    {
+      "category": "CodeTable",
+      "name": "innerDiameter",
+      "sourceName": "ID - Inner Diameter For Smartg"
+    },
+    {
+      "category": "Table",
+      "name": "inventory",
+      "sourceName": "inv"
+    },
+    {
+      "category": "CodeTable",
+      "name": "inventorySample",
+      "sourceName": "SAMPLES (INVENTORY)"
+    },
+    {
+      "category": "Table",
+      "name": "inventoryTrip",
+      "sourceName": "invTrip"
+    },
+    {
+      "category": "Table",
+      "name": "inventoryTurn",
+      "sourceName": "invTurns"
+    },
+    {
+      "category": "Table",
+      "name": "invoiceDocument",
+      "sourceName": "invoiceDocuments"
+    },
+    {
+      "category": "Table",
+      "name": "isaData",
+      "sourceName": "ISAData"
+    },
+    {
+      "category": "Table",
+      "name": "knifeCodeSize",
+      "sourceName": "knifeCodeSizes"
+    },
+    {
+      "category": "Table",
+      "name": "line",
+      "sourceName": "line-cfg"
+    },
+    {
+      "category": "Table",
+      "name": "linedownIdleCategory",
+      "sourceName": "linedownIdleCategories"
+    },
+    {
+      "category": "CodeTable",
+      "name": "loadSplitPerPackageOptions",
+      "sourceName": "Load: split 1 slip per package"
+    },
+    {
+      "category": "Table",
+      "name": "location",
+      "sourceName": "loc"
+    },
+    {
+      "category": "Table",
+      "name": "MassUpdateSpecField",
+      "sourceName": "MassUpdateSpecFields"
+    },
+    {
+      "category": "Table",
+      "name": "MaterialReceiptDamage",
+      "sourceName": "MaterialReceiptDamages"
+    },
+    {
+      "category": "Table",
+      "name": "mechanicalAudit",
+      "sourceName": "mechAudit"
+    },
+    {
+      "category": "Table",
+      "name": "menu",
+      "sourceName": "mbMenu"
+    },
+    {
+      "category": "Table",
+      "name": "Message",
+      "sourceName": "Messages"
+    },
+    {
+      "category": "Table",
+      "name": "MessagingTrigger",
+      "sourceName": "MessagingTriggers"
+    },
+    {
+      "category": "Table",
+      "name": "metalCategory",
+      "sourceName": "metal-Cat"
+    },
+    {
+      "category": "CodeTable",
+      "name": "metalCategoryGroup",
+      "sourceName": "Metal Groups"
+    },
+    {
+      "category": "CodeTable",
+      "name": "metalGroup",
+      "sourceName": "Metal Group"
+    },
+    {
+      "category": "Table",
+      "name": "metalType",
+      "sourceName": "type"
+    },
+    {
+      "category": "Table",
+      "name": "millScrap",
+      "sourceName": "mscrap"
+    },
+    {
+      "category": "Table",
+      "name": "msaCrossAppRequiredOption",
+      "sourceName": "MSACrossAppReqd"
+    },
+    {
+      "category": "Table",
+      "name": "NextIDStat",
+      "sourceName": "NextIDStats"
+    },
+    {
+      "category": "Table",
+      "name": "NonProdChargeType",
+      "sourceName": "chargeTypesNon-Prod"
+    },
+    {
+      "category": "Table",
+      "name": "note",
+      "sourceName": "NOTE"
+    },
+    {
+      "category": "CodeTable",
+      "name": "noteType",
+      "sourceName": "NOTE TYPE CODE"
+    },
+    {
+      "category": "Table",
+      "name": "oscililateCalculation",
+      "sourceName": "oscCalc"
+    },
+    {
+      "category": "CodeTable",
+      "name": "ownerDisallowNoChargeWorkOrder",
+      "sourceName": "Owners not to use NoCharge WO"
+    },
+    {
+      "category": "CodeTable",
+      "name": "ownerMetalTypeOverrideDetail",
+      "sourceName": "Allowable Metal Type Downgrade"
+    },
+    {
+      "category": "CodeTable",
+      "name": "ownerMetalTypeOverrideRule",
+      "sourceName": "Owners Allowi MetalType OvrRid"
+    },
+    {
+      "category": "CodeTable",
+      "name": "ownerSideTrimAlert",
+      "sourceName": "Side Trim Alert Field"
+    },
+    {
+      "category": "CodeTable",
+      "name": "PackageCodeLevel",
+      "sourceName": "Package Code Levels"
+    },
+    {
+      "category": "Table",
+      "name": "packageImageReference",
+      "sourceName": "pkgImgLib"
+    },
+    {
+      "category": "Table",
+      "name": "packageLogItem",
+      "sourceName": "pkg-log-items"
+    },
+    {
+      "category": "Table",
+      "name": "packageType",
+      "sourceName": "spec-PackageType"
+    },
+    {
+      "category": "Table",
+      "name": "packagingRequiredOption",
+      "sourceName": "packagingRequired"
+    },
+    {
+      "category": "Table",
+      "name": "partnerActualGauge",
+      "sourceName": "partnerCfgOdIdGauge"
+    },
+    {
+      "category": "Table",
+      "name": "partnerBaseBoxCalc",
+      "sourceName": "partnerBaseBoxBaseBoxCalc"
+    },
+    {
+      "category": "Table",
+      "name": "partnerChemTrigger",
+      "sourceName": "partnerChemTriggers"
+    },
+    {
+      "category": "CodeTable",
+      "name": "partnerDunsDuplicate",
+      "sourceName": "Duplicate Partner Duns List"
+    },
+    {
+      "category": "Table",
+      "name": "partnerIppTagRequiredOption",
+      "sourceName": "partnerIppTagReqd"
+    },
+    {
+      "category": "Table",
+      "name": "partnerMechTrigger",
+      "sourceName": "partnerMechTriggers"
+    },
+    {
+      "category": "Table",
+      "name": "partnerMetEngFormat",
+      "sourceName": "partnerMet-EngMetric-Eng"
+    },
+    {
+      "category": "Table",
+      "name": "partnerMixedHeat",
+      "sourceName": "partnerCfgMixedHeats"
+    },
+    {
+      "category": "Table",
+      "name": "partnerOwnerLoadCode",
+      "sourceName": "partnerOwn-loadLoadCode"
+    },
+    {
+      "category": "Table",
+      "name": "partnerOwnerMultCode",
+      "sourceName": "partnerOwn-MultMultCode"
+    },
+    {
+      "category": "Table",
+      "name": "partnerOwnerPackageCode",
+      "sourceName": "partnerOwn-PckgPackagecode"
+    },
+    {
+      "category": "Table",
+      "name": "partnerPoCustomerRule",
+      "sourceName": "partnerCfgPoCust"
+    },
+    {
+      "category": "Table",
+      "name": "partnerPrepaidFreightTerm",
+      "sourceName": "partnerPrepaidFreightTerms"
+    },
+    {
+      "category": "Table",
+      "name": "partnerScrapRecycleOption",
+      "sourceName": "partnerCfgScrapRecycle"
+    },
+    {
+      "category": "Table",
+      "name": "partnerSpecCheck",
+      "sourceName": "partnerCfgSpecChk"
+    },
+    {
+      "category": "Table",
+      "name": "partnerSpecOption",
+      "sourceName": "partnerCfgSpecOptions"
+    },
+    {
+      "category": "Table",
+      "name": "partnerStickyConfig",
+      "sourceName": "partnerSticky-cfgStickyConf"
+    },
+    {
+      "category": "Table",
+      "name": "partnerTheoWeightCalc",
+      "sourceName": "partnerTheo-CalcTheoCalc"
+    },
+    {
+      "category": "Table",
+      "name": "partnerTripMethod",
+      "sourceName": "partnerTrip-CodeTripMethod"
+    },
+    {
+      "category": "Table",
+      "name": "partnerWidthFactor",
+      "sourceName": "partnerCfgActWdthFactor"
+    },
+    {
+      "category": "Table",
+      "name": "partnerWoReconcileMethod",
+      "sourceName": "PartnerCfgWOReconMethod"
+    },
+    {
+      "category": "CodeTable",
+      "name": "partStencilFlaw",
+      "sourceName": "part-StencilFlaws"
+    },
+    {
+      "category": "Table",
+      "name": "picklistException",
+      "sourceName": "PicklistExcp"
+    },
+    {
+      "category": "Table",
+      "name": "plant",
+      "sourceName": "cntl"
+    },
+    {
+      "category": "Table",
+      "name": "PlantReference",
+      "sourceName": "PlantReferences"
+    },
+    {
+      "category": "Table",
+      "name": "PlantShift",
+      "sourceName": "PlantShifts"
+    },
+    {
+      "category": "Table",
+      "name": "PlantShipHour",
+      "sourceName": "PlantShipHrs"
+    },
+    {
+      "category": "Table",
+      "name": "pmAsset",
+      "sourceName": "PMAsset"
+    },
+    {
+      "category": "CodeTable",
+      "name": "pmAssetId",
+      "sourceName": "PM - Assets"
+    },
+    {
+      "category": "CodeTable",
+      "name": "pmAssetServiceType",
+      "sourceName": "PM - Asset Service Types"
+    },
+    {
+      "category": "Table",
+      "name": "pmAssetType",
+      "sourceName": "PM-AssetTypes"
+    },
+    {
+      "category": "Table",
+      "name": "pricingActivity",
+      "sourceName": "Activity"
+    },
+    {
+      "category": "Table",
+      "name": "pricingAdjustment",
+      "sourceName": "Adjustment"
+    },
+    {
+      "category": "Table",
+      "name": "stockPart",
+      "sourceName": "PAParts"
+    },
+    {
+      "category": "Table",
+      "name": "processInstructionGuide",
+      "sourceName": "pig"
+    },
+    {
+      "category": "Table",
+      "name": "processInstructionGuideHeader",
+      "sourceName": "pigHeader"
+    },
+    {
+      "category": "Table",
+      "name": "processItem",
+      "sourceName": "procitem"
+    },
+    {
+      "category": "Table",
+      "name": "processOrder",
+      "sourceName": "procorder"
+    },
+    {
+      "category": "Table",
+      "name": "productionSchedule",
+      "sourceName": "prod-sched"
+    },
+    {
+      "category": "Table",
+      "name": "processPicklistItem",
+      "sourceName": "procpicklist"
+    },
+    {
+      "category": "CodeTable",
+      "name": "qrOwner",
+      "sourceName": "QRCustomers"
+    },
+    {
+      "category": "Table",
+      "name": "qrSecureNeed",
+      "sourceName": "QrStickiesNeedingSecured"
+    },
+    {
+      "category": "Table",
+      "name": "rack",
+      "sourceName": "RACK"
+    },
+    {
+      "category": "Table",
+      "name": "receipthold",
+      "sourceName": "receiptHold"
+    },
+    {
+      "category": "Table",
+      "name": "receivingDetail",
+      "sourceName": "rcvdtl"
+    },
+    {
+      "category": "Table",
+      "name": "receivingHour",
+      "sourceName": "rcvhrs"
+    },
+    {
+      "category": "Table",
+      "name": "reconciliation",
+      "sourceName": "RECONCILIATION"
+    },
+    {
+      "category": "Table",
+      "name": "report",
+      "sourceName": "reportRegister"
+    },
+   {
+      "category": "Table",
+      "name": "sbm",
+      "sourceName": "sbms"
+    },
+    {
+      "category": "Table",
+      "name": "ScaleAuditResult",
+      "sourceName": "ScaleAuditResults"
+    },
+    {
+      "category": "Table",
+      "name": "scheduleCode",
+      "sourceName": "shippingRequestDateCode"
+    },
+    {
+      "category": "CodeTable",
+      "name": "scrapBreakDownMillOrder",
+      "sourceName": "AK Scrap Breakdown Orders"
+    },
+    {
+      "category": "Table",
+      "name": "scrapMethod",
+      "sourceName": "scrapHandlingMethod"
+    },
+    {
+      "category": "Table",
+      "name": "secondaryOrderType",
+      "sourceName": "soType"
+    },
+    {
+      "category": "Table",
+      "name": "shift",
+      "sourceName": "shiftDescription"
+    },
+    {
+      "category": "Table",
+      "name": "shippingPickList",
+      "sourceName": "s-pick"
+    },
+    {
+      "category": "Table",
+      "name": "slipColumn",
+      "sourceName": "packingSlipColumns"
+    },
+    {
+      "category": "Table",
+      "name": "slipSpecialSetting",
+      "sourceName": "packingSlipSpecialConfig"
+    },
+    {
+      "category": "CodeTable",
+      "name": "smartCellBay",
+      "sourceName": "SmartGrab Crane/Bay"
+    },
+    {
+      "category": "CodeTable",
+      "name": "smartGrabCoil",
+      "sourceName": "Coil Scanned by SmartGrab"
+    },
+    {
+      "category": "Table",
+      "name": "smartGrabLocation",
+      "sourceName": "smartGrabLoc"
+    },
+    {
+      "category": "Table",
+      "name": "spcMicrometer",
+      "sourceName": "spc-mic"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specCoilSeparator",
+      "sourceName": "SPEC - COIL Separators"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specCoreRequiredOption",
+      "sourceName": "SPEC - CORE REQUIRED"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specCrosswiseEdgeProtector",
+      "sourceName": "SPEC - CROSSWISE EDGE PROTECT"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specFlamecheck",
+      "sourceName": "SPEC - FLAME CHECK"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specFriction",
+      "sourceName": "SPEC - FRICTION JOINT"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specialWeighTagConfig",
+      "sourceName": "SPECIAL WEIGH TAGS cfg[9]&[10]"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specIdProtector",
+      "sourceName": "SPEC - ID PROTECTORS"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specInspectionSystem",
+      "sourceName": "SPEC - InspectSys"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specLengthwiseEdgeProtector",
+      "sourceName": "SPEC - LENGTHWISE EDGE PROTECT"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specMicLocation",
+      "sourceName": "SPEC - MIC GAUGE LOCATION"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specMicPosition",
+      "sourceName": "SPEC - MIC GAUGE POSITION"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specOdProtector",
+      "sourceName": "SPEC - OD PROTECTORS"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specSafetyBandLocation",
+      "sourceName": "SPEC - SAFETY BAND LOC"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specSamplesRequiredOption",
+      "sourceName": "SPEC - SAMPLES REQUIRED"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specShippingLoadMethod",
+      "sourceName": "SHIPPING SPEC - LOAD METHOD"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specShippingProtection",
+      "sourceName": "SHIPPING SPEC - PACKAGE PROTEC"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specShippingUnloadMethod",
+      "sourceName": "SHIPPING SPEC - UNLOADING METH"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specShippingVehicleType",
+      "sourceName": "SHIPPING SPEC - VEHICLE TYPE"
+    },
+    {
+      "category": "CodeTable",
+      "name": "specWeld",
+      "sourceName": "SPEC - WELD HANDLING"
+    },
+    {
+      "category": "Table",
+      "name": "SSMaterial",
+      "sourceName": "SSMaterials"
+    },
+    {
+      "category": "Table",
+      "name": "stateCode",
+      "sourceName": "validStateList"
+    },
+    {
+      "category": "Table",
+      "name": "StatePermit",
+      "sourceName": "StatePermits"
+    },
+    {
+      "category": "Table",
+      "name": "testIndex",
+      "sourceName": "t-indx"
+    },
+    {
+      "category": "Table",
+      "name": "testingRequiredOption",
+      "sourceName": "testingRequired"
+    },
+    {
+      "category": "Table",
+      "name": "testLimit",
+      "sourceName": "T-LIMITS"
+    },
+    {
+      "category": "Table",
+      "name": "testMaster",
+      "sourceName": "t-mstr"
+    },
+    {
+      "category": "Table",
+      "name": "testMeasure",
+      "sourceName": "t-meas"
+    },
+    {
+      "category": "Table",
+      "name": "testQuestion",
+      "sourceName": "t-que"
+    },
+    {
+      "category": "Table",
+      "name": "timeZone",
+      "sourceName": "TIMEZONES"
+    },
+    {
+      "category": "Table",
+      "name": "TrailerAxle",
+      "sourceName": "TrailerAxles"
+    },
+    {
+      "category": "Table",
+      "name": "TransactionServiceInvoiceItem",
+      "sourceName": "TransSrvInvcItems"
+    },
+    {
+      "category": "Table",
+      "name": "TripRequest",
+      "sourceName": "TripReq"
+    },
+    {
+      "category": "Table",
+      "name": "TruckArrival",
+      "sourceName": "TruckArrivals"
+    },
+    {
+      "category": "Table",
+      "name": "unfulfilledDemand",
+      "sourceName": "UFD"
+    },
+    {
+      "category": "CodeTable",
+      "name": "underWrap",
+      "sourceName": "UNDERWRAP"
+    },
+    {
+      "category": "Table",
+      "name": "unfulfilledDemandShippingXRef",
+      "sourceName": "UFDSRXref"
+    },
+    {
+      "category": "Table",
+      "name": "unfulfilledDemandSourceType",
+      "sourceName": "ufdSourceType"
+    },
+    {
+      "category": "Table",
+      "name": "unfulfilledDemandStatus",
+      "sourceName": "ufdStatus"
+    },
+    {
+      "category": "Table",
+      "name": "uomUse",
+      "sourceName": "uomUses"
+    },
+    {
+      "category": "Table",
+      "name": "userGroup",
+      "sourceName": "userGroups"
+    },
+    {
+      "category": "Table",
+      "name": "usxSecondaryOrder",
+      "sourceName": "usxSecondaryOrders"
+    },
+    {
+      "category": "Table",
+      "name": "validationField",
+      "sourceName": "v-fields"
+    },
+    {
+      "category": "Table",
+      "name": "validationTrigger",
+      "sourceName": "v-trigger"
+    },
+    {
+      "category": "Table",
+      "name": "vendorManagedInventory",
+      "sourceName": "inventory"
+    },
+    {
+      "category": "Table",
+      "name": "verifyTag",
+      "sourceName": "verifyTags"
+    },
+    {
+      "category": "CodeTable",
+      "name": "weightToleranceException",
+      "sourceName": "Weight Tolerance Exceptions"
+    },
+    {
+      "category": "CodeTable",
+      "name": "widthTolerance",
+      "sourceName": "Width Tolerance Co\/Plant\/Owner"
+    },
+    {
+      "category": "Table",
+      "name": "woCoil",
+      "sourceName": "WOCoils"
+    },
+    {
+      "category": "Table",
+      "name": "workItemPurchaseOrder",
+      "sourceName": "work-po"
+    },
+    {
+      "category": "Table",
+      "name": "WorkOrderCost",
+      "sourceName": "work-cost"
+    },
+    {
+      "category": "Table",
+      "name": "workOrderLink",
+      "sourceName": "linked"
+    },
+    {
+      "category": "Table",
+      "name": "workOrderWizardMultReport",
+      "sourceName": "PartnerCfgWOWMultCflRpt"
+    },
+    {
+      "category": "Table",
+      "name": "workOrderWizardReview",
+      "sourceName": "PartnerCfgWOWReview"
+    },
+    {
+      "category": "Table",
+      "name": "WorkOrderPackage",
+      "sourceName": "work-pkg"
+    },
+    {
+      "category": "Table",
+      "name": "zipCode",
+      "sourceName": "zipcode"
+    }
+  ],
+  "propertyNames": [
+    {
+      "sourceName": "acct-Id",
+      "name": "accountId"
+    },
+    {
+      "sourceName": "acctg-Id",
+      "name": "accountingId"
+    },
+    {
+      "sourceName": "actGrossWeight",
+      "name": "actualGrossWeight"
+    },
+    {
+      "sourceName": "actWeight",
+      "name": "actualWeight"
+    },
+    {
+      "sourceName": "act-Width",
+      "name": "actualWidth"
+    },
+    {
+      "sourceName": "altAddressID",
+      "name": "altAddressId"
+    },
+    {
+      "sourceName": "bill-o-lad",
+      "name": "billOfLading"
+    },
+    {
+      "sourceName": "cntyFIPS",
+      "name": "countyFipsCode"
+    },
+    {
+      "sourceName": "cntyName",
+      "name": "countyName"
+    },
+    {
+      "sourceName": "currStrokes",
+      "name": "currentStrokes"
+    },
+    {
+      "sourceName": "curr-weight",
+      "name": "currentWeight"
+    },
+    {
+      "sourceName": "DST",
+      "name": "daylightSavingTime"
+    },
+    {
+      "sourceName": "descr",
+      "name": "description"
+    },
+    {
+      "sourceName": "duns-suff",
+      "name": "dunsSuffix"
+    },
+    {
+      "sourceName": "EDIDestCode",
+      "name": "ediDestCode"
+    },
+    {
+      "sourceName": "ediwhsecode",
+      "name": "ediWarehouseCode"
+    },
+    {
+      "sourceName": "i-d",
+      "name": "innerDiameter"
+    },
+    {
+      "sourceName": "IPPTag",
+      "name": "ippTag"
+    },
+    {
+      "sourceName": "loc",
+      "name": "location"
+    },
+    {
+      "sourceName": "metCatGroup",
+      "name": "metalCategoryGroup"
+    },
+    {
+      "sourceName": "miscdata",
+      "name": "miscData"
+    },
+    {
+      "sourceName": "MSACrossAppReqd",
+      "name": "msaCrossAppRequired"
+    },
+    {
+      "sourceName": "multi-lgth",
+      "name": "multiLength"
+    },
+    {
+      "sourceName": "o-d",
+      "name": "outerDiameter"
+    },
+    {
+      "sourceName": "phone-no",
+      "name": "phone"
+    },
+    {
+      "sourceName": "proc-code",
+      "name": "processCode"
+    },
+    {
+      "sourceName": "projShipAmt",
+      "name": "projectedShipAmount"
+    },
+    {
+      "sourceName": "rlse-by",
+      "name": "releasedBy"
+    },
+    {
+      "sourceName": "reqAnt",
+      "name": "requestAmount"
+    },
+    {
+      "sourceName": "req-by",
+      "name": "requestedBy"
+    },
+    {
+      "sourceName": "req-wt",
+      "name": "requestedWeight"
+    },
+    {
+      "sourceName": "dateCode",
+      "name": "scheduleCode"
+    },
+    {
+      "sourceName": "TZ",
+      "name": "timeZone"
+    }
+  ]
+}}

@@ -1,0 +1,31 @@
+
+/*------------------------------------------------------------------------
+    File        : IGetDataRequest
+    Purpose     : 
+    Syntax      : 
+    Description : 
+    Author(s)   : hdaniels
+    Created     : Mon June 22 2024
+     Notes       : 
+  ----------------------------------------------------------------------*/
+ 
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+
+interface Pmfo.Core.BusinessLogic.IGetDataRequest:  
+    define public property MainRequestedBuffer as character no-undo get. set. 
+    // tracks timout for request - the default is assumed to be in SessuinManager
+    // so do not add a init value here as the query timeout message may use 
+    // the presence of a value here to also sugggest increasing timeout 
+    // in addition to the change filter and use paging advice 
+    
+    define public property Timeout             as integer no-undo get. set.
+    define public property NoError             as logical  no-undo get. set.
+    
+    define public property TableRequests       as  IGetDataTableRequest extent no-undo
+        get.
+    
+    method public IGetDataTableRequest GetTableRequest(pName   as character).
+    method public IGetDataTableRequest GetTableRequest(pHandle as handle).
+    
+    method public logical AddTableRequest(pTableRequest as IGetDataTableRequest).
+ end interface.

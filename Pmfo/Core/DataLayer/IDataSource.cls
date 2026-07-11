@@ -1,0 +1,53 @@
+
+/*------------------------------------------------------------------------
+    File        : IDataSource
+    Purpose     : 
+    Syntax      : 
+    Description : 
+    Author(s)   : hdaniels
+    Created     : Mon June 22 2024
+    Notes       : 
+  ----------------------------------------------------------------------*/ 
+
+using OpenEdge.Core.Collections.ICollection from propath.
+using OpenEdge.Core.Collections.IList from propath.
+using Pmfo.Core.DataLayer.IDbQuery from propath.
+using Pmfo.Core.DataLayer.IUpdateTarget from propath.
+using Pmfo.Core.Common.IResource from propath.
+using OpenEdge.Core.ISupportInitialize from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+
+interface Pmfo.Core.DataLayer.IDataSource inherits IDbQuery, IResource, ISupportInitialize:  
+    /* Public name used to start the Source in the ServiceNanager
+       (Stored in resources.json and defined as primary key in the temp-table
+        that reads this) 
+    */ 
+    define public property EntityName           as character no-undo get.
+    
+    /* stores the buffer-handle of the dataset buffer that is being saved 
+       Assigned in prepareSave or  prepare
+       Also defined in IDataSource and used for read
+    */ 
+    define public property DataBuffer           as handle    no-undo get. 
+    
+    /* requested number */
+    define public property NumRecords  as int64        no-undo get.  
+    define public property Count       as logical      no-undo get. 
+    define public property TotalCount  as int64        no-undo get. 
+    define public property NextRowKey  as character    no-undo get.  
+    define public property FillErrors  as ICollection  no-undo get.  
+           
+    method public logical Prepare(phBuffer as handle, pRequest as IGetDataTableRequest, pParentRequest as IGetDataTableRequest).
+    method public IGetDataTableRequest PrepareCurrent(phBuffer as handle, pParentRequest as IGetDataTableRequest).
+    method public logical Prepare(phBuffer as handle, pRequest as IGetDataTableRequest).
+   
+    // public to be called from DataAccess    
+    method public void AfterRow(input dataset-handle phDataset).  
+    method public logical Fill().
+    method public logical RefillCurrentRow().
+    
+    method public void FindSource(plock as integer).
+    // pass before buffer to fuond with before values
+    method public void FindSource(phBuffer as handle, pLock as integer).
+    
+end interface.
