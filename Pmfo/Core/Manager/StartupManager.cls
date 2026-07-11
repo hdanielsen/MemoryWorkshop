@@ -2,12 +2,7 @@
     File        : StartupManager
     Purpose     : Primary manager for framework startup
     Description : System Startup Manager
-    Author(s)   : rosmith
-    Created     : Nov 02 2016
     Notes       :
-    Updated     :
-        S.E. Southwell - 2/28/2020 - git286 - Added new property for environment-specific 
-        config directory.
   ----------------------------------------------------------------------*/
  
 block-level on error undo, throw.
