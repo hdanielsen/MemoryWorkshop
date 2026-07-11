@@ -5,7 +5,6 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Wed Jun 05 19:34:25 EDT 2019
     Notes       : Data Access Base - no behaviout defined
                   The Resource property name is unique within this interface 
                   This is managed by having them in the same directory                  

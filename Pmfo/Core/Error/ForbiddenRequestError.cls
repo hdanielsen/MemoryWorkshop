@@ -5,7 +5,7 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Sep 17 2019
+    Created     : Sep 2019
     Notes       : We enforce error numbers for 403 so that the client can 
                   detect expired password 
                   1 - is this class without message

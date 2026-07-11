@@ -5,7 +5,7 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Sept 2019 - abstracted from NotImplementedError
+    Created     : 2019 - abstracted from NotImplementedError
     Notes       : Abstract class for errors thst refers to call stack 
   ----------------------------------------------------------------------*/
 

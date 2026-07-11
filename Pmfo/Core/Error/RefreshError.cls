@@ -5,7 +5,7 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Thu Aug 08 09:24:35 EDT 2019
+    Created     : 2019
     Notes       : Dedicated error for errors occurring after a successful transaction
   ----------------------------------------------------------------------*/
 

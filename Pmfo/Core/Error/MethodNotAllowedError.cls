@@ -1,11 +1,11 @@
  
  /*------------------------------------------------------------------------
-    File        : Error.MethodNotAllowedError
+    File        : Pmfo.Core.Error.MethodNotAllowedError
     Purpose     : 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Mon Apr 1 11:20 EST 2019
+    Created     : 2019 
     Notes       : 
   ----------------------------------------------------------------------*/
 
