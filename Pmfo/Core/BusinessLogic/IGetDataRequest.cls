@@ -25,9 +25,10 @@ interface Pmfo.Core.BusinessLogic.IGetDataRequest:
         get.
     
     define public property NamedQuery as INamedQuery no-undo get. set.
-    
+     
     method public IGetDataTableRequest GetTableRequest(pName   as character).
     method public IGetDataTableRequest GetTableRequest(pHandle as handle).
     
     method public logical AddTableRequest(pTableRequest as IGetDataTableRequest).
+    
  end interface.

@@ -1,17 +1,3 @@
 {
-  "DBIfilesize": false,
-  "DBIABLApp": "",
-  "MemoryObjects": true,
-  "LogEveryWebRequest": false,
-  "LogPaths": [
-    "/session/hasusergroupxxxxxx",
-    "/partnersxxxxxx",
-    "/Shipping/Requestsxxxxxx"
-  ],
-  "ProfileEveryWebRequest": false,
-  "ProfilePaths": [
-    "/session/hasusergroupxxxxxx",
-    "/partnersxxxxxx",
-    "/Shipping/Requestsxxxxxx"
-  ]
+  "MemoryObjects": true
 }

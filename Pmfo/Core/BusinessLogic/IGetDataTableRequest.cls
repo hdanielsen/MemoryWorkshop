@@ -8,10 +8,9 @@
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Ccs.BusinessLogic.IGetDataTableRequest from propath.
 using Ccs.BusinessLogic.INamedQuery from propath.
-using Ccs.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 
 interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
      
@@ -80,6 +79,7 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
     define public property PageBackward        as logical     no-undo  get. set.
     define public property SortExpression      as character   no-undo  get.  
     
-   
+    define public property IsPaging            as logical      no-undo get. 
+    define public property PagingContextEntry  as IQueryEntry no-undo get. set.  
      
 end interface.

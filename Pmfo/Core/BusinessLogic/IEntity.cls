@@ -31,5 +31,6 @@ interface Pmfo.Core.BusinessLogic.IEntity inherits IService, IResource:
     define public property ReadOnly       as logical        no-undo get.  
     define public property CanCreate      as logical        no-undo get.  
     define public property CanDelete      as logical        no-undo get.  
+    define public property ClientOnly     as logical        no-undo get.
      
 end interface.

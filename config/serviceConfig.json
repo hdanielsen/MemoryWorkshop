@@ -2,6 +2,6 @@
   "EntityDirectory": "Business",
   "DataSourceDirectory": "DataSource",
   "DataAccessDirectory": "DataAccess",
-  "CodeTableSourceName": "DataSource.ChoiceDS",
+  "CodeTableSourceName": "",
   "CheckForNewResources": true
 }

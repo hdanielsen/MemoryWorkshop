@@ -29,6 +29,8 @@ using Ccs.Common.Application from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
 using OpenEdge.Core.Assert from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Public         as logical   no-undo get. protected set.
@@ -38,7 +40,10 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     define public property CanCreate      as logical       no-undo get.
     define public property CanDelete      as logical       no-undo get.
     define public property Datasets       as handle extent no-undo get. protected set.
-   
+    
+    define public property ClientOnly     as logical        no-undo get. protected set.
+    
+    
     define protected property Initialized as logical no-undo get. set. 
     
     define protected property DefaultDataset as handle no-undo 
@@ -132,7 +137,9 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             AssertDatasetName(DefaultDataset).    
     end constructor.
     
-    
+    method protected void ReceiveBuffer( pParent as IBusinessEntity, pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
+    end method.
+     
     method protected void AssertDatasetName(phDataset as handle):
         define variable i as integer no-undo.
         /* The dataset:serialize-name is exposed as resource name, to be used in 
@@ -175,6 +182,40 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
         AssertInitialized().    
     end method.    
+    
+    method public logical GetData(  output table-handle phTable):
+        define variable hNewDataset     as handle no-undo.
+           
+        if DefaultDataset:num-top-buffers > 1 then 
+            undo, throw new IllegalArgumentError(subst("Request to GetData(output table-handle) in Resource &1 that has more than one top buffer in the default dataset",Resource)).
+         
+        if valid-handle(phTable) = false 
+        or phTable = DefaultDataset:get-top-buffer (1):table-handle then
+        do: 
+            GetData(output dataset-handle DefaultDataset by-reference).
+            if not valid-handle(phTable) then 
+                phTable = DefaultDataset:get-top-buffer (1):table-handle.
+        end.    
+        else do:    
+            if phTable:serialize-name = Resource
+            or phTable:name = DefaultDataset:get-top-buffer (1):table-handle:name then
+            do on error undo, throw: 
+                create dataset hNewDataset.
+                hNewDataset:serialize-name = Resource.
+                hNewDataset:add-buffer(phTable:default-buffer-handle).
+                GetData(output dataset-handle hNewDataset by-reference).
+                finally:
+                    if valid-handle(hNewDataset) then 
+                         delete object hNewDataset.    
+                end finally.
+            end.
+            else
+                undo, throw new IllegalArgumentError(subst("Request to GetData(output table-handle &1) in Resource '&2'",phTable:name, Resource)).
+       
+        end.
+        return true. //  we throw error for all unsupported cases    
+        
+    end method.     
     
     method public int64 Count().
         AssertInitialized().    

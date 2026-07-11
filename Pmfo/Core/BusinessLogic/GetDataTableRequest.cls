@@ -63,7 +63,12 @@ class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableReques
     define public property Count           as logical no-undo  get. set.
     define public property PageBackward    as logical no-undo  get. set.
     define public property ExternalPaging  as logical no-undo  get. set.
-    
+      // convenience to check if paging
+    define public property IsPaging as logical no-undo
+         get(): 
+             return NumRecords > 0 or this-object:Skip > 0 or valid-object(PagingContextEntry). 
+         end. 
+         
     // set to true by DataRequestBuilder so the server can identify where to support innerjoin  
     define public property IsMainTable    as logical no-undo  get. set.
     
@@ -72,6 +77,8 @@ class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableReques
          
     // derrived from expands with option innerjoin=true - stored with table name
     define public property InnerJoinExpands as character no-undo  get. set.
+     /* Returns   paging context */
+   
     
     // derrived from apply with qualified aggregate options  
     define public property InnerJoinAggregates as character   no-undo  get. set. 
@@ -93,13 +100,7 @@ class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableReques
             cQuery = cQuery + " " + QueryDefinition:ToString().
         return cQuery. 
     end.     
-    
-    // convenience to check if paging
-    define public property IsPaging as logical 
-         get(): 
-             return NumRecords > 0 or this-object:Skip > 0 or valid-object(PagingContextEntry). 
-         end. 
-         
+   
     define public property SortExpression     as character   no-undo  
          get():
              define variable i as integer no-undo.

@@ -2,19 +2,19 @@
   "ManagerMapping": [
     {
       "Manager": "Ccs.Common.IServiceManager",
-      "Implementation": "Core.Manager.ServiceManager"
+      "Implementation": "Pmfo.Core.Manager.ServiceManager"
     },
     {
       "Manager": "Ccs.Common.ISessionManager",
-      "Implementation": "Core.Manager.SessionManager"
+      "Implementation": "Pmfo.Core.Manager.SessionManager"
     }, 
     {
       "Manager": "Pmfo.Core.Manager.IIdentityManager",
-      "Implementation": "Core.Manager.IdentityManager"
+      "Implementation": "Pmfo.Core.Manager.IdentityManager"
     },
     {
-      "Manager": "Core.Manager.ILoggingManager",
-      "Implementation": "Core.Manager.LoggingManager"
+      "Manager": "Pmfo.Core.Manager.ILoggingManager",
+      "Implementation": "Pmfo.Core.Manager.LoggingManager"
     }
   ]
 }
