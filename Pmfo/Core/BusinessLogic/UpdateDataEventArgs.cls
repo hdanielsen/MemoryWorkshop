@@ -15,7 +15,6 @@ using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataEventArgs from propath.
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.Error.IllegalArgumentError from propath.
-using Pmfo.Core.BusinessLogic.Delegate.IBusinessEntityDelegator from propath.
 
 class Pmfo.Core.BusinessLogic.UpdateDataEventArgs implements IUpdateDataEventArgs:
     define public property Request          as IUpdateDataRequest  no-undo get. protected set.
@@ -45,9 +44,9 @@ class Pmfo.Core.BusinessLogic.UpdateDataEventArgs implements IUpdateDataEventArg
         Owner = pOwner. 
     end constructor.
     
-    constructor public UpdateDataEventArgs(pOwner as IBusinessEntityDelegator, pRequest as IUpdateDataRequest, phbuffer as handle):
-        this-object(cast(pOwner,IBusinessEntity),pRequest,phBuffer).
-    end constructor.
-    
-        
+/*    constructor public UpdateDataEventArgs(pOwner as IBusinessEntityDelegator, pRequest as IUpdateDataRequest, phbuffer as handle):*/
+/*        this-object(cast(pOwner,IBusinessEntity),pRequest,phBuffer).                                                               */
+/*    end constructor.                                                                                                               */
+/*                                                                                                                                   */
+/*                                                                                                                                   */
 end class.
