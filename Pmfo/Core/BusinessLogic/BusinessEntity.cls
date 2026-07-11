@@ -24,6 +24,12 @@ using Pmfo.Core.Error.NotFoundError from propath.
 using Pmfo.Core.BusinessLogic.UpdateDataRequest from propath.
 using Pmfo.Core.Error.IllegalArgumentError from propath.
 using Pmfo.Core.Common.DataService from propath.
+using Pmfo.Core.Error.IllegalStateError from propath.
+using Pmfo.Core.DataLayer.IDataAccess from propath.
+using Ccs.Common.Application from propath.
+using Pmfo.Core.Manager.IServiceManager from propath.
+using OpenEdge.Core.Assert from propath.
+using Pmfo.Core.Error.IllegalOperationError from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Public         as logical   no-undo get. protected set.
@@ -32,7 +38,17 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     define public property ReadOnly       as logical       no-undo get.  
     define public property CanCreate      as logical       no-undo get.
     define public property CanDelete      as logical       no-undo get.
-    define public property Datasets       as handle extent no-undo get.
+    define public property Datasets       as handle extent no-undo get. protected set.
+   
+    define protected property Initialized as logical no-undo get. set. 
+    
+    define protected property DefaultDataset as handle no-undo 
+        get():
+            if extent(Datasets) <> ? then
+                return Datasets[1].
+            return ?.    
+        end. 
+        protected set.
     
     // avoid memory leak by keeping only one requested dynamic dataset (set in GetRequestDataset) 
     // and deleting previous and providing a handle for the destructor to delete when done   
@@ -41,37 +57,151 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             if valid-handle(RequestDatasetHandle) and RequestDatasetHandle:dynamic and RequestDatasetHandle <> ph then
                 delete object RequestDatasetHandle no-error.
             RequestDatasetHandle = ph.
-        end.
-     
+        end.     
     
-    method public void getDataset (output dataset-handle phDataset).
+    define protected property DataAccess as IDataAccess no-undo 
+        get():
+            if not valid-object(DataAccess) then 
+                DataAccess = CreateDataAccess().
+            return DataAccess.     
+        end.     
+        set.
+    
+    
+     /*--------------------------------------------------------------------------
+     Purpose: Constructor for entities with one dataset with one top buffer
+              Pass the buffer, temp-table or dataset as handle 
+     Notes:  A single top buffer defines the resource name 
+             if more than one top buffer the dataset serialize-name is used 
+    --------------------------------------------------------------------------*/
+    
+    constructor public BusinessEntity ( phHandle as handle ):
+        define variable iNumTop  as integer no-undo.
+        define variable lAsserted as logical no-undo.
+        define variable cMsg      as character no-undo 
+            init "Handle passed to BusinessEntity Constructor".
+        
+        super ().
+        Assert:NotNull(phHandle,cMsg).
+        extent(Datasets) = 1.
+        case phHandle:type:
+            when "buffer" then 
+            do:
+                create dataset DataSets[1].
+                DataSets[1]:name = "ds" + substr(phHandle:table-handle:name,2).
+                /* for single top -table we keep the public names the same */
+                DataSets[1]:serialize-name = phHandle:serialize-name.
+                DataSets[1]:add-buffer(phHandle).
+            end. // buffer
+            when "temp-table" then 
+            do:
+                create dataset DataSets[1].
+                DataSets[1]:name = "ds" + substr(phHandle:name,2).
+                /* for single top-table we keep the public names the same */
+                DataSets[1]:serialize-name = phHandle:serialize-name.
+                DataSets[1]:add-buffer(phHandle:default-buffer-handle).
+            end. // temp-table   
+            when "dataset" then 
+            do:  
+                iNumTop = DatasetUtil:GetNumTopBuffers(phHandle).          
+                if iNumTop > 1  then
+                do:
+                    if phHandle:serialize-name <> phHandle:name then 
+                    do:
+                        AssertDatasetName(phHandle).
+                        lAsserted = true.
+                    end.    
+                    else 
+                        undo, throw new IllegalArgumentError(subst("Constructor without only dataset parameter used with dataset with more than one top buffer and no serialize-name in '&1",this-object:GetClass():TypeName)).
+                end.    
+                /* for single top-table the public names should be the same 
+                   if the serialize-name is not specified just set it 
+                   - the AssertDatasetName will throw error if a different serialize-name was specified 
+                */
+                if iNumTop = 1 and phHandle:serialize-name = phHandle:name then 
+                do:
+                    phHandle:serialize-name = DatasetUtil:GetTopBuffer(phHandle,1):serialize-name.
+                end.    
+                DataSets[1] = phHandle.
+            end. //dataset
+            otherwise do:
+                undo, throw new IllegalArgumentError(Cmsg + " must be buffer, temp-table or dataset").
+            end.     
+        end case.
+        Resource = DataSets[1]:serialize-name. 
+        if not lAsserted then 
+            AssertDatasetName(DefaultDataset).    
+    end constructor.
+    
+    
+    method protected void AssertDatasetName(phDataset as handle):
+        define variable i as integer no-undo.
+        /* The dataset:serialize-name is exposed as resource name, to be used in 
+           the url to locate this business entity. 
+           For cases where the dataset has more than one top level we use 
+           the resource name as the table in GetDataTableRequest as a request 
+           for all top level tables. This ensures that the data service never need 
+           to know the exact schema to build a request. (Most ABL Data services 
+           either caches the schema or requires a getDataset call to build the
+           request or they delegate the request building to tht entity )    
+           So to manage ambiguity between dataset and buffer in the table request 
+           management with the ability to support direct requests for the top 
+           single buffer serialize-name in the url (most requests)
+           and also support using resouce name to retriece all top level 
+           tables for rare cases with more than one top level table the following 
+           rules are enforced (to everyones benefit...) 
+           */  
+        if DatasetUtil:GetNumTopBuffers(phDataset) = 1  then do:
+            if phDataset:serialize-name <> DatasetUtil:GetTopBuffer(phDataset,1):serialize-name then
+                undo, throw new IllegalOperationError(subst('The dataset and the single top table "&1" must have the same serialize-name in order to expose the top table as the entity~'s Resource',phDataset:get-top-buffer (1):name)).
+        end.
+        else do i = 1 to phDataset:num-top-buffers:
+            if phDataset:serialize-name = phDataset:get-top-buffer (i):serialize-name then
+                undo, throw new IllegalOperationError(subst("Datasets[&1] &2 must have a different serialize-name than the top table serialize-name '&3'",i,phDataset:name,phDataset:get-top-buffer (i):serialize-name)).
+        end.
+    end method.     
+    
+    
+    method public void GetDataset (output dataset-handle phDataset).
     end method.    
     
     method public void GetData():    
+        AssertInitialized().    
     end method.    
     
     method public IGetDataResponse GetData( output dataset-handle phDataset ).
+        AssertInitialized().    
     end method.    
     
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
+        AssertInitialized().    
     end method.    
     
     method public int64 Count().
+        AssertInitialized().    
     end method.    
     
     method public Object UpdateData (input-output dataset-handle phDataset,poUpdateDataRequest as IUpdateDataRequest).     
+        AssertInitialized().    
     end method.    
     
     method public Object UpdateData(input-output dataset-handle phDataset).
+        AssertInitialized().    
     end method.    
      
     method public void Clear().
+        AssertInitialized().    
     end method.    
     
-    method public abstract override void Initialize().
+    method public override void Initialize():
+        Initialized = true. 
+    end method.    
    
     method public override void Dispose(). // IService
         Destroy().
+    end method.    
+    
+    method public override void Destroy().  
     end method.    
     
     method public handle GetRequestDataset(pClientRequest as IClientRequest):
@@ -96,6 +226,10 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     end method.    
     
+    method protected IDataAccess CreateDataAccess():
+        return cast(Application:ServiceManager,IServiceManager):CreateDataAccess(Resource).
+    end method.
+    
     
     // default update request for dataset 
     method protected IUpdateDataRequest CreateUpdateDataRequest(phDataset as handle):
@@ -114,5 +248,8 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         return CommitScopeEnum:All.
     end method.
     
-    
+    method protected void AssertInitialized():
+        if not Initialized then 
+            undo, throw new IllegalStateError(substitute("&1 is not initilized. Cannot execute data operation. Make sure Initialize override calls super",Resource)). 
+    end method.    
 end class.

@@ -35,7 +35,6 @@ using Pmfo.Core.Manager.IServiceManager from propath.
 using Pmfo.Repository.DataAccess.ResourceDA from propath.
 using Progress.Lang.Object from propath.
 using Pmfo.Repository.Error.CorruptResourcesError from propath.
-using Pmfo.Core.Common.WarningMessages from propath.
 using Pmfo.Util.StringUtil from propath.
 
 class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity: 
@@ -74,7 +73,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
     end.     
     
     method public void RefreshData():
-        define variable oGetDataRequest       as Pmfo.Core.BusinessLogic.IGetDataRequest no-undo.
+        define variable oGetDataRequest       as IGetDataRequest no-undo.
         define variable oGetDataTableRequests as IGetDataTableRequest extent no-undo.
         define variable i                     as integer no-undo.
         define variable hDataset              as handle no-undo.
@@ -85,7 +84,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
             oGetDataTableRequests[i] = new GetDataTableRequest(hDataset:get-buffer-handle(i):table-handle:name).
         end.    
         oGetDataRequest = new GetDataRequest(oGetDataTableRequests).
-        cast(oGetDataRequest,GetDataRequest):NamedQuery = new NamedQuery("Refresh"). // Tell ResourceDA that this is a refresh 
+        oGetDataRequest:NamedQuery = new NamedQuery("Refresh"). // Tell ResourceDA that this is a refresh 
         do on error undo, throw:
             cast(this-object:DataAccess,ResourceDA):FetchData(oGetDataRequest, input-output dataset-handle hDataset by-reference).  
             LastGetTime = now.
@@ -122,7 +121,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         hDataSourceErrorTable = hDataset:get-buffer-handle("ttDataSourceError"):table-handle.
         // fetch all lookup types from the lookup table  
         FetchLookupTypes(output table-handle hLookupTypeTable ).
-        WarningMessages = new WarningMessages(hdataset). 
+      //  WarningMessages = new WarningMessages(hdataset). 
         // Add datasourced of type "CodeTable" from Lookuptypes and type "Table" using DataAdminService  
         AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hLookupTypeTable by-reference, input table-handle hDataSourceErrorTable by-reference).
         // save to resources.json
@@ -349,7 +348,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         define variable hWarning as handle no-undo.
         define variable hDummy as handle no-undo.
         define variable oDummy   as IUpdateDataRequest no-undo.  // pick the right overload (this has been fixed in ResourceDA, but keep )
-        return this-object:DataAccess:SubmitData(oDummy, input-output dataset-handle phDataset, input dataset-handle hDummy, output table-handle hWarning).
+        return this-object:DataAccess:SubmitData(oDummy, input-output dataset-handle phDataset).
     end method.
     
     // this is specialized to build the request from time stamp info in the DataAccess
@@ -408,11 +407,11 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         return oResponse.
     end method.
     
-  //  method override void initialize():
+  /*  method override void initialize(): */
 /*        if cast(Application:ServiceManager,ServiceManager):CodeTableKeyType = "integer" then*/
 /*            buffer ttDataSource:buffer-field("typecode"):serialize-hidden = true.           */
 /*        else                                                                                */
 /*            buffer ttDataSource:buffer-field("typekey"):serialize-hidden = true.            */
-  //  end method.    
+/*    end method.  */    
     
 end class.

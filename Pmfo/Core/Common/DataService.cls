@@ -28,7 +28,7 @@ class Pmfo.Core.Common.DataService abstract implements IDataService :
         
 	end constructor.
     
-    method public void dispose(  ).
+    method public void Dispose(  ).
         Destroy().
     end.
     

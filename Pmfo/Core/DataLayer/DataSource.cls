@@ -19,24 +19,52 @@ using OpenEdge.Core.Collections.IIterator from propath.
 using Pmfo.Util.StringUtil from propath.
 using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Core.DataLayer.DbQuery from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
 
 block-level on error undo, throw.
 
 class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IUpdateTarget abstract: 
-
-
-
+    
+    define protected property SeqFieldHandle as handle    no-undo get. set.
+    
+    define protected property DataSourceHandle as handle no-undo
+        get. 
+        set.               
+     
+    define protected property UpdateSource   as integer   no-undo 
+        get():
+            define variable i as integer no-undo.
+            if UpdateSource = 0 then
+            do:
+                AssertBufferHandles("Get UpdateSource").
+                do i = 1 to extent(BufferHandles):
+                    if BufferHandle = BufferHandles[i] then
+                    do:
+                        UpdateSource = i.
+                        leave.
+                    end.    
+                end.    
+            end.
+            return UpdateSource.
+        end.     
+        set.
+   
+    define public    property DataBuffer     as handle    no-undo 
+        get. 
+        set(pBuffer as handle):
+            // static SeqFieldName  
+            SeqFieldHandle = pBuffer:buffer-field(BufferUtil:SeqFieldName) no-error.
+            DataBuffer = pBuffer.
+        end. 
+    
+    
     define public property Count as logical no-undo 
-    get.
-    set. 
-
-    define public property DataBuffer as handle no-undo 
     get.
     set. 
 
     define public property EntityName as character no-undo 
     get.
-    set. 
+    
 
     define public property FillErrors as ICollection no-undo 
     get.
@@ -62,6 +90,8 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     get.
     set. 
 
+   
+
     constructor public DataSource ( input phDbBuffer as handle ):
         super (input phDbBuffer).
     end constructor.
@@ -70,6 +100,42 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     constructor protected DataSource ( ):
         super ().
     end constructor.
+    
+    
+     /* override to attach after row event and/or bind the buffer to static def */ 
+    method protected void PrepareBuffer ( input pBuffer as handle):
+        if valid-handle(SeqFieldHandle) then
+            pBuffer:set-callback("After-Row-fill","AfterRow").
+    end method. 
+    
+    /* override to attach after row event and/or bind the buffer to static def */ 
+    method protected void PrepareSaveBuffer ( input pBuffer as handle):
+    end method. 
+    
+    method protected void ThrowFillError(pcMsg as character):
+        ThrowFillError(new ApplicationError(pcMsg)).
+    end method. 
+    
+    method protected void ThrowFillError(pError as Error):
+        // add to collection so that DataAccess:Fill can find it
+        FillErrors:Add(pError).
+        // throw so that Fill returns false (also written to log)
+        undo, throw pError.  
+    end method. 
+    
+    
+    
+    method override protected void CreateQuery():
+    
+        super:CreateQuery().
+        if valid-object(DataSourcehandle) then
+            delete object DataSourcehandle. 
+            
+        create data-source DataSourcehandle.
+       
+        DataSourceHandle:query = QueryHandle.
+    end method.   
+    
     
     
     method public void AfterRow( input DATASET-HANDLE phDataset ):

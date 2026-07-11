@@ -46,6 +46,8 @@ interface Pmfo.Core.Manager.IServiceManager inherits IServiceManager:
     method public IEntity CreateEntity (pcName as char).   
     method public IBusinessEntity CreateBusinessEntity (pcName as char).   
     
+    method public logical CanFindDataSource( input pcName as character ).
+    
     method public character extent GetKeys(input pcName as character).
     method public character GetKeyList(input pcName as character).
     

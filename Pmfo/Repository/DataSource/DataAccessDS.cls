@@ -54,16 +54,13 @@ class Pmfo.Repository.DataSource.DataAccessDS inherits ResourceSource:
                 .    
          
             if type-of(oResource,IDataAccess) then
-                 ttDataAccess.TypeName = get-class(IDataAccess):TypeName.
+                ttDataAccess.TypeName = get-class(IDataAccess):TypeName.
             else if type-of(oResource,IServiceDataAccess) then 
             do:
-                 ttDataAccess.TypeName = get-class(IServiceDataAccess):TypeName.
-                 cLegacyName = cast(oResource,IServiceDataAccess):LegacyName.
-                 if cLegacyName > "" then
-                     ttDataAccess.LegacyName = cLegacyName. 
+                ttDataAccess.TypeName = get-class(IServiceDataAccess):TypeName.
             end.
             else
-                 ttDataAccess.TypeName = get-class(IDataAccessResource):TypeName.     
+                ttDataAccess.TypeName = get-class(IDataAccessResource):TypeName.     
             catch e1 as ApplicationError:
                 undo, throw e1.
             end catch.        

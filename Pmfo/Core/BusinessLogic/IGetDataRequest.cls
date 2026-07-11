@@ -10,6 +10,7 @@
   ----------------------------------------------------------------------*/
  
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Ccs.BusinessLogic.INamedQuery from propath.
 
 interface Pmfo.Core.BusinessLogic.IGetDataRequest:  
     define public property MainRequestedBuffer as character no-undo get. set. 
@@ -23,6 +24,8 @@ interface Pmfo.Core.BusinessLogic.IGetDataRequest:
     
     define public property TableRequests       as  IGetDataTableRequest extent no-undo
         get.
+    
+    define public property NamedQuery as INamedQuery no-undo get. set.
     
     method public IGetDataTableRequest GetTableRequest(pName   as character).
     method public IGetDataTableRequest GetTableRequest(pHandle as handle).

@@ -17,6 +17,7 @@ using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Util.Array from propath.
 using Progress.Lang.Object from propath.
+using Ccs.BusinessLogic.INamedQuery from propath.
  
 
 class Pmfo.Core.BusinessLogic.GetDataRequest  implements IGetDataRequest: 
@@ -31,13 +32,19 @@ class Pmfo.Core.BusinessLogic.GetDataRequest  implements IGetDataRequest:
     // in addition to the change filter and use paging advice 
     define public property Timeout             as integer  no-undo get. set.
     define public property NoError             as logical  no-undo get. set.
-  
+    
+    define public property NamedQuery as INamedQuery no-undo  get. set.
      
     /* Default constructor */
     constructor public GetDataRequest (  ):
         super ().
     end constructor.
-
+    
+    /* Default constructor */
+    constructor public GetDataRequest (pNamedQuery as INamedQuery):
+        this-object().
+        NamedQuery = pNamedQuery.
+    end constructor.
     
     constructor public GetDataRequest(input pRequest as IGetDataTableRequest):
         this-object(cast(Array:ToArray(pRequest),IGetDataTableRequest)).
