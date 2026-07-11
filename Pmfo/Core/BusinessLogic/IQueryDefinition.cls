@@ -3,7 +3,6 @@
     Purpose     : Interface that describes an abstract query definition
     Syntax      :
     Description :
-    Created     : Mon Jun 06 21:30:03 CEST 2016
     Notes       :
   ----------------------------------------------------------------------*/
 

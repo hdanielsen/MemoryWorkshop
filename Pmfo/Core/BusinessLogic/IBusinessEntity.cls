@@ -5,7 +5,6 @@
     Syntax      . 
     Description .
     Author(s)   . hdaniels
-    Created     . Mon Feb 11 00.17.18 EST 2019
     Notes       . 
   ----------------------------------------------------------------------*/
  

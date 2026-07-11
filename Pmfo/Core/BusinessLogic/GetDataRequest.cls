@@ -4,7 +4,6 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Mon Apr 01 15:59:51 EDT 2019
     Notes       : Override in order to add GetTableRequest
   ----------------------------------------------------------------------*/
 

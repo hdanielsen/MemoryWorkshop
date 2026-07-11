@@ -5,7 +5,6 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Wed Apr 03 08:05:39 EDT 2019
     Notes       : Does not inherit OpenEdge.BusinessLogic.QuerySortEntry since we need public accessor to fieldname
   ----------------------------------------------------------------------*/
 

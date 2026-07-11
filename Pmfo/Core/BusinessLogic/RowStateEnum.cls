@@ -5,7 +5,6 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Thu Apr 23 20:37:08 EDT 2020
     Notes       : The numbers are mapped to row-state since the known 
                   use case is an extension of row-state.  
   ----------------------------------------------------------------------*/

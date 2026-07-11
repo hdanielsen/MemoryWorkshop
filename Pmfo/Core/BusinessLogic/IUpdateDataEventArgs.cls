@@ -5,7 +5,6 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Fir Sep 27 12:33 2019
     Notes       : There is only one property, but we use the args 
                   event pattern to allow this to be extended without
                   changing the event signature 

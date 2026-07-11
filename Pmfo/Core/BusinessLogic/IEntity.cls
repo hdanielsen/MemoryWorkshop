@@ -16,14 +16,11 @@
                   initialized, so those can possibly be changed in initialize
                   (in the future). 
     Author(s)   : hdaniels
-    Created     : Mon May 27 08:25:42 EDT 2019
-    Last Comment: Aug 24 2020 - The ClientOnly behavior is under constant
-                  improvement and refinement (See also ClientBusinessEntity)   
-    Notes       : The implementation will typically ensure that most of these 
+    Notes       : The implementation should typically ensure that most of these 
                   only can be set from constructor.
                   These restriction can be lifted, but with utter care
-                  The public property should always be constructor set only
-                  or read-only 
+                  These public properties should ideally always be constructor 
+                  set only or read-only 
   ----------------------------------------------------------------------*/
 
 using Ccs.Common.IService from propath.
