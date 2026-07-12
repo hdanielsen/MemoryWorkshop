@@ -1,6 +1,11 @@
 {"publicNames": {
   "entityNames": [
-      ],
+    {
+      "category": "Table",
+      "name": "purchaseOrderLines",
+      "sourceName": "POLine"
+    }
+  ],
   "propertyNames": [
       ]
 }}

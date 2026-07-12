@@ -23,7 +23,9 @@ interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.
     
     method public void GetData():    
     method public IGetDataResponse GetData( output dataset-handle phDataset ).
+    
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
+    
     method public logical GetData(  output table-handle phTable).
     method public int64 Count().
     

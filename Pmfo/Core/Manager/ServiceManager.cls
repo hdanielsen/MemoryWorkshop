@@ -228,7 +228,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             do:
                 if EntityRequestTypeEnum:Update:Equals(pEntityRequestType) = false and EntityRequestTypeEnum:Action:Equals(pEntityRequestType) = false then
                 do:
-                    oEntity = new ResourceBE().
+                    oEntity = new ResourceBE(). // bootstrap - do not use createEntoty... 
                     oEntity:initialize().
                     return oEntity.
                 end.

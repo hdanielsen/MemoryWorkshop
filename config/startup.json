@@ -9,10 +9,6 @@
       "Implementation": "Pmfo.Core.Manager.SessionManager"
     }, 
     {
-      "Manager": "Pmfo.Core.Manager.IIdentityManager",
-      "Implementation": "Pmfo.Core.Manager.IdentityManager"
-    },
-    {
       "Manager": "Pmfo.Core.Manager.ILoggingManager",
       "Implementation": "Pmfo.Core.Manager.LoggingManager"
     }

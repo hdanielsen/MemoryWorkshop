@@ -11,28 +11,31 @@
  
 block-level on error undo, throw.
 
-using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
-using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
-using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
-using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
-using Progress.Lang.Object from propath.
-using Pmfo.Core.Service.IClientRequest from propath.
 using Ccs.BusinessLogic.CommitScopeEnum from propath.
-using Pmfo.Util.DatasetUtil from propath.
-using Pmfo.Core.Error.NotFoundError from propath.
-using Pmfo.Core.BusinessLogic.UpdateDataRequest from propath.
-using Pmfo.Core.Error.IllegalArgumentError from propath.
-using Pmfo.Core.Common.DataService from propath.
-using Pmfo.Core.Error.IllegalStateError from propath.
-using Pmfo.Core.DataLayer.IDataAccess from propath.
 using Ccs.Common.Application from propath.
-using Pmfo.Core.Manager.IServiceManager from propath.
 using OpenEdge.Core.Assert from propath.
-using Pmfo.Core.Error.IllegalOperationError from propath.
+using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
+using Pmfo.Core.BusinessLogic.GetDataResponse from propath.
+using Pmfo.Core.BusinessLogic.GetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.GetDataTableResponse from propath.
+using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
+using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
+using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
-using Pmfo.Core.BusinessLogic.IReceiveDataEventArgs from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
+using Pmfo.Core.BusinessLogic.UpdateDataRequest from propath.
+using Pmfo.Core.Common.DataService from propath.
+using Pmfo.Core.DataLayer.IDataAccess from propath.
+using Pmfo.Core.Error.IllegalArgumentError from propath.
+using Pmfo.Core.Error.IllegalOperationError from propath.
+using Pmfo.Core.Error.IllegalStateError from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Manager.IServiceManager from propath.
+using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Util.BufferUtil from propath.
+using Pmfo.Util.DatasetUtil from propath.
+using Progress.Lang.Object from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Public         as logical   no-undo get. protected set.
@@ -139,18 +142,32 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             AssertDatasetName(DefaultDataset).    
     end constructor.
     
-     // sub classes can overide this if something must happen before the standard call to Receivebuffer or publish DataReceived
-     // known use cases - all are candidates for better ways to do this -  
-        // - PublicNameBe always loaddata 
-        // - BE that needs to fire DataReceived in children before parent -
-        //      this-object:OnDataReceived(pReceiveDataArgs, phDataset).
-        // - ClientBusinessEntity - has final ReceiveBuffer and Receivebuffer does not have args
-        //   - used for 2 (?) cases that needs to check the IReceiveDataEventArgs to set flag if refresh since it does not handle it
-       
-    method protected void BeforeReceiveData(pReceiveDataArgs as IReceiveDataEventArgs, phDataset  as handle):
+    method protected void BeforeReceiveData(phDataset  as handle):
     end method.
     
-    method protected void ReceiveBuffer( pParent as IBusinessEntity, pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
+    method protected final void ReceiveData(pRequest as IGetDataRequest, pResponse as IGetDataResponse, phDataset as handle):
+        define variable hBuffer as handle no-undo.
+        define variable cTable  as character no-undo.
+        define variable Htable  as handle no-undo.
+         
+        // allow override for BE with no data and buffer - for example PublicNameBe
+                           
+        BeforeReceiveData(phDataset).
+        
+        if valid-handle(phdataset) then
+        do:
+            // the temp-table serialize-name may be an alias so use the table-handle to identify this from the resource
+            hBuffer = DatasetUtil:GetBufferBySerializeName(phDataset, Resource).
+            if valid-handle(hBuffer) then
+            do:
+                hTable = hBuffer:table-handle.
+                cTable = hTable:name.
+                ReceiveBuffer(pRequest:GetTableRequest(cTable),pResponse:GetTableResponse(cTable), hBuffer).
+            end.
+        end.
+    end method.    
+    
+    method protected void ReceiveBuffer( pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
     end method.
      
     method protected void AssertDatasetName(phDataset as handle):
@@ -185,16 +202,69 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.    
     
     method public void GetData():    
-        AssertInitialized().    
+        define variable hDataset as handle no-undo.
+        hdataset = DefaultDataset.
+        GetData(output dataset-handle hdataset by-reference).
     end method.    
     
-    method public IGetDataResponse GetData( output dataset-handle phDataset ).
-        AssertInitialized().    
-    end method.    
+    method public IGetDataResponse GetData(  output dataset-handle phDataset ):
+        define variable oRequest as Pmfo.Core.BusinessLogic.IGetDataRequest no-undo.
+        define variable oResponse as Pmfo.Core.BusinessLogic.IGetDataResponse no-undo. 
+         
+        define variable oTableRequests as Pmfo.Core.BusinessLogic.IGetDataTableRequest extent no-undo.
+        define variable i as integer no-undo.
+        
+        if not valid-handle(phDataset) then
+        do:
+            phdataset = DefaultDataset.
+        end.    
+        extent(oTableRequests) = phDataset:num-buffers.
+        do i = 1 to phDataset:num-buffers:
+            oTableRequests[i] = new GetDataTableRequest(phDataset:get-buffer-handle(i):table-handle:name).
+        end.
+            
+        oRequest = new GetDataRequest(oTableRequests).
+        this-object:Clear().
+        oResponse = GetData(oRequest, output dataset-handle phDataset by-reference).
+     
+     //   if phdataset = DefaultDataset then
+      //      AllDataIsFetched = true.
+        return oResponse.
+    end method. 
     
+        
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
+        define variable oGetResponse         as IGetDataResponse no-undo.
         AssertInitialized().    
+        
+        if ClientOnly = true then 
+            oGetResponse = CreateDataResponse(pRequest). 
+        else
+            oGetResponse = DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
+        
+        ReceiveData(pRequest, oGetResponse, phDataset).
+           
+        return oGetResponse.
+         
+    end method.
+    
+    
+    method public IGetDataResponse CreateDataResponse(poRequest as IGetDataRequest):
+        define variable iTable as integer no-undo.
+        define variable oTableResponses as IGetDataTableResponse extent no-undo.
+        
+        extent(oTableResponses) = extent(poRequest:TableRequests).
+        do iTable = 1 to extent(poRequest:TableRequests):
+            oTableResponses[iTable] = new GetDataTableResponse(poRequest:TableRequests[iTable]:TableName).
+        end.    
+        return new GetDataResponse(oTableResponses).
+    end method.  
+    
+        
+    method public final Object GetData( input poRequest as IGetDataRequest, input dataset-handle phDataset ):
+        undo, throw new NotImplementedError().  
     end method.    
+   
     
     method public logical GetData(  output table-handle phTable):
         define variable hNewDataset     as handle no-undo.
@@ -364,6 +434,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     method protected void AssertInitialized():
         if not Initialized then 
-            undo, throw new IllegalStateError(substitute("&1 is not initilized. Cannot execute data operation. Make sure Initialize override calls super",Resource)). 
+            undo, throw new IllegalStateError(substitute("Resource '&1' Class &2 is not initialized. Cannot execute data operation. Make sure Initialize override calls super",Resource,this-object:GetClass():TypeName)). 
     end method.    
 end class.

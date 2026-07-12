@@ -27,7 +27,7 @@ using Progress.Json.ObjectModel.JsonArray from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Pmfo.Core.Manager.ISessionManager from propath.
 
-class Core.Manager.LoggingManager inherits Manager implements ILoggingManager: 
+class Pmfo.Core.Manager.LoggingManager inherits Manager implements ILoggingManager: 
     
     define public property IsWebRequestLogActive as logical no-undo get. set.
     
@@ -79,7 +79,7 @@ class Core.Manager.LoggingManager inherits Manager implements ILoggingManager:
         if valid-object(oJson) then 
         do:
             IsWebRequestLogActive = oJson:GetLogical("MemoryObjects").
-            LogEveryWebRequest = oJson:GetLogical("LogEveryWebRequest"). 
+         //   LogEveryWebRequest = oJson:GetLogical("LogEveryWebRequest"). 
         end.
         return.
 

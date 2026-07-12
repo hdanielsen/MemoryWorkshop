@@ -65,7 +65,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
        set. 
           
     constructor public ResourceBE (  ):
-        super (dataset dsResources:handle). 
+        super (dataset dsResources:handle).
     end constructor.
     
     method public logical NeedRefresh():

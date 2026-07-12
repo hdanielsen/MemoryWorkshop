@@ -30,7 +30,6 @@ class Pmfo.Core.Error.StackError abstract inherits ApplicationError:
         define variable cClass      as character no-undo.
         define variable cMethod     as character no-undo.
         cFullMethod = program-name(piStack).
-        
         if cFullMethod > "" and num-entries(cFullMethod,StringConstant:SPACE) > 1 then 
         do:
             cFullMethod = subst("&1:&2",entry(2,cFullMethod,StringConstant:SPACE),entry(1,cFullMethod,StringConstant:SPACE)).

@@ -28,7 +28,12 @@ using Pmfo.Core.BusinessLogic.SchemaTypeEnum from propath.
 class Pmfo.Core.Common.NameService implements INameService, ISupportInitialize: 
 
     define private variable PublicNameBE as PublicNameBE no-undo.
-
+    
+    constructor public NameService():
+        message "memoryk NameSercvice consteructor"
+        view-as alert-box.
+    end constructor.   
+    
     /** @TODO the entityName is currentky assigned in ResourceModel:AfterRow use this instead */  
     method public character EntityName(pcName as char):
         define variable lSpacenamelogic as logical no-undo.
