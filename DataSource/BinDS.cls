@@ -1,10 +1,10 @@
 /*------------------------------------------------------------------------------
- File        : DataSource.BenefitsDS
+ File        : DataSource.BinDS
  Purpose     : 
  Syntax      : 
  Description :  
  Author(s)   : Code generator Pmfo.Tools.AppBuilder.CodeGenerator
- Created     : 07/13/2026 07:21:31.621-04:00
+ Created     : 07/13/2026 07:22:00.502-04:00
  Notes       :   
 ------------------------------------------------------------------------------*/
 
@@ -12,17 +12,17 @@ block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
 
-class DataSource.BenefitsDS inherits DataSource:
+class DataSource.BinDS inherits DataSource:
 
-    {schema/benefits.i reference-only}
+    {schema/bin.i reference-only}
 
-    define public override property EntityName as character init "benefits" no-undo get.
+    define public override property EntityName as character init "bins" no-undo get.
 
-    constructor BenefitsDS():
-        super(buffer Benefits:handle).
+    constructor BinDS():
+        super(buffer Bin:handle).
     end constructor.
 
-    method protected void Bind( input table ttBenefits bind):
+    method protected void Bind( input table ttBin bind):
     end method.
 
     method override protected void PrepareBuffer( input pBuffer as handle ):

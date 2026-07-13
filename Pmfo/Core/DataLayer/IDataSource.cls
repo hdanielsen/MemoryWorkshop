@@ -9,14 +9,13 @@
   ----------------------------------------------------------------------*/ 
 
 using OpenEdge.Core.Collections.ICollection from propath.
-using OpenEdge.Core.Collections.IList from propath.
-using Pmfo.Core.DataLayer.IDbQuery from propath.
-using Pmfo.Core.DataLayer.IUpdateTarget from propath.
-using Pmfo.Core.Common.IResource from propath.
 using OpenEdge.Core.ISupportInitialize from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.Common.IResource from propath.
+using Pmfo.Core.DataLayer.IDataSourceMap from propath.
+using Pmfo.Core.DataLayer.IDbQuery from propath.
 
-interface Pmfo.Core.DataLayer.IDataSource inherits IDbQuery, IResource, ISupportInitialize:  
+interface Pmfo.Core.DataLayer.IDataSource inherits IDbQuery, IResource,  IDataSourceMap,ISupportInitialize:  
     /* Public name used to start the Source in the ServiceNanager
        (Stored in resources.json and defined as primary key in the temp-table
         that reads this) 

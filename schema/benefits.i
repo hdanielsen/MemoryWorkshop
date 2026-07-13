@@ -4,7 +4,7 @@
  Syntax      : 
  Description :  
  Author(s)   : Code generator Pmfo.Tools.AppBuilder.CodeGenerator
- Created     : 07/12/2026 07:10:08.320-04:00
+ Created     : 07/13/2026 07:21:31.585-04:00
  Notes       : Mapped to database sports2020 table Benefits  
 ------------------------------------------------------------------------------*/
 define temp-table ttBenefits no-undo serialize-name "benefits" {1}  before-table biBenefits

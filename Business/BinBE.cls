@@ -1,10 +1,10 @@
 /*------------------------------------------------------------------------------
- File        : Business.BenefitsBE
+ File        : Business.BinBE
  Purpose     : 
  Syntax      : 
  Description :  
  Author(s)   : Code generator Pmfo.Tools.AppBuilder.CodeGenerator
- Created     : 07/13/2026 07:21:31.639-04:00
+ Created     : 07/13/2026 07:22:00.525-04:00
  Notes       :   
 ------------------------------------------------------------------------------*/
 
@@ -12,14 +12,14 @@ block-level on error undo, throw.
 
 using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 
-class Business.BenefitsBE inherits BusinessEntity:
+class Business.BinBE inherits BusinessEntity:
 
-    {schema/benefits.i}
+    {schema/bin.i}
 
-    define dataset dsBenefits for ttBenefits.
+    define dataset dsBin for ttBin.
 
-    constructor BenefitsBE():
-        super(dataset dsBenefits:handle).
+    constructor BinBE():
+        super(dataset dsBin:handle).
     end constructor.
 
 end class.
