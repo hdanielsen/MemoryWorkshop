@@ -11,7 +11,6 @@ block-level on error undo, throw.
 
 using Ccs.Common.IService from propath.
 using Ccs.ServiceManager.ILifecycleScope from propath.
-using OpenEdge.BusinessLogic.NamedQuery from propath.
 using OpenEdge.Core.Assert from propath.
 using OpenEdge.Core.ISupportInitialize from propath.
 using OpenEdge.Core.WidgetHandle from propath.
@@ -22,20 +21,32 @@ using OpenEdge.Web.DataObject.ServiceRegistryImpl from propath.
 using OpenEdge.Web.DataObject.ServiceRegistryLoader from propath.
 using OpenEdge.Web.DataObject.Writer.OperationHandlerRegistry from propath.
 using OpenEdge.Web.SendExceptionError from propath.
+using Pmfo.Core.BusinessLogic.EntityRequestTypeEnum from propath.
+using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
+using Pmfo.Core.BusinessLogic.IEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
+using Pmfo.Core.Common.IMimeTypes from propath.
+using Pmfo.Core.Common.INameService from propath.
 using Pmfo.Core.Common.MimeTypes from propath.
+using Pmfo.Core.Common.NameService from propath.
+using Pmfo.Core.DataLayer.DynamicDataAccess from propath.
+using Pmfo.Core.DataLayer.DynamicDataSource from propath.
 using Pmfo.Core.DataLayer.IDataAccess from propath.
+using Pmfo.Core.DataLayer.IDataAccessResource from propath.
 using Pmfo.Core.DataLayer.IDataSource from propath.
 using Pmfo.Core.DataLayer.IUpdateTarget from propath.
+using Pmfo.Core.DataLayer.Util.HandleDataSourceMap from propath.
+using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Error.IHttpErrorStatus from propath.
-using Pmfo.Core.Error.IllegalArgumentError from propath.
 using Pmfo.Core.Error.NotFoundError from propath.
 using Pmfo.Core.Error.NotImplementedError from propath.
 using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
 using Pmfo.Core.Manager.Manager from propath.
 using Pmfo.Core.Service.BusinessEntityOperationHandler from propath.
+using Pmfo.Core.Service.DataObjectService from propath.
+using Pmfo.Core.Service.JsonEntityWriter from propath.
 using Pmfo.Core.Service.OperationHandlerService from propath.
 using Pmfo.Repository.Business.LookupTypeBE from propath.
 using Pmfo.Repository.Business.PublicNameBE from propath.
@@ -43,29 +54,13 @@ using Pmfo.Repository.Business.ResourceBE from propath.
 using Pmfo.Repository.DataAccess.ResourceDA from propath.
 using Pmfo.Repository.DataSource.DataAccessDS from propath.
 using Pmfo.Repository.DataSource.DataSourceDS from propath.
+using Pmfo.Repository.DataSource.DataSourceErrorDS from propath.
 using Pmfo.Repository.DataSource.EntityDS from propath.
 using Pmfo.Repository.DataSource.LookupTypeDS from propath.
-using Pmfo.Util.StringUtil from propath.
+using Pmfo.Util.Array from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
-using Pmfo.Util.Array from propath.
-using Pmfo.Core.Error.IllegalOperationError from propath.
-using Pmfo.Repository.DataSource.DataSourceErrorDS from propath.
-using Pmfo.Core.BusinessLogic.IEntity from propath.
-using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
-using Pmfo.Core.BusinessLogic.EntityRequestTypeEnum from propath.
-using Pmfo.Core.DataLayer.DynamicDataAccess from propath.
-using Pmfo.Core.DataLayer.DynamicDataSource from propath.
-using Pmfo.Core.Service.DataObjectService from propath.
-using Pmfo.Core.Common.IMimeTypes from propath.
-using Pmfo.Core.Common.INameService from propath.
-using Pmfo.Core.Common.NameService from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
-using Pmfo.Core.DataLayer.Util.HandleDataSourceMap from propath.
-using Pmfo.Core.DataLayer.IDataAccessResource from propath.
-using Pmfo.Core.Service.JsonEntityWriter from propath.
-using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
 
 // There are tow different canFind implementaions. 
 // One that uses can-find and one that uses find sonce can-find is faster we want 

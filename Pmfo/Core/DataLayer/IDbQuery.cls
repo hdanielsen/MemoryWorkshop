@@ -1,7 +1,7 @@
 
 /*------------------------------------------------------------------------
     File        : IDbQuery
-    Purpose     : 
+    Purpose     : core/base database query properties 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels

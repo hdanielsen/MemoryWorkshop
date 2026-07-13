@@ -1,11 +1,12 @@
 
 /*------------------------------------------------------------------------
     File        : IServiceManager
-    Purpose     : 
+    Purpose     : Main factory for classes and services for the application 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Notes       : 
+    Notes       : Extends Ccs with code level methods with Create and more for 
+                  central crud subclasses 
   ----------------------------------------------------------------------*/
 
 using Ccs.Common.IServiceManager from propath.

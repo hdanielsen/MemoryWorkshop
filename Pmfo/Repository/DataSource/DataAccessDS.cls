@@ -1,12 +1,12 @@
  
  /*------------------------------------------------------------------------
-    File        : DataSourceDS
-    Purpose     : 
+    File        : DataAccessDS
+    Purpose     : DataSource for DataAccess implementations. 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
     Created     : Sun Mar 25 EDT 2019
-    Notes       : 
+    Notes       : Used to generate config/resources.json
   ----------------------------------------------------------------------*/
 
 

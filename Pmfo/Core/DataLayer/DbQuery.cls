@@ -4,12 +4,12 @@
 ------------------------------------------------------------------------------*/
 routine-level on error undo, throw.   
  
-using Pmfo.Core.DataLayer.IDbQuery from propath.
-using Pmfo.Core.Error.UnsupportedOperationError from propath.
-using Pmfo.Core.Error.IllegalOperationError from propath.
-using Pmfo.Core.Error.NotImplementedError from propath.
 using OpenEdge.Core.Assert from propath.
+using Pmfo.Core.DataLayer.IDbQuery from propath.
+using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.IllegalStateError from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Error.UnsupportedOperationError from propath.
  
 class Pmfo.Core.DataLayer.DbQuery abstract implements IDbQuery :
    

@@ -1,17 +1,15 @@
 
 /*------------------------------------------------------------------------
     File        : IUpdateTarget
-    Purpose     : 
+    Purpose     : Extends IDataSource for update
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Pmfo.Core.DataLayer.IDataSource from propath.
-using Progress.Lang.ParameterList from propath.
-using Progress.Reflect.Method from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
+using Pmfo.Core.DataLayer.IDataSource from propath.
 
 interface Pmfo.Core.DataLayer.IUpdateTarget inherits IDataSource:  
     define public property OptimisticLockExceptFields as character no-undo get. 

@@ -1,8 +1,9 @@
  
  /*------------------------------------------------------------------------
-    File        : FileIOSource
-    Purpose     : 
+    File        : ResourceSource
+    Purpose     : Base abstract class for data layer crud source code 
     Syntax      : 
+        
     Description : 
     Author(s)   : hdaniels
     Created     : Fri Mar 22 10:58:08 EDT 2019

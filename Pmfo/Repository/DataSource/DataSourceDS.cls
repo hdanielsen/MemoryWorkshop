@@ -1,7 +1,8 @@
  
 /*------------------------------------------------------------------------
    File        : DataSourceDS
-   Purpose     : 
+   Purpose     : Meta - DataSource for DataSource implementations. 
+   
    Syntax      : 
    Description : 
    Author(s)   : hdaniels
