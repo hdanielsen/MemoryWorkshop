@@ -907,22 +907,12 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             undo, throw new IllegalArgumentError(subst("Error when trying to resolve '&1' against data source",pcColumn),e).
         end catch.  
     end method.                   
-    
-    
+        
     /** Convert sort expression column for QueryString 
        (second parse - column already transformed by ColumnSource(pccolumn)  
        implements IDataSourceMap interface used by QueryBuilder map query */ 
     method public IQuerySortEntry extent ColumnSort(pSort as IQuerySortEntry):
         define variable oSort      as IQuerySortEntry extent 1 no-undo.
-        define variable oProxySort as IQuerySortEntry extent no-undo.
-        
-/*        if valid-object(ProxyManager) then              */
-/*        do:                                             */
-/*            oProxySort = ProxyManager:ColumnSort(pSort).*/
-/*            if extent(oProxySort) > 0 then              */
-/*                return oProxySort.                      */
-/*        end.                                            */
-        
         oSort[1] = pSort.
         return oSort.     
     end method.   

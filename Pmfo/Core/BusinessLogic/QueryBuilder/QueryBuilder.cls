@@ -15,6 +15,11 @@ block-level on error undo, throw.
 using Ccs.BusinessLogic.IQuerySortEntry from propath.
 using Ccs.BusinessLogic.JoinEnum from propath.
 using OpenEdge.Core.Assert from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.IQueryGroup from propath.
+using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
 using Pmfo.Core.BusinessLogic.QueryBuilder.QueryEntryBuilder from propath.
 using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchTables from propath.
 using Pmfo.Core.BusinessLogic.QueryBuilder.QueryWalker from propath.
@@ -23,11 +28,6 @@ using Pmfo.Core.Common.ColumnColumnMap from propath.
 using Pmfo.Core.Common.IColumnColumnMap from propath.
 using Pmfo.Core.DataLayer.IDataSourceMap from propath.
 using Pmfo.Util.QueryUtil from propath.
-using Pmfo.Core.BusinessLogic.IQueryGroup from propath.
-using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
-using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
-using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 
 class Pmfo.Core.BusinessLogic.QueryBuilder.QueryBuilder inherits QueryWalker: 
     
