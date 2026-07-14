@@ -11,7 +11,10 @@
                   1 - is this class without message
                   2 - for subclass PasswordExpiredError 
                   3 - for subclass DisabledUserAccountError
-                  4 - crud or action not allowed 
+                  4 - crud or action not allowed
+            NOTE: Use with care. 
+                  It is strongly recommended to NOT expose any details abpout 403 for a users
+                     
   ----------------------------------------------------------------------*/
 
  

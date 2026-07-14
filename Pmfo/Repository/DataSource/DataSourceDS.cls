@@ -7,7 +7,7 @@
    Description : 
    Author(s)   : hdaniels
    Created     : Fri Mar 22 11:57  EDT 2019
-   Notes       : 
+   Notes       : Used to generate config/resources.json
  ----------------------------------------------------------------------*/
 
 

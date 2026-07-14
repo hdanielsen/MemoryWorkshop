@@ -6,26 +6,25 @@
     Description : 
     Author(s)   : hdaniels
     Created     : Fri Mar 22 11:42:02 EDT 2019
-    Notes       : 
+    Notes       : Used to generate config/resources.json
   ----------------------------------------------------------------------*/
 
 
 block-level on error undo, throw.
 
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
+using Pmfo.Core.BusinessLogic.IClientEntity from propath.
 using Pmfo.Core.BusinessLogic.IEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
-using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
+using Pmfo.Core.BusinessLogic.IReceiveDataEventArgs from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataEventArgs from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Manager.ServiceManager from propath.
 using Pmfo.Repository.DataSource.ResourceSource from propath.
 using Progress.Lang.ParameterList from propath.
 using Progress.Reflect.Method from propath.
 using Progress.Reflect.Parameter from propath.
-using Pmfo.Core.BusinessLogic.IUpdateDataEventArgs from propath.
-using Pmfo.Core.BusinessLogic.IClientEntity from propath.
-using Pmfo.Core.BusinessLogic.IReceiveDataEventArgs from propath.
 
 class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource: 
     {Pmfo/Repository/schema/entity.i reference-only}
