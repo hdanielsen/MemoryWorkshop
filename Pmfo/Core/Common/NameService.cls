@@ -30,8 +30,6 @@ class Pmfo.Core.Common.NameService implements INameService, ISupportInitialize:
     define private variable PublicNameBE as PublicNameBE no-undo.
     
     constructor public NameService():
-        message "memoryk NameSercvice consteructor"
-        view-as alert-box.
     end constructor.   
     
     /** @TODO the entityName is currentky assigned in ResourceModel:AfterRow use this instead */  

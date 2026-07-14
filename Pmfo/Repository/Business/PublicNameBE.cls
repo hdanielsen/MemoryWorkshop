@@ -175,8 +175,6 @@ class Pmfo.Repository.Business.PublicNameBE abstract inherits BusinessEntity:
     end method.     
     
     method protected override void BeforeReceiveData(input phDataset as handle ):
-        message "before receive load"
-        view-as alert-box.
         LoadData(). 
     end.
     

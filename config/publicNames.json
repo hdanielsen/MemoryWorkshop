@@ -2,10 +2,34 @@
   "entityNames": [
     {
       "category": "Table",
-      "name": "purchaseOrderLines",
+      "name": "purchaseOrderLine",
       "sourceName": "POLine"
     }
   ],
   "propertyNames": [
-      ]
+    {
+      "sourceName": "POLineStatus",
+      "name": "lineStatus"
+    },
+    {
+      "sourceName": "PONum",
+      "name": "purchaseOrderNum"
+    },
+    {
+      "sourceName": "AMTimeIn",
+      "name": "timeInAM"
+    },
+    {
+      "sourceName": "AMTimeOut",
+      "name": "timeOutAM"
+    },
+    {
+      "sourceName": "PMTimeIn",
+      "name": "timeInPM"
+    },
+    {
+      "sourceName": "PMTimeOut",
+      "name": "timeOutPM"
+    }
+  ]
 }}

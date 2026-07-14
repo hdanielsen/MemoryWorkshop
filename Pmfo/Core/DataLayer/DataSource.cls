@@ -138,8 +138,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     // careful - for datasources that get data from non-db sources  
     constructor protected DataSource ( ):
         super ().
-        message this-object
-        view-as alert-box.
     end constructor.
     
     

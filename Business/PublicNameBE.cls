@@ -17,8 +17,6 @@ using Pmfo.Repository.Business.PublicNameBE from propath.
 class Business.PublicNameBE inherits PublicNameBE: 
     constructor public PublicNameBE (   ):
         super ().
-         message "public name memeory constreuctor"
-        view-as alert-box.
     end constructor.
     
 end class.
