@@ -1,7 +1,7 @@
 
 /*------------------------------------------------------------------------
     File        : sessionstartup.p
-    Purpose     : Start session supers for pas application servers 
+    Purpose     : Start session services for pas application servers 
     Syntax      : Session startup procedure: Core/Startup/sessionstartup.p
     Description :  
     Author(s)   :
@@ -16,7 +16,8 @@ using Pmfo.Core.Manager.ISessionManager from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 
 /* ***************************  Definitions  ************************** */
- 
+define input parameter pcOptions as character no-undo. // mandatory
+
 define variable cStartupErrorTmpl   as character       no-undo
     init "Error during start or initialization of &1: &2". 
 
