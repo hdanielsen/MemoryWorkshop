@@ -86,7 +86,7 @@ class Pmfo.Core.BusinessLogic.ClientBusinessEntity  abstract inherits BusinessEn
     end method.   
       
     // final - the data is to be created in CreateSourceRecords that the ClientDataSource uses to filter and sort if necessary
-    method override final protected void ReceiveBuffer( input pParent as IBusinessEntity, input pRequest as IGetDataTableRequest, input pResponse as IGetDataTableResponse, input phBuffer as handle ):
+    method override final protected void ReceiveBuffer(  input pRequest as IGetDataTableRequest, input pResponse as IGetDataTableResponse, input phBuffer as handle ):
         define variable oService as ClientDataSource no-undo.
         // hook for child data
         BeforeCreateRecords(phBuffer). 

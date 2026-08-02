@@ -482,7 +482,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
           init "Dataset with serialize-name '&1' does not match request '&2'".
       
         Assert:NotNull(phDataSet, "Dataset passed to BuildGetDataRequest").      
-        
         if extent(pClientRequest:collections) = 1 then
         do:
             if phDataset:serialize-name <> pClientRequest:collections[1] then

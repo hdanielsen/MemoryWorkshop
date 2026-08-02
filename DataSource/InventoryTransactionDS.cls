@@ -1,10 +1,10 @@
 /*------------------------------------------------------------------------------
- File        : DataSource.InventoryTransDS
+ File        : DataSource.InventoryTransactionDS
  Purpose     : 
  Syntax      : 
  Description :  
  Author(s)   : Code generator Pmfo.Tools.AppBuilder.CodeGenerator
- Created     : 07/14/2026 06:54:42.690-04:00
+ Created     : 08/02/2026 09:49:42.170-04:00
  Notes       :   
 ------------------------------------------------------------------------------*/
 
@@ -12,17 +12,17 @@ block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
 
-class DataSource.InventoryTransDS inherits DataSource:
+class DataSource.InventoryTransactionDS inherits DataSource:
 
-    {schema/inventoryTrans.i reference-only}
+    {schema/inventoryTransaction.i reference-only}
 
-    define public override property EntityName as character init "inventoryTrans" no-undo get.
+    define public override property EntityName as character init "inventoryTransactions" no-undo get.
 
-    constructor InventoryTransDS():
+    constructor InventoryTransactionDS():
         super(buffer InventoryTrans:handle).
     end constructor.
 
-    method protected void Bind( input table ttInventoryTrans bind):
+    method protected void Bind( input table ttInventoryTransaction bind):
     end method.
 
     method override protected void PrepareBuffer( input pBuffer as handle ):

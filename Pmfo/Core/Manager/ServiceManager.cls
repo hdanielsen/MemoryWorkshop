@@ -107,7 +107,8 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     define public property DataSourceDirectory     as char no-undo get. set.
     define public property DataAccessDirectory     as char no-undo get. set.
     define public property EntityDirectory         as char no-undo get. set.
-    define public property ServiceNames            as char no-undo get. protected set.    
+    // after web in url  
+    define public property ServiceNames            as char no-undo init "api" get. protected set.    
     
     define temp-table ttScopedService no-undo
         // as of current we only have dataset handle, which allows us to use index
@@ -278,6 +279,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         end.
         
         RefreshResources().  
+      
         // expression with valid-object apparently no longer works when not valid in v12 
         // (probably a bug fix as it may have erroneosly resolved to ? in older versions )   
         if valid-object(pClass) then 

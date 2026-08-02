@@ -33,6 +33,7 @@ using Pmfo.Core.Error.OutOfBoundsError from propath.
 using OpenEdge.Core.Collections.StringStringMap from propath.
 using Pmfo.Util.StringUtil from propath.
 using Pmfo.Core.Error.UnsupportedOperationError from propath.
+using Pmfo.Util.ODataUtil from propath.
 
 class Pmfo.Core.Service.ClientRequest abstract implements IClientRequest: 
     /*------------------------------------------------------------------------------
@@ -226,86 +227,7 @@ class Pmfo.Core.Service.ClientRequest abstract implements IClientRequest:
     end.     
     
     method protected void AssignCollectionProperties(pServiceURI as character):
-        /**
-        define variable i                 as integer no-undo.
-        define variable iLeftParenthesis  as integer no-undo.
-        define variable iLeftParenthesis2 as integer no-undo.
-        define variable iRightParenthesis as integer no-undo.
-        define variable cUriSegments      as character extent no-undo.
-       
-        define variable cReplaceQuote     as character no-undo.
-        
-        cUriSegments = Array:Split(trim(pServiceURI,"/"),"/",true). // true ignore delimiter in quotes
-        
-        extent(Collections) = extent(cUriSegments).
-        extent(KeyWheres)  = extent(cUriSegments).
-        do i = 1 to extent(cUriSegments):
-            iLeftParenthesis= index(cUriSegments[i],"(").
-            if iLeftParenthesis > 0  then 
-            do:
-               iRightParenthesis = index(cUriSegments[i],")",iLeftParenthesis). 
-               if iRightParenthesis = 0 then 
-                   undo, throw new BadRequestError(subst("The URI segment '&1' is missing a rigth parenthesis",cUriSegments[i])) .
-              
-               if iRightParenthesis lt length(cUriSegments[i]) then
-               do: 
-                   // if a right parenthesis was found in a wrong spot maks quotes and check again
-                   
-                   // this is a bit paranoid - these should not come from the web/json 
-                   if index(cUriSegments[i],chr(3)) = 0 then 
-                       cReplaceQuote = chr(3).     
-                   else if index(cUriSegments[i],chr(4)) = 0 then 
-                       cReplaceQuote = chr(4).     
-                   else 
-                       undo, throw new UnsupportedOperationError(subst("The URI segment '&1' has unsupported characters",cUriSegments[i])). 
-                   
-                   iRightParenthesis = index(StringUtil:MaskQuotes(cUriSegments[i], cReplaceQuote),")",iLeftParenthesis).
-                   // if still a problem throw error
-                   if iRightParenthesis lt length(cUriSegments[i]) then 
-                   do:
-                       undo, throw new BadRequestError(subst("The URI segment '&1' is invalid. The parenthesis must be at the end of the segment.",cUriSegments[i])) .
-                   end.
-               end. 
-               iLeftParenthesis2  = index(cUriSegments[i],"(",iLeftParenthesis + 1).
-               if iLeftParenthesis2 > 0 and iLeftParenthesis2 lt iRightParenthesis then 
-               do: 
-                   // if a left  parenthesis was found in a wrong spot maks quotes and check again
-                   
-                   // this is a bit paranoid - these should not come from the web/json 
-                   if index(cUriSegments[i],chr(3)) = 0 then 
-                       cReplaceQuote = chr(3).     
-                   else if index(cUriSegments[i],chr(4)) = 0 then 
-                       cReplaceQuote = chr(4).     
-                   else 
-                       undo, throw new UnsupportedOperationError(subst("The URI segment '&1' has unsupported characters",
-                                                                        cUriSegments[i]
-                                                                        )
-                                                                     ). 
-                   iLeftParenthesis2 = index(StringUtil:MaskQuotes(cUriSegments[i], cReplaceQuote),"(",iLeftParenthesis + 1).
-                   // if still a problem thow error
-                   if iLeftParenthesis2 > 0 and iLeftParenthesis2 lt iRightParenthesis then
-                   do: 
-                       undo, throw new BadRequestError(subst("The URI segment for resource '&1' is invalid. A left parenthesis was found in position &2 inside the parenthesized key '(&3)'.",
-                                                             substr(cUriSegments[i],1,iLeftParenthesis - 1),
-                                                             iLeftParenthesis2 - iLeftParenthesis,
-                                                             substr(cUriSegments[i],iLeftParenthesis + 1,length(cUriSegments[i]) - (iLeftParenthesis + 1))
-                                                             )) .
-                   end.   
-               end.
-               
-               KeyWheres[i] = substr(cUriSegments[i],iLeftParenthesis + 1,length(cUriSegments[i]) - (iLeftParenthesis + 1)).
-               
-               // TODO handle quotes in quotes 
-               // note that double qiotes are valid for blank string in actions,functions and keys 
-               // so this caues errors : KeyWheres[i] = replace(KeyWheres[i],"''","~~'").
-               // this is only necessary when we are inside a quote 
-               Collections[i] = substr(cUriSegments[i],1,iLeftParenthesis - 1).
-               
-            end. 
-            else   
-               Collections[i] = cUriSegments[i].
-        end.
-        **/
+        ODataUtil:GetCollectionProperties(pServiceURI,output Collections, output KeyWheres).
     end method. 
     
     method protected void AssertCollections():

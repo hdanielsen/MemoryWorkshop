@@ -299,7 +299,9 @@ class Pmfo.Core.Common.NameService implements INameService, ISupportInitialize:
     end method.
     
     method public void Initialize(  ):
+         
         PublicNameBE = cast(Application:ServiceManager:getService(get-class(IBusinessEntity),"publicNames"),PublicNameBE).
+      
         catch e as SendExceptionError :
             if session:remote = false and valid-object(e:InnerError) then
             do: 

@@ -470,13 +470,11 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable cRelativeRequest as character no-undo.
         define variable cParentContext   as character no-undo.
         define variable iResource        as integer no-undo.
-        define variable oUseBe           as IBusinessEntity no-undo.
+         
         
-         oUSeBe = pRequestedBe. 
-        
-        phDataset = oUseBE:GetRequestDataset(pClientGetRequest).  
+        phDataset = pRequestedBe:GetRequestDataset(pClientGetRequest).  
         pRequest  = CreateQueryRequestBuilder():BuildGetDataRequest(pClientGetRequest,phDataset).
-        return oUseBe.
+        return pRequestedBe.
     end method.  
     
     /* public for unit test - not in interface
@@ -571,7 +569,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         else do:
             oGetDataResponse = oBusinessEntity:GetData(oGetDataRequest,output dataset-handle hDataset by-reference).
             jsonResponse = new JsonObject().
-            hDataset:write-json("JsonObject",jsonResponse,yes).  
+            hDataset:write-json("JsonObject",jsonResponse,yes,?,no,yes).  
             // reset frim response - requeste may change this 
             hRequestedBuffer = ?. 
             

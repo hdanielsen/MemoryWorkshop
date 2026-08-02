@@ -38,18 +38,13 @@ using Pmfo.Util.DatasetUtil from propath.
 using Progress.Lang.Object from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
-    define public property Public         as logical   no-undo get. protected set.
+ //   define public property Public         as logical   no-undo get. protected set.
     define public property Resource       as character no-undo get. protected set.
     
-    define public property ReadOnly       as logical       no-undo get.  
-    define public property CanCreate      as logical       no-undo get.
-    define public property CanDelete      as logical       no-undo get.
+ //   define public property ReadOnly       as logical       no-undo get.  
+ //   define public property CanCreate      as logical       no-undo get.
+ //   define public property CanDelete      as logical       no-undo get.
     define public property Datasets       as handle extent no-undo get. protected set.
-    
-    define public property ClientOnly     as logical        no-undo get. protected set.
-    
-    
-    define protected property Initialized as logical no-undo get. set. 
     
     define protected property DefaultDataset as handle no-undo 
         get():
@@ -58,6 +53,83 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             return ?.    
         end. 
         protected set.
+    
+    define public property Public   as logical init true no-undo 
+        get. 
+        protected set(plPublic as logical):
+            AssertConstructorProperty().
+            Public = plPublic.
+        end.
+        
+    define public property ReadOnly  as logical   no-undo init ?   
+        get().  
+            if ReadOnly = ? then 
+            do: 
+                if valid-handle(DefaultDataset)  
+                and DatasetUtil:GetNumTopBuffers(DefaultDataset) = 1 then
+                    ReadOnly = not valid-handle(DefaultDataset:get-top-buffer(1):table-handle:before-table).
+                else     
+                    ReadOnly = true.
+            end.    
+            return ReadOnly.
+        end get.    
+        protected set(plReadOnly as logical):
+            AssertConstructorProperty().
+            ReadOnly = plReadOnly.
+        end.
+    
+    define public property CanDelete as logical   no-undo init ? 
+        get().
+            if CanDelete = ? then
+                CanDelete = not ReadOnly.
+            return CanDelete.    
+        end get.    
+        protected set(plCanDelete as logical):
+            AssertConstructorProperty().
+            CanDelete = plCanDelete.
+        end.
+    
+    define public property CanCreate as logical   no-undo init ? 
+        get().
+            if CanCreate = ? then
+                CanCreate = not ReadOnly.
+            return CanCreate.    
+        end get.    
+        protected set(plCreate as logical):
+            AssertConstructorProperty().
+            CanCreate = plCreate.
+        end.
+        
+    define public property CanUpdate as logical   no-undo init ? 
+        get().
+            if CanUpdate = ? then
+               return not ReadOnly.
+            return CanUpdate.    
+        end get.    
+        protected set(plCanUpdate as logical):
+            AssertConstructorProperty().
+            CanUpdate = plCanUpdate.
+        end.    
+    
+    // set to false for classes that only supports public update - (quite uncommon)
+    define public property CanRead as logical   no-undo init ? 
+        get().
+            if CanRead = ? then
+               return true.
+            return CanRead.    
+        end get.    
+        protected set(plCanRead as logical):
+            AssertConstructorProperty().
+            CanRead = plCanRead.
+        end.    
+    
+    
+    
+    
+    define public property ClientOnly     as logical        no-undo get. protected set.
+    
+    
+    define protected property Initialized as logical no-undo get. set. 
     
     // avoid memory leak by keeping only one requested dynamic dataset (set in GetRequestDataset) 
     // and deleting previous and providing a handle for the destructor to delete when done   
@@ -329,6 +401,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     method public handle GetRequestDataset(pClientRequest as IClientRequest):
         RequestDatasetHandle = Datasets[1].
+        return RequestDatasetHandle.
     end method.
     
     method public handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).

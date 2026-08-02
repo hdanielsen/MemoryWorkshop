@@ -120,7 +120,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         hDataSourceTable = hDataset:get-buffer-handle("ttDataSource"):table-handle.
         hDataSourceErrorTable = hDataset:get-buffer-handle("ttDataSourceError"):table-handle.
         // fetch all lookup types from the lookup table  
-        FetchLookupTypes(output table-handle hLookupTypeTable ).
+      //  FetchLookupTypes(output table-handle hLookupTypeTable ).
       //  WarningMessages = new WarningMessages(hdataset). 
         // Add datasourced of type "CodeTable" from Lookuptypes and type "Table" using DataAdminService  
         AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hLookupTypeTable by-reference, input table-handle hDataSourceErrorTable by-reference).
@@ -286,11 +286,11 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         define variable oGetDataRequest       as Pmfo.Core.BusinessLogic.IGetDataRequest no-undo.
         define variable oGetDataTableRequest  as IGetDataTableRequest no-undo.
         define variable hDataset as handle no-undo.
-        oBe = cast(Application:ServiceManager,IServiceManager):CreateBusinessEntity("lookupTypes").
-        oGetDataTableRequest = new GetDataTableRequest("ttLookupType").
-        oGetDataRequest = new GetDataRequest(oGetDataTableRequest).
-        oBe:GetData(oGetDataRequest, output dataset-handle hDataset by-reference).  
-        phTable = hDataset:get-buffer-handle(1):table-handle.
+    //    oBe = cast(Application:ServiceManager,IServiceManager):CreateBusinessEntity("lookupTypes").
+     //   oGetDataTableRequest = new GetDataTableRequest("ttLookupType").
+   //     oGetDataRequest = new GetDataRequest(oGetDataTableRequest).
+     //   oBe:GetData(oGetDataRequest, output dataset-handle hDataset by-reference).  
+    //    phTable = hDataset:get-buffer-handle(1):table-handle.
        
         
     end method.

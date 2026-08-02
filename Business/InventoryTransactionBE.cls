@@ -1,10 +1,10 @@
 /*------------------------------------------------------------------------------
- File        : Business.InventoryTransBE
+ File        : Business.InventoryTransactionBE
  Purpose     : 
  Syntax      : 
  Description :  
  Author(s)   : Code generator Pmfo.Tools.AppBuilder.CodeGenerator
- Created     : 07/14/2026 06:54:42.692-04:00
+ Created     : 08/02/2026 09:49:42.188-04:00
  Notes       :   
 ------------------------------------------------------------------------------*/
 
@@ -12,14 +12,14 @@ block-level on error undo, throw.
 
 using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 
-class Business.InventoryTransBE inherits BusinessEntity:
+class Business.InventoryTransactionBE inherits BusinessEntity:
 
-    {schema/inventoryTrans.i}
+    {schema/inventoryTransaction.i}
 
-    define dataset dsInventoryTrans for ttInventoryTrans.
+    define dataset dsInventoryTransaction for ttInventoryTransaction.
 
-    constructor InventoryTransBE():
-        super(dataset dsInventoryTrans:handle).
+    constructor InventoryTransactionBE():
+        super(dataset dsInventoryTransaction:handle).
     end constructor.
 
 end class.

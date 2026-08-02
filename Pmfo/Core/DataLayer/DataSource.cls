@@ -173,13 +173,22 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         DataSourceHandle:query = QueryHandle.
     end method.   
     
-    
-    
-    method public void AfterRow( input DATASET-HANDLE phDataset ):
+    method public void AfterRow(input dataset-handle phDataset):
+        define variable oIterator   as IIterator   no-undo.
+      //  define variable oFieldProxy as IFieldProxy no-undo.
         
-        undo, throw new NotImplementedError( ).
+        RecordCounter = RecordCounter + 1.
+        if valid-handle(SeqFieldHandle) then 
+            SeqFieldHandle:buffer-value = RecordCounter.
 
-    end method.
+        if Count and TotalCount  = ? then
+        do:
+            TotalCount = QueryHandle:num-results.
+        end.
+     //   if valid-object(ProxyManager) then 
+      //      ProxyManager:AfterRow(BufferNames, BufferHandles).
+                
+    end method. 
 
     method public void AfterUpdate( input DATASET-HANDLE phDataset ):
         
@@ -248,9 +257,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     end method.
 
     method public void Initialize(  ):
-        
-        undo, throw new NotImplementedError( ).
-
+       
     end method.
    
     // This is the heart of the datasource   
