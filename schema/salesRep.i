@@ -8,7 +8,6 @@
  Notes       : Mapped to database sports2020 table SalesRep  
 ------------------------------------------------------------------------------*/
 define temp-table ttSalesRep no-undo serialize-name "salesReps" {1}  before-table biSalesRep
-   field MonthQuota                       as integer     serialize-name "monthQuota"
    field Region                           as character   serialize-name "region"
    field RepName                          as character   serialize-name "repName"
    field SalesRep                         as character   serialize-name "salesRep"

@@ -13,7 +13,4 @@ using Ccs.Common.ISessionManager.
 
 interface Pmfo.Core.Manager.ISessionManager inherits ISessionManager:  
     define public property QueryTimeout   as integer   no-undo get. set. 
- 
-    method void Authorize(pcFormUrl as character).
-     
 end interface.

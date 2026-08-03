@@ -180,40 +180,19 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     
     /** create entity methods */
     method public IBusinessEntity CreateBusinessEntity( input pcName as character ):
-        return cast(CreateEntity(pcName,false,false,?,get-class(IBusinessEntity)),IBusinessEntity).    
+        return cast(CreateEntity(pcName,false,false,get-class(IBusinessEntity)),IBusinessEntity).    
     end method.
     
     
     method public IBusinessEntity CreateBusinessEntityForTableRead (pcName as character):
-        return cast(CreateEntity(pcName,false,true,?,get-class(IBusinessEntity)),IBusinessEntity).    
+        return cast(CreateEntity(pcName,false,true,get-class(IBusinessEntity)),IBusinessEntity).    
     end method.
-    
-    
-    method public logical BusinessEntityHasRequestType  (pcName as char, pEntityRequestType as EntityRequestTypeEnum).
-        find ttEntity where ttEntity.Resource = pcname
-                       and ttEntity.Typename = get-class(IBusinessEntity):TypeName no-error. 
-          
-        if avail ttEntity then
-        do: 
-           case pEntityRequestType:
-               when EntityRequestTypeEnum:Update then
-                   return ttEntity.SubscribeUpdate.
-               when EntityRequestTypeEnum:Read then
-                   return ttEntity.SubscribeGet.
-               when EntityRequestTypeEnum:Action then
-                   return ttEntity.SubscribeAction.
-           end.
-        end.
-        else 
-            undo, throw new ApplicationError(subst("Business Entity '&1' does not exist",pcname)). 
-    end method.
-    
    
     method public IEntity CreateEntity( input pcName as character ):
-        return CreateEntity(pcName,false,false,?,?).    
+        return CreateEntity(pcName,false,false,?).    
     end method.
     
-    method protected IEntity CreateEntity( input pcName as character, plOnlyPublic as logical, plSkipInitForTableRead as logical, pEntityRequestType as EntityRequestTypeEnum, pClass as Progress.Lang.Class ):
+    method protected IEntity CreateEntity( input pcName as character, plOnlyPublic as logical, plSkipInitForTableRead as logical, pClass as Progress.Lang.Class ):
         define variable oEntity as IEntity no-undo.
         // cannot manage this with Temp-tables since it is used to populate them 
         // we use the method to allow overrides in subclass 
@@ -222,14 +201,10 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             // NOte that if "resources" ever need to subscribe to receive CreateBusinessEntityForUpdate will need to be changed to handle this  
             if not valid-object(pClass) or get-class(Pmfo.Core.BusinessLogic.IBusinessEntity):Equals(pClass) then
             do:
-                if EntityRequestTypeEnum:Update:Equals(pEntityRequestType) = false and EntityRequestTypeEnum:Action:Equals(pEntityRequestType) = false then
-                do:
-                    oEntity = new ResourceBE(). // bootstrap - do not use createEntoty... 
-                    oEntity:initialize().
-                    return oEntity.
-                end.
-                else
-                    return ?.
+                oEntity = new ResourceBE(). // bootstrap - do not use createEntoty... 
+                oEntity:initialize().
+                return oEntity.
+             
             end.
             else if plOnlyPublic then
                 undo, throw new NotFoundError(subst('Public Entity "&1"',pcName)).  
@@ -237,39 +212,14 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
                 undo, throw new NotFoundError(subst('Entity "&1"',pcName)).  
        
         end.
-        else if pcname = "lookupTypes" then
-        do:
-            // NOte that if "lookupTypes"" ever need to subscribe to receive CreateBusinessEntityForUpdate will need to be changed to handle this
-            if not valid-object(pClass) or get-class(Pmfo.Core.BusinessLogic.IBusinessEntity):Equals(pClass) then
-            do:
-                if EntityRequestTypeEnum:Update:Equals(pEntityRequestType) = false and EntityRequestTypeEnum:Action:Equals(pEntityRequestType) = false then
-                do:
-                    oEntity = CreateLookupTypeBE().
-                    oEntity:initialize().
-                    return oEntity.
-                end.
-                else
-                    return ?.
-            end.
-            else if plOnlyPublic then
-                undo, throw new NotFoundError(subst('Public Entity "&1"',pcName)).
-            else
-                undo, throw new NotFoundError(subst('Entity "&1"',pcName)).
-
-        end.
         else if pcname = "publicNames" then
         do:
             // NOte that if "publicNames" ever need to subscribe to receive CreateBusinessEntityForUpdate will need to be changed to handle this
             if not valid-object(pClass) or get-class(Pmfo.Core.BusinessLogic.IBusinessEntity):Equals(pClass) then
             do:
-                if EntityRequestTypeEnum:Update:Equals(pEntityRequestType) = false and EntityRequestTypeEnum:Action:Equals(pEntityRequestType) = false then
-                do:
-                    oEntity = CreatePublicNameBE().
-                    oEntity:initialize().
-                    return oEntity.
-                end.
-                else
-                    return ?.
+                oEntity = CreatePublicNameBE().
+                oEntity:initialize().
+                return oEntity.
             end.
             else if plOnlyPublic then
                 undo, throw new NotFoundError(subst('Public Entity "&1"',pcName)).
@@ -288,19 +238,6 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         else                     
             find ttEntity where ttEntity.Resource = pcname no-error.
        
-        // if only update return null if no client behavior needed for update (we need to start it also if subscribereceive )
-        if EntityRequestTypeEnum:Update:Equals(pEntityRequestType) and (avail ttEntity = false or (ttEntity.SubscribeUpdate = false and ttEntity.SubscribeReceive = false)) then 
-            return ?. // don't throw error for this
-        
-        // if only action return null if no client behavior needed for action  (we need to start it also if subscribereceive )
-        if EntityRequestTypeEnum:Action:Equals(pEntityRequestType) and (avail ttEntity = false or (ttEntity.SubscribeAction = false and ttEntity.SubscribeReceive = false)) then 
-            return ?. // don't throw error for this
-        
-        // if only RequestOrReceive return null if no client behavior needed for get request or receive of request
-        if EntityRequestTypeEnum:Read:Equals(pEntityRequestType) and (avail ttEntity = false or (ttEntity.SubscribeGet = false and ttEntity.SubscribeReceive = false)) then 
-            return ?. // don't throw error for this
-        
-        
         if not avail ttEntity then
             undo, throw new NotFoundError(subst('Entity "&1"',pcName)).  
         
@@ -310,7 +247,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
        
         oEntity = dynamic-new ttEntity.ClassName ().
         // dynamic must be called from CreateDynamicBusinessEntity and will call initalize after create of table
-        if (plSkipInitForTableRead = false or ttEntity.MustInitializeForTableRead = true) then
+        if plSkipInitForTableRead = false  then
         do:
             if type-of(oEntity,ISupportInitialize) then 
                 cast(oEntity,ISupportInitialize):Initialize().
@@ -325,7 +262,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         return CanFindEntity(input pcName,false,get-class(IBusinessEntity)).
     end method.
     
-    method public logical CanFindBusinessEntity( input pcName as character, output plClientOnly as logical, output plHasReceiveHook as logical ).
+    method public logical CanFindBusinessEntity( input pcName as character, output plClientOnly as logical ).
         if lookup(pcname,"resources") > 0 then
         do: 
             return true.
@@ -342,7 +279,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         if avail ttEntity then 
         do:
             plClientOnly = ttEntity.ClientOnly.
-            plHasReceiveHook = ttEntity.SubscribeReceive.
+         
             return true.
         end.             
         else 
@@ -753,12 +690,12 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             when get-class(IEntity) then
             do:
                 // true only if pubiic
-                return CreateEntity(pcName,true,false,?,?).
+                return CreateEntity(pcName,true,false,?).
             end.
             when get-class(IBusinessEntity) then
             do:
                 // true only if pubiic
-                return CreateEntity(pcName,true,false,?,get-class(IBusinessEntity)).
+                return CreateEntity(pcName,true,false,get-class(IBusinessEntity)).
             end.
             
             when get-class(IDataAccess) then

@@ -85,10 +85,6 @@ class Pmfo.Core.Manager.SessionManager inherits Manager implements ISessionManag
         undo, throw new NotImplementedError().
     end method.
     
-    method public void Authorize(pcUrl as character):
-        undo, throw new NotImplementedError().
-    end method.     
-    
     method public override void initialize(  ):
         ImportConfig( ).
         // 11.7.5 (and before?) has bug in OpenEdge version so add Pmfo version here

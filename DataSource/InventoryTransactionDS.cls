@@ -38,4 +38,18 @@ class DataSource.InventoryTransactionDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method public override void AfterRow(input dataset-handle phDataset):
+       ttInventoryTransaction.TransactionTime = 
+           datetime(substitute("&1 &2",string(InventoryTrans.TransDate,"99-99-9999"),InventoryTrans.TransTime)).
+           /**
+           datetime(InventoryTrans.TransDate,
+                       (integer(substr(InventoryTrans.TransTime,1,2)) * 60 *  60 * 1000) 
+                       + 
+                       (integer(substr(InventoryTrans.TransTime,4,2)) * 60 * 1000)  
+                        
+                    ).
+                    **/
+        super:AfterRow(input dataset-handle phDataset by-reference).
+    end method.
+     
 end class.

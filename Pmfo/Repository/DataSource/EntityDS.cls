@@ -39,34 +39,6 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
         return ServiceManager:EntityDirectory.
     end method.    
     
-    // separated out for override
-    method protected logical SubscribeUpdate(pEntity as Progress.Lang.Object ):
-        define variable oMethod    as Method  no-undo.
-             
-        if type-of(pEntity,IBusinessEntity) then
-        do: 
-            // subscribe if there is a hook with input to the first table in  dataset[1]     
-            oMethod = GetTableHook(cast(pEntity,IBusinessEntity),"validateTable").           
-            if valid-object(oMethod) then
-                return true.   
-        end.
-        
-        return false.  
-    end method.
-    
-    // separated out for override
-    method protected logical SubscribeAction(pEntity as Progress.Lang.Object ):
-        define variable oMethod    as Method  no-undo.
-             
-        if type-of(pEntity,IBusinessEntity) then
-        do: 
-            oMethod = GetTableHook(cast(pEntity,IBusinessEntity),"validateAction").           
-            if valid-object(oMethod) then
-                return true.                
-        end.
-        
-        return false.  
-    end method.
     
         /**
     methods with static table or dataset requires the actual static object in 
@@ -103,73 +75,8 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
         return ?. 
     end method.  
     
-    // separated out for override - manages two settings for subclass that may have 
-    // additional rules that needs different values in ttEntity
-    method protected logical SubscribeReceive(pEntity as Progress.Lang.Object, 
-                                              output plMustInitializeForTableRead as logical
-                                           ):
-        define variable oParamList as ParameterList  no-undo.
-        define variable hHandle as handle no-undo.
-        define variable oRequest as IGetDataTableRequest no-undo.
-        define variable oResponse as IGetDataTableResponse no-undo.
-        define variable oReceiveArgs as IReceiveDataEventArgs no-undo.
-        define variable oMethod as Method  no-undo.
-        define variable lSubscribe as logical no-undo.
-        
-        // we must always call receive in client BE 
-        if type-of(pEntity,IClientEntity) then
-            lSubscribe = true. 
-        
-/*        // we must always call receive in client filtered BE*/
-/*        else if type-of(pEntity,IClientFilteredEntity) then */
-/*            lSubscribe = true.                              */
-        
-        else if type-of(pEntity,IBusinessEntity) then
-        do: 
-            oParamList = new ParameterList(4).
-            oParamList:SetParameter(1,get-class(IBusinessEntity):TypeName,"input",pEntity).
-            oParamList:SetParameter(2,get-class(IGetDataTableRequest):TypeName,"input",oRequest).
-            oParamList:SetParameter(3,get-class(IGetDataTableResponse):TypeName,"input",oResponse).
-            oParamList:SetParameter(4,"handle","input",hhandle).
-            
-            oMethod = pEntity:GetClass():GetMethod("ReceiveBuffer",Progress.Reflect.Flags:Protected or Progress.Reflect.Flags:Instance or Progress.Reflect.Flags:DeclaredOnly,oParamList).
-            lSubscribe = valid-object(oMethod).
-            if lSubscribe = false then
-            do:
-                oParamList = new ParameterList(2).
-                oParamList:SetParameter(1,get-class(IReceiveDataEventArgs):TypeName,"input",oReceiveArgs).
-                oParamList:SetParameter(2,"handle","input",hhandle).
-                oMethod = pEntity:GetClass():GetMethod("BeforeReceiveData",Progress.Reflect.Flags:Protected or Progress.Reflect.Flags:Instance or Progress.Reflect.Flags:DeclaredOnly,oParamList).
-                lSubscribe = valid-object(oMethod).
-            end.
-        end.
-         
-        if type-of(pEntity,IBusinessEntity) then
-            plMustInitializeForTableRead = lSubscribe.
-        else   
-            plMustInitializeForTableRead = true.
-            
-        return lSubscribe.
-    end method.
     
-    // separated out for override
-    method protected logical SubscribeGet(pEntity as Progress.Lang.Object ):
-        define variable oParamList as ParameterList  no-undo.
-        define variable hHandle as handle no-undo.
-        define variable oRequest as IGetDataTableRequest no-undo.
-        define variable oResponse as IGetDataTableResponse no-undo.
-        define variable oMethod as Method  no-undo.
-        if type-of(pEntity,IBusinessEntity) then
-        do: 
-            oParamList = new ParameterList(2).
-            oParamList:SetParameter(1,get-class(IGetDataTableRequest):TypeName,"input",oRequest).
-            oParamList:SetParameter(2,"handle","input",hhandle).
-            
-            oMethod = pEntity:GetClass():GetMethod("PrepareGetTableRequest",Progress.Reflect.Flags:Public or Progress.Reflect.Flags:Instance or Progress.Reflect.Flags:DeclaredOnly,oParamList).
-            return valid-object(oMethod).
-        end.
-        return false. 
-    end method.
+    
     
      // get entiry references 
     method protected character GetEntityReferences(pBusinessEntity as IBusinessEntity, output pContainer as logical):
@@ -223,10 +130,7 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
                 ttEntity.CanDelete        = oEntity:CanDelete
                 ttEntity.Resource         = oEntity:Resource
                 ttEntity.ClientOnly       = oEntity:ClientOnly
-                ttEntity.SubscribeAction  = SubscribeAction(oEntity)
-                ttEntity.SubscribeUpdate  = SubscribeUpdate(oEntity)
-                ttEntity.SubscribeReceive = SubscribeReceive(oEntity, output ttEntity.MustInitializeForTableRead)
-                ttEntity.SubscribeGet     = SubscribeGet(oEntity)
+         
                 .
             if type-of(oEntity,IBusinessEntity) then
             do:

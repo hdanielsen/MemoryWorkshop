@@ -20,19 +20,12 @@ define temp-table ttEntity  no-undo serialize-name "entities" {1} before-table b
     field ClientOnly       as logical  
     field EntityReferences as character serialize-hidden
     field IsDataContainer  as logical serialize-hidden
-    field MustInitializeForTableRead as logical
     field KeyList          as character
     // format for debug and test  longest name 6/18/2024 - 53   
     field Resource         as character format "x(55)" 
     field Public           as logical
     field ReadOnly         as logical  
-    field ServerTypes      as character  
-    field SubscribeGet     as logical
-    field SubscribeReceive as logical
-    field SubscribeUpdate  as logical
-    field SubscribeAction  as logical
-    field TypeName         as character
-    
+    field TypeName         as characte  
     field zz_seq           as integer serialize-hidden 
 index resource  as  unique Resource
 index type TypeName Resource
