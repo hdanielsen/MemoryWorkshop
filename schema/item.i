@@ -16,7 +16,7 @@ define temp-table ttItem no-undo serialize-name "items" {1}  before-table biItem
    field ItemImage                        as blob        serialize-name "itemImage"
    field ItemName                         as character   serialize-name "itemName"
    field ItemNum                          as integer     serialize-name "itemNum"
-   field MinQty                           as integer     serialize-name "minQty"
+   field MinQty                           as integer     serialize-name "minQuantity"
    field OnHand                           as integer     serialize-name "onHand"
    field OnOrder                          as integer     serialize-name "onOrder"
    field Price                            as decimal     serialize-name "price"

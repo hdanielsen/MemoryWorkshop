@@ -14,7 +14,7 @@ define temp-table ttInventoryTransaction no-undo serialize-name "inventoryTransa
    field ItemNum                          as integer     serialize-name "itemNum"
    field OrderNum                         as integer     serialize-name "orderNum"
    field PONum                            as integer     serialize-name "purchaseOrderNum"
-   field Qty                              as integer     serialize-name "qty"
+   field Qty                              as integer     serialize-name "quantity"
    field TransactionTime                  as datetime    serialize-name "transactionTime"
    field WarehouseNum                     as integer     serialize-name "warehouseNum"
    field zz_seq                           as int64       serialize-hidden

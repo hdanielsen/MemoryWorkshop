@@ -35,6 +35,10 @@
     {
       "sourceName": "PMTimeOut",
       "name": "timeOutPM"
+    },
+    {
+      "sourceName": "qty",
+      "name": "quantity"
     }
   ]
 }}

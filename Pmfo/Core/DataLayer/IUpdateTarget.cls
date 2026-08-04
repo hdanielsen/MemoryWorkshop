@@ -10,6 +10,7 @@
 
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.DataLayer.IDataSource from propath.
+using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 
 interface Pmfo.Core.DataLayer.IUpdateTarget inherits IDataSource:  
     define public property OptimisticLockExceptFields as character no-undo get. 
@@ -19,7 +20,7 @@ interface Pmfo.Core.DataLayer.IUpdateTarget inherits IDataSource:
    // method public logical PrepareSave(phBuffer as handle).
     method public logical PrepareSave(phBuffer as handle, pUpdateRequest as IUpdateDataRequest).
     
-    
+    method public void  ValidateRow(phBeforeBuffer as handle, pEventType as ValidationHookEventType).
     /* public api to save the data - called from a TransactionManager  */
     method public logical SaveRow(phBeforeBuffer as handle).
     

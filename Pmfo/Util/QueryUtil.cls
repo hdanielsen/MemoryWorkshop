@@ -270,6 +270,7 @@ class Pmfo.Util.QueryUtil:
             else    
                 cKeys = ServiceInfo:GetKeys(if valid-object(phBuffer:after-buffer) then phBuffer:after-buffer else phBuffer).
         end.    
+        
         // for a one-to-one relation this may be valid  
         if cKeys > "" then
         do: 
@@ -289,8 +290,10 @@ class Pmfo.Util.QueryUtil:
         extent(oQueryPredicates) = num-entries(pcFields).
         do i = 1 to extent(oQueryPredicates):
             hFld = phBuffer:buffer-field(entry(i,pcFields)).
+
             cValue = hFld:buffer-value.
             oQueryPredicates[i] = new QueryPredicate(entry(i,pcFields),QueryOperatorEnum:Eq,cValue).
+             
         end.
         if extent(oQueryPredicates) = 1 then
             return oQueryPredicates[1].

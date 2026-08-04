@@ -11,6 +11,7 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
 
 class DataSource.CustomerDS inherits DataSource:
 
@@ -38,4 +39,7 @@ class DataSource.CustomerDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttCustomer.CustNum = next-value (NextCustnum).
+    end method.
 end class.

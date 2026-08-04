@@ -21,6 +21,7 @@ using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.TransactionError from propath.
 using Progress.Lang.ParameterList from propath.
 using Progress.Reflect.Method from propath.
+using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 
 class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManager: 
     /* Event published before update starts. 
@@ -48,6 +49,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
     constructor public TransactionManager (pUpdateTargets as IHandleDataSourceMap,pUpdateRequest as IUpdateDataRequest):
         UpdateTargets = pUpdateTargets.
         UpdateRequest = pUpdateRequest.
+        CommitScope = pUpdateRequest:CommitScope.
     end constructor.
     
     // called from AbstractUpdateTargetManager
@@ -73,13 +75,10 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
         end.     
     end method.
     
-  
-    
     method protected logical IsBufferActive(phBuffer as handle):
         return (phbuffer:table-handle:has-records or (valid-handle(phbuffer:table-handle:before-table) and phbuffer:table-handle:before-table:has-records)) 
                 and (NoTargetTables = "" or lookup(phbuffer:table-handle:name,NoTargetTables) = 0). 
     end method.    
-    
     
     method protected void ProcessDeletedRows(phBuffer as handle, plDeep as logical):
         define variable hQuery  as handle no-undo.
@@ -101,7 +100,12 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
             do while hBefore:avail:
                 if hBefore:error = false and hBefore:rejected = false then
                 do:
-                    ProcessBeforeRow(hBefore).
+                    if CommitScopeEnum:Row:Equals(CommitScope) then
+                    do transaction:
+                        ProcessBeforeRow(hBefore).
+                    end.
+                    else
+                        ProcessBeforeRow(hBefore).
                 end.
                 hQuery:get-next. 
             end.    
@@ -130,7 +134,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
         do i = 1 to phBuffer:num-child-relations:
             hRelation = phbuffer:get-child-relation(i).
             if hRelation:recursive = false then
-               ProcessTable(hRelation:Child-buffer).
+               ProcessTable(hRelation:child-buffer).
         end.     
     end method.
     
@@ -139,7 +143,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
         do: 
             do transaction:
                 TransactionNum = TransactionNum + 1.
-                ProcessDataset(phDataset).
+                DoProcessDataset(phDataset).
                 if phdataset:error then 
                     undo, throw new TransactionError().   
                 DatasetTransactionEnd:publish(input dataset-handle phDataset by-reference).
@@ -231,7 +235,6 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
         end.            
     end method.
     
-    
     method protected void ProcessRows(phBuffer as handle, piState as integer):
         define variable hBefore as handle no-undo.
         define variable hQuery  as handle no-undo.
@@ -266,7 +269,13 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
     method protected void DoBeforeRow (phBeforeBuffer as handle):
         if not phBeforeBuffer:error then
         do:
-            UpdateTarget:SaveRow(phBeforeBuffer). 
+            UpdateTarget:ValidateRow(phBeforeBuffer, ValidationHookEventType:Begin). 
+            if not phBeforeBuffer:error then
+            do:
+                UpdateTarget:SaveRow(phBeforeBuffer). 
+                if not phBeforeBuffer:error then
+                    UpdateTarget:ValidateRow(phBeforeBuffer, ValidationHookEventType:End). 
+            end.
         end.    
     end method.
   

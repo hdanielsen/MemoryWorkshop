@@ -215,8 +215,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
             // BUT the startup is more complex here since prepare depends on parent          
             /// if (hbuffer:table-handle:has-records or (valid-handle(hbuffer:table-handle:before-table) and hbuffer:table-handle:before-table:has-records)) 
             // and 
-            message "notargettables" cNoTargetTables
-            view-as alert-box.
+            
             if cNoTargetTables = "" or lookup(hbuffer:table-handle:name,cNoTargetTables) = 0 then 
             do: 
                 do on error undo, throw: 
@@ -449,7 +448,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
                 undo, throw new RefreshError(e).    
             end catch.
         end. 
-        
         AfterUpdate:publish(input dataset-handle phdataset by-reference).
         
        // CollectWarnings(oDataSources:Sources()).

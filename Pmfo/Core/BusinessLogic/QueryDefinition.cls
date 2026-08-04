@@ -43,8 +43,7 @@ class Pmfo.Core.BusinessLogic.QueryDefinition  implements IQueryDefinition:
     end constructor.
 
     constructor public QueryDefinition ( input pEntry as IQueryEntry ):
-        define variable oEntry as IQueryEntry extent 1 no-undo.
-        oEntry[1] = pEntry.
+        assign this-object:QuerySelection = pEntry.
     end constructor.
     
     constructor public QueryDefinition ( input pEntry as IQuerySortEntry extent ):

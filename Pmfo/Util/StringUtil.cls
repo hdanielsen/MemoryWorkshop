@@ -634,6 +634,7 @@ class Pmfo.Util.StringUtil:
     method static character RemoveEntryFromList(pcEntry as character, pcList as character ):
         return RemoveEntryFromList(pcentry, pcList,","). 
     end method.
+    
     method static character RemoveEntryFromList(pcEntry as character, pcList as character, pcDelimiter as character ):
         define variable iLookup as integer no-undo.
         iLookup = lookup(pcEntry,pcList,pcDelimiter).

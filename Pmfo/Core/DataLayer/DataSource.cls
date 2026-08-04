@@ -8,33 +8,41 @@
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Pmfo.Core.DataLayer.IDataSource.
-using Pmfo.Core.DataLayer.IUpdateTarget.
-using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
-using OpenEdge.Core.Collections.ICollection from propath.
-using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
-using OpenEdge.Core.Collections.IIterator from propath.
-using Pmfo.Util.StringUtil from propath.
-using Pmfo.Util.BufferUtil from propath.
-using Pmfo.Core.DataLayer.DbQuery from propath.
-using Pmfo.Core.Error.ApplicationError from propath.
-using Pmfo.Core.Error.NotImplementedError from propath.
-using Pmfo.Core.Error.UnsupportedOperationError from propath.
-using Pmfo.Core.Error.IllegalStateError from propath.
-using Progress.Lang.Error from propath.
-using Pmfo.Core.BusinessLogic.QueryBuilder.QueryBuilder from propath.
-using Progress.Lang.AppError from propath.
-using Ccs.BusinessLogic.IQuerySortEntry from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
-using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
-using Pmfo.Core.Error.BadRequestError from propath.
-using OpenEdge.Core.StringConstant from propath.
-using Pmfo.Util.QueryUtil from propath.
-using Pmfo.Util.ServiceInfo from propath.
-using Pmfo.Core.Error.NotFoundError from propath.
-using Pmfo.Core.Error.IllegalArgumentError from propath.
 
 block-level on error undo, throw.
+
+using Ccs.BusinessLogic.IQuerySortEntry from propath.
+using OpenEdge.Core.Collections.ICollection from propath.
+using OpenEdge.Core.Collections.IIterator from propath.
+using OpenEdge.Core.StringConstant from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QueryBuilder from propath.
+using Pmfo.Core.DataLayer.DbQuery from propath.
+using Pmfo.Core.DataLayer.IDataSource from propath.
+using Pmfo.Core.DataLayer.IUpdateTarget from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
+using Pmfo.Core.Error.BadRequestError from propath.
+using Pmfo.Core.Error.ConflictError from propath.
+using Pmfo.Core.Error.IllegalArgumentError from propath.
+using Pmfo.Core.Error.IllegalOperationError from propath.
+using Pmfo.Core.Error.IllegalStateError from propath.
+using Pmfo.Core.Error.NotFoundError from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Error.TransactionError from propath.
+using Pmfo.Core.Error.UnsupportedOperationError from propath.
+using Pmfo.Util.Array from propath.
+using Pmfo.Util.BufferUtil from propath.
+using Pmfo.Util.ErrorStringUtil from propath.
+using Pmfo.Util.QueryUtil from propath.
+using Pmfo.Util.ServiceInfo from propath.
+using Pmfo.Util.StringUtil from propath.
+using Progress.Lang.AppError from propath.
+using Progress.Lang.Error from propath.
+using Pmfo.Core.Error.TableNotFoundError from propath.
+using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 
 class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IUpdateTarget abstract: 
     
@@ -81,9 +89,14 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             cMap = GetFieldMap().
             return cMap.
         end. 
+        
+      // set for fields that are not supposed to be optimistic locked checked or saved automatically
+    define public property OptimisticLockExceptFields   as character init ? no-undo get. protected set.
+  
+    // set to true to avoid lobs in save row changes (i.e. when images are stored to disk)
+    define protected property NoLobs         as logical   no-undo get. protected set.
     
-    
-     define protected property ParentRelation as handle no-undo 
+    define protected property ParentRelation as handle no-undo 
         get():
             if not valid-handle(ParentRelation) then do:
                 if valid-handle(DataBuffer) then 
@@ -96,6 +109,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         
         private set.
     
+
     define public property Count as logical no-undo 
     get.
     set. 
@@ -113,14 +127,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     set. 
 
     define public property NumRecords as int64 no-undo 
-    get.
-    set. 
-
-    define public property OptimisticLockExceptFields as character no-undo 
-    get.
-    set. 
-
-    define public property Resource as character no-undo 
     get.
     set. 
 
@@ -186,71 +192,354 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     end method. 
 
     method public void AfterUpdate( input DATASET-HANDLE phDataset ):
-        
-        undo, throw new NotImplementedError( ).
 
     end method.
 
     method public void BeforeUpdate( input DATASET-HANDLE phDataset ):
-        
-        undo, throw new NotImplementedError( ).
 
     end method.
 
-    method public void Destroy(  ):
-        
-        undo, throw new NotImplementedError( ).
-
+    method public void Destroy ():
+        delete object Datasourcehandle no-error.
     end method.
 
     method public logical Fill(  ):
+        define variable rDummy as rowid extent no-undo.
+        this-object:Fill (0,rDummy).
+    end method.     
+        // returns the row num that matces the start rowids to allow  
+    // BeforeFillWithPaging get rid of the rows prior to this
+    // 
+    method protected int64 Fill(pagesize as int64, pStartIds as rowid extent).
+        define variable hDs as handle.
+        define variable i as integer no-undo.
+        define variable cFieldMaps as character extent no-undo.
+        define variable cExceptLists as character extent no-undo.
+        define variable iChild as integer no-undo.
+        define variable hChild as handle no-undo.
+        define variable iStartRow as int64 no-undo. 
+        define variable lFoundStart as logical init ? no-undo.
+        QueryHandle:query-open().   
+        QueryHandle:get-first(). 
+        hds = DataBuffer:dataset.
         
-        undo, throw new NotImplementedError( ).
-
+        SplitFieldMap(FieldMap, output cFieldMaps,output cExceptLists).      
+       
+        do while QueryHandle:get-buffer-handle(1):avail:
+ 
+           // if lSkip = false then
+            do on error undo, throw:
+                DataBuffer:buffer-create().
+                /*                if iStartRow = 0 and extent(pStartIds) <> ?  then*/
+                /*                   lFoundStart = true.                           */
+                /*                                                                 */
+                do i = 1 to  QueryHandle:num-buffers:
+                    if QueryHandle:get-buffer-handle(i):avail then
+                    do:
+                        DataBuffer:buffer-copy(QueryHandle:get-buffer-handle(i),cExceptLists[i],cFieldMaps[i]).
+                    /*                        if lFoundStart = true                                          */
+                    /*                        and extent(pStartIds) <> ?                                     */
+                    /*                        and pStartIds[i] <> QueryHandle:get-buffer-handle(i):rowid then*/
+                    /*                           lFoundStart = false.                                        */
+                       
+                    end.    
+                end.
+                AfterRow(dataset-handle hds by-reference).
+                
+                /*                if lFoundStart then           */
+                /*                    iStartRow = RecordCounter.*/
+                
+                do iChild = 1 to Databuffer:num-child-relations:
+                    hChild = DataBuffer:get-child-relation (iChild):child-buffer .
+                    hChild:fill().
+                end.   
+                 
+                if pagesize > 0 then 
+                do: 
+                    if (extent(pStartIds) = ?  and RecordCounter > pageSize) then 
+                    do: 
+                        NextRowKey = GetNextRowKey(BufferHandle, BufferHandle:rowid).
+                        DataBuffer:buffer-delete.
+                        return 0.
+                    end.  
+                end.     
+                catch e as Progress.Lang.Error :
+                    if e:GetMessageNum(1) = 132  then
+                    do: 
+                       // ignore already exists if merge
+                       // TODO check up front?? getuniqueindexes 
+                       // - get value from db using field map
+                       //   dataBuffer find-unique  
+                        DataBuffer:buffer-delete.
+                    end.   
+                    else 
+                        undo, throw e.
+                end catch.
+            end.
+            QueryHandle:get-next(). 
+            
+        end.
+        return 0.  
     end method.
-
-    method public void FindAndCompareSource(  ):
+     
+    
+    method public logical RefillCurrentRow().
+        define variable hDs as handle.
+        define variable i as integer no-undo.
+        define variable lok as logical no-undo.   
+        define variable cFieldMaps as character extent no-undo.
+        define variable cExceptLists as character extent no-undo.
         
-        undo, throw new NotImplementedError( ).
-
-    end method.
-
-    method public void FindAndCompareSource( input phBuffer as handle ):
+        if NoConnectNeeded or NoQueryCreate then
+            // if no connect or no create needed in updatable dataource the refresh must be dealt with differently 
+            // typically ensure all values are redresehed on save - i.e. call RowAfter and a add an empty override of RefillCurrentRow 
+  
+            undo, throw new IllegalStateError(subst("RefillCurrentRow called in DataSource with &1 set to true. Please Contact IT.",
+                if NoConnectNeeded then "NoConnectNeeded" else "NoQueryCreate")
+                ).
+        QueryHandle:query-open().  
+        QueryHandle:get-first(). 
+        hds = DataBuffer:dataset.
         
-        undo, throw new NotImplementedError( ).
-
+        SplitFieldMap(FieldMap, output cFieldMaps,output cExceptLists).      
+        do while QueryHandle:get-buffer-handle(1):avail:
+            do i = 1 to QueryHandle:num-buffers:
+                if QueryHandle:get-buffer-handle(i):avail then
+                do:
+                    DataBuffer:buffer-copy(QueryHandle:get-buffer-handle(i),cExceptLists[i],cFieldMaps[i]).
+                end.    
+            end.
+          
+            AfterRow(dataset-handle hds by-reference).
+            lok = QueryHandle:get-next(). 
+            if lok then 
+            do:
+                undo, throw new IllegalStateError("More than one row available for refill").
+            end.    
+            return true. 
+        end.
+        return false.  
     end method.
-
-    method public void FindAndCompareSource( input phbuffer as handle, input pFields as character ):
+    
+    method public void FindAndCompareSource():
+        if DataBuffer:avail = false and DataBuffer:before-buffer:avail and DataBuffer:before-buffer:row-state = row-deleted then
+            FindAndCompareSource(DataBuffer:before-buffer).
+        else     
+            FindAndCompareSource(DataBuffer).
+    end method.
+    
+    // default find for unmodified in transaction  find and compare exclusive  
+    method public void FindSourceForUnmodifiedRow().
+        FindSource(exclusive-lock).
+    end method. 
+    
+    method public void FindAndCompareSource(phBuffer as handle):
+        FindAndCompareSource(phbuffer,"").
+    end method.
+    
+    method public void FindAndCompareSource(phBuffer as handle, pcfields as character):
+        define variable cChanges as character no-undo.
+        define variable lchanged as logical no-undo.
+        define variable i as integer no-undo.
+        define variable hFld as handle no-undo.
+        define variable cFld as character no-undo.
+        define variable cPublicChanges as character no-undo.
+        lchanged = FindAndCompareSource(phbuffer, pcfields, output cChanges).
+        if lchanged then 
+        do:
+            do on error undo, throw:
+                cPublicChanges = BufferUtil:GetFieldLabels(Databuffer,cChanges).
+                // if there are spaces in the changes the ConflcitError will use as-is 
+                // so  we nee to beatify before we pass
+                cPublicChanges = StringUtil:GetMessageFromEntries(cPublicChanges, "and", true). // true add quotes 
+                // needs more testing so for now jusat use the internal names if there is an error
+                catch e as IllegalArgumentError:
+                    cPublicChanges = pcFields.     
+                end catch.
+            end.        
+            
+            undo, throw new ConflictError(phbuffer,cPublicChanges).
+        end.    
+    end method.
+    
+    method protected logical FindAndCompareSource(phbuffer as handle, output pChanges as character):
+        return FindAndCompareSource(phbuffer, "", output pChanges).
+    end method.
+    
+    method protected logical FindAndCompareSource(phBuffer as handle, input pcfields as character, output pcChanges as character):
         
-        undo, throw new NotImplementedError( ).
-
-    end method.
-
-    method public void FindSource( input plock as integer ):
+        if not phBuffer:avail then
+            undo, throw new IllegalStateError(subst("Buffer '&1' is not available",phBuffer:name)).
+            
+        if phbuffer = DataBuffer:before-buffer then
+        do:
+            if phBuffer:row-state = row-created then
+            do: 
+                phBuffer = Databuffer.
+                if phBuffer:avail = false or phBuffer:rowid <> DataBuffer:before-buffer:after-rowid then
+                    phBuffer:find-by-rowid (DataBuffer:before-buffer:after-rowid).  
+            end.    
+        end.
+        else if phBuffer = DataBuffer then 
+        do: 
+            if phBuffer:row-state = row-modified then
+            do: 
+                phBuffer = DataBuffer:before-buffer.
+                if phBuffer:avail = false or phBuffer:rowid <> DataBuffer:before-rowid then
+                    phBuffer:find-by-rowid (DataBuffer:before-rowid).
+            end.    
+        end.
+        else 
+            undo, throw new IllegalStateError(subst("Buffer '&1' is not a valid buffer reference for DataSource '&2'",phBuffer:name,EntityName)).
+        FindSource(phbuffer, BufferHandle, exclusive-lock).
+        pcChanges = CompareBufferWithDb(phbuffer,pcfields,true).
         
-        undo, throw new NotImplementedError( ).
-
+        return pcChanges > "".  
     end method.
-
-    method public void FindSource( input phBuffer as handle, input pLock as integer ):
+  
+     // void - throws error if not found
+    method public void FindSource(plock as integer):
+        FindSource(DataBuffer,BufferHandle,pLock). 
+    end.    
+    
+    method public void FindSource(phBuffer as handle, pLock as integer):
+         FindSource(phBuffer,BufferHandle,pLock). 
+    end method.
+     
+    // void - throws error if not found
+    method public void FindSource(phbuffer as handle,pDbBuffer as handle,plock as integer):
+        define variable cWhere as character no-undo.
+        define variable oError as AppError     no-undo.
+        cWhere = SourceWhere(phbuffer,pDbBuffer).
         
-        undo, throw new NotImplementedError( ).
-
+        pDbBuffer:find-unique (cWhere,plock). 
+        catch e as Progress.Lang.Error :
+            if e:GetMessageNum(1) = 138 or e:GetMessageNum(1) = 3166 then
+            do: 
+                oError = new TableNotFoundError(phbuffer,GetFindCurrentRowRequest(phBuffer)).
+                oError:AddMessage(subst("Database query 'find &1 &2' throws error:~n&3",BufferName,cWhere,e:GetMessage(1)),?).  
+                undo, throw oError.
+            end.
+            else 
+                undo, throw e.
+        end catch.
+    end.    
+    
+     // separated out to allow override for cases where there are more than one unique key and this need to be controlled 
+    method protected Pmfo.Core.BusinessLogic.IGetDataTableRequest GetFindCurrentRowRequest(phBuffer as handle):
+        return QueryUtil:GetFindCurrentRowRequest(phBuffer).
     end method.
-
-    method public void FindSource( input phbuffer as handle, input pDbBuffer as handle, input plock as integer ):
+    
+    /*
+    Get the TT column mapped to the database field    
+    Will return data also if DataSOurcer is no prepared, but this 
+    is not 100% reliable as the field may not exist in the TT when prepared 
+    */
+    method public character SourceColumn (pcDbColumn as char):
+        define variable iLookup    as integer    no-undo.
+        define variable cFieldmap  as character no-undo.
+       
+        if num-entries(pcDbColumn,".") <> 2 then 
+            undo, throw new IllegalArgumentError(subst("Database field name '&1' must be qualified with table name",pcDbColumn)).      
         
-        undo, throw new NotImplementedError( ).
-
+        // support schema info when bnot prepared used by AlertArguments   
+        if not valid-handle(Databuffer) then 
+        do: 
+            cFieldmap = GetUnpreparedFieldMap(pcDbColumn).
+            iLookup = lookup(pcDbColumn,cFieldmap).
+            if iLookup > 0 then
+                return entry(iLookup - 1,cFieldmap).
+            else 
+                return entry(2,pcDBcolumn,".").        
+        end.    
+        else do:
+            iLookup = lookup(pcDbColumn,DataBuffer:data-source-complete-map).
+            if iLookup > 0 then
+                return entry(iLookup - 1,DataBuffer:data-source-complete-map).
+              
+            return "".   
+        end. 
+    end method.         
+    
+    method protected character SourceWhere(phbuffer as handle, phDbBuffer as handle):
+        define variable cDbKeys     as character no-undo.
+        define variable cDbKey      as character no-undo.
+        define variable cKey        as character no-undo.
+        define variable i           as integer no-undo.
+        define variable iSource     as integer no-undo.  
+        define variable cWhere      as character no-undo.
+        define variable cAnd        as character no-undo.
+        define variable hFld        as handle no-undo.
+        define variable cFieldWhere as character no-undo.
+        define variable cValue      as character no-undo.
+        define variable lUseBefore  as logical no-undo.
+        define variable cErrorTmpl as character 
+            init  "Buffer '&1' is not a before or after buffer for the Data Buffer table '&2'"
+            no-undo.
+        if not phBuffer:avail then
+            undo, throw new IllegalStateError(subst("Buffer '&1' is not available",phBuffer:name)).
+         
+        if valid-handle(phbuffer:after-buffer) then
+        do:  
+            if phBuffer:after-buffer:table-handle <> DataBuffer:table-handle then
+            do:
+                undo, throw new IllegalOperationError(subst(cErrorTmpl,phBuffer:name,DataBuffer:table-handle:name)).
+            end.
+            // use to decide how to get exprtression from proxy
+            lUseBefore = phBuffer:row-state <> row-created.
+        end.
+        else if phBuffer:table-handle <> DataBuffer:table-handle then
+            undo, throw new IllegalOperationError(subst(cErrorTmpl,phBuffer:name,DataBuffer:table-handle:name)).
+          
+        if valid-handle(phbuffer:after-buffer) and phBuffer:row-state = row-created then  
+            phBuffer = phbuffer:after-buffer.
+          
+        cDbKeys = GetDataSourceKeys(phDbBuffer).
+         
+        cAnd = " where".
+        if cDbKeys = 'rowid' then 
+        do:
+            undo, throw new IllegalStateError(subst("Cannot find a unique record for class &1 because the database table key is rowid. A unique key consisting of field name(s) must be defined. This can be done in a GetDataSourceKeys override in the class.", this-object:GetClass():TypeName)).
+        end.    
+         
+        do i = 1 to num-entries(cDbKeys):
+            assign
+                cDbKey = subst("&1.&2",phDbBuffer:name,entry(i,cDbKeys))
+                cKey   = SourceColumn(cDbKey)
+                .
+             // if the key is not mapped check if it is managed as a field object    
+            if cKey = "" then 
+            do: 
+                undo, throw new IllegalStateError(subst("Database field &1 is not mapped and not defined as constant or proxy",cDbKey)).     
+            end.
+            else do:
+                assign
+                    hFld   = phBuffer:buffer-field(entry(2,cKey,"."))
+                    cValue = hFld:buffer-value.
+                     
+                if hFld:data-type = "character" or hFld:data-type = "longchar" or hFld:data-type begins "date" then 
+                    cValue = quoter(cValue).
+                cFieldWhere = subst("&1 = &2",cDbKey,cValue).
+            end.  
+                   
+            assign   
+                cWhere = cWhere + subst("&1 &2",cAnd,cFieldWhere)
+                cAnd   = " and"
+                .        
+        end.
+      
+        return cWhere.
+    end.    
+    
+    method protected void FindSources(pLock as integer):
+        define variable hBeforebuffer as handle no-undo.
+        define variable i as integer no-undo.
+        hBeforebuffer = BufferUtil:AssertAndGetBeforebuffer(DataBuffer).
+        do i = 1 to extent(BufferHandles):
+            FindSource(hBeforebuffer,BufferHandles[i],pLock).
+        end.               
     end method.
-
-    method public void FindSourceForUnmodifiedRow(  ):
-        
-        undo, throw new NotImplementedError( ).
-
-    end method.
-
+    
     method public void Initialize(  ):
        
     end method.
@@ -279,7 +568,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         define variable oAppError        as AppError no-undo.
         define variable cChildJoinFields as character no-undo.
         define variable iFld             as integer no-undo.
-        define variable lProxyJoin       as logical no-undo.
         define variable iRel             as integer no-undo.
         
         assign 
@@ -337,7 +625,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             
             cQuery = oQueryBuilder:Build(pRequest,DataBuffer).
             
-            if valid-object(pParentRequest) and not lProxyJoin then
+            if valid-object(pParentRequest) then
             do:
             //    QueryStringWithoutParent = cQuery. // used by prepareInnerJoins
                 cQuery = AddParentJoinToQuery(cQuery).
@@ -350,7 +638,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
                 return false. 
             end catch.
         end.
-        else if not lProxyJoin then
+        else  
         do: 
             if valid-object(pParentRequest) then
             do:
@@ -713,36 +1001,485 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
       undo, throw new NotImplementedError( ).
 
     end method.
-
+    
+    // called from refreshBuffer - in order to use mapping and after row when refreshing data 
     method public IGetDataTableRequest PrepareCurrent( input phBuffer as handle, input pParentRequest as IGetDataTableRequest ):
-        
-      undo, throw new NotImplementedError( ).
-
+        define variable oTableRequest as Pmfo.Core.BusinessLogic.IGetDataTableRequest no-undo.
+        oTableRequest = GetFindCurrentRowRequest(phBuffer).
+        Prepare(phBuffer,oTableRequest,pParentRequest).
+        return oTableRequest.
     end method.
 
-    method public logical PrepareSave( input phBuffer as handle, input pUpdateRequest as IUpdateDataRequest ):
+    method final public logical PrepareSave( phBuffer as handle,pUpdateRequest as IUpdateDataRequest ):
+        DataBuffer = phBuffer.
+        extent(BufferHandles) = ?.
+        BufferHandles = GetSaveBufferHandles().
+        PrepareSaveBuffer(phBuffer).   
+        CreateSaveSource(phBuffer,FieldMap).
+    end method. 
+    
+    // create the data-source and attach - override in subclass if cannot attach
+    method protected void CreateSaveSource(phBuffer as handle, pcFieldMap as character):
+        define variable i             as integer no-undo.
+        define variable cHiddenFields as character no-undo.
+        define variable cExcept       as character no-undo.
+        define variable iJoinField    as integer no-undo.
+        define variable lKeepattached as logical no-undo.
         
-        undo, throw new NotImplementedError( ).
-
+        if extent(BufferHandles) = ? or not valid-handle(BufferHandles[1])  then
+            undo, throw new IllegalOperationError("CreateSaveSource in DataSource with no database buffers").
+        if valid-object(DataSourcehandle) then
+            delete object DataSourcehandle. 
+        create data-source DataSourcehandle.
+        
+        do i = 1 to extent(BufferHandles):
+            DataSourcehandle:add-source-buffer(BufferHandles[i],GetDataSourceKeys(BufferHandles[i])).
+        end.    
+        
+        cHiddenFields = BufferUtil:GetHiddenFields(phBuffer).
+        if lookup(BufferUtil:SeqFieldName,cHiddenFields) > 0 then 
+            cHiddenFields = StringUtil:RemoveEntryFromList(BufferUtil:SeqFieldName,cHiddenFields).
+         
+        phBuffer:attach-data-source(DataSourceHandle,pcFieldMap,?).
+        if cHiddenfields > "" then  
+        do: 
+           
+             // DEFECT OCTA-39132 
+             // - Case #:  01028213 - work around -
+            // was decided to not be a bug, but it is quite problematic when having hidden fields
+            // need to set both to supress the reset of before values 
+            // for unchanged hidden fields different than db  
+            // used in SaveRow
+            // This requires logic in saverow to apply the current value to the afte table
+            // if there are no changes - otherwise the value, which will be set from default
+            // and not from client for hidden fields will be saved and override the data  
+            DataSourceHandle:merge-by-field = false.
+            DataSourceHandle:prefer-dataset = true.
+           
+        end.
+                
+    end method.
+    
+    method protected character GetDataSourceKeys ( pDatasourcebuffer as handle ):
+        return pDatasourcebuffer:keys.
+    end method.
+    
+    method protected handle extent GetSaveBufferHandles ():
+        return GetBufferHandles().
     end method.
 
-    method public logical RefillCurrentRow(  ):
+    method protected character GetRowErrorMessage(pcMessage as char,piState as integer):
+        return pcMessage.
+    end.    
+    
+    // create a temp buffer for a qualified field name for calls that uses datasource for schema info  
+    method protected character GetUnpreparedFieldMap(pcDbColumn as character):
+        define variable hBuffer as handle no-undo.
+        if num-entries(pcDBColumn,".") = 2 then
+        do: 
+            if not valid-handle(Databuffer) then 
+            do: 
+                if extent(BufferHandles) = ? then
+                do:
+                    create buffer hbuffer for table entry(1,pcDBcolumn,".").
+                    extent(BufferHandles) = 1.
+                    BufferHandles[1] = hBuffer.
+                end.   
+                return getFieldMap().
+            end.    
+            else 
+                undo, throw new IllegalOperationError("Call to GetUnpreparedFieldMap when prepared. Please Contact IT.").
+        end.
+        else 
+            undo, throw new IllegalArgumentError("Unqualfied Db Column parameter. Please Contact IT.").
         
-        undo, throw new NotImplementedError( ).
-
+        finally:
+            if valid-handle(hBuffer) then 
+            do:
+                delete object hBuffer.
+                extent(BufferHandles) = ?.                  
+            end.
+        end.
+    end. 
+    
+    
+    method public void ValidateRow(phBeforeBuffer as handle, pEventType as ValidationHookEventType):
+        define variable hDataset as handle no-undo.
+        define variable hAfter   as handle no-undo.
+        hDataset = phBeforebuffer:dataset.
+        
+    //    AssertHookEvent(pEventType).
+        
+        if phBeforeBuffer:row-state <> row-deleted then
+        do:
+            hAfter = phBeforeBuffer:after-buffer.
+            hAfter:find-by-rowid(phBeforeBuffer:after-rowid).
+        end.        
+        
+        case pEventType:
+            when ValidationHookEventType:Begin then
+                case phBeforeBuffer:row-state:
+                    when row-deleted then
+                        DeleteBeginTransValidate(input dataset-handle hDataset by-reference).
+                    when row-modified then
+                        WriteBeginTransValidate(input dataset-handle hDataset by-reference).
+                    when row-created then
+                        do:
+                            CreateBeginTransValidate(input dataset-handle hDataset by-reference).
+                            WriteBeginTransValidate(input dataset-handle hDataset by-reference).
+                        end.
+                end. // phBeforeBuffer:row-state 
+            when ValidationHookEventType:End then
+                case phBeforeBuffer:row-state:
+                    when row-deleted then
+                        DeleteEndTransValidate(input dataset-handle hDataset by-reference).
+                    when row-modified then
+                        WriteEndTransValidate(input dataset-handle hDataset by-reference).
+                    when row-created then
+                        do:
+                            CreateEndTransValidate(input dataset-handle hDataset by-reference).
+                            WriteEndTransValidate(input dataset-handle hDataset by-reference).
+                        end.
+                end. // phBeforeBuffer:row-state  
+           
+             
+        end case. // pEventType   
+            
     end method.
-
-     
-
-    method public logical SaveRow( input phBeforeBuffer as handle ):
-        
-        undo, throw new NotImplementedError( ).
-
+    
+    method public logical SaveRow(phBeforeBuffer as handle):
+        define variable lOk as logical no-undo.
+        define variable cAllChanges as character no-undo.
+        define variable cChanges as character no-undo.
+        // save-row-changes for delete will optimistic lock check every field
+        // FindAndCompareSource ignores the serialize-hidden fields
+        if phBeforeBuffer:row-state = row-deleted then
+        do: 
+            // NoLobs is honored in the compare and ProxyManager:CheckProxyConflicts will be called  
+            FindAndCompareSource(phBeforeBuffer).
+            lok = BufferHandle:buffer-delete().
+            return lok.      
+        end.
+        else do:
+            if phBeforebuffer:row-state = row-modified then
+            do: 
+                // CreateSaveSource sets prefer-dataset true and merge-by-field false  if there are any 
+                // hidden fields  to workaround
+                // DEFECT OCTA-39132 
+                // - Case #:  01028213 - bug work around -
+                // SAVE-ROW-CHANGES causes before table buffer to get updated with the values from the AFTER-BUFFER
+                // changed to documentation bug...
+                // so we need a workaround, and call FindAndCompareSource to check for changes since these settings
+                // supresses optimistic lock from save-row-changes    
+                if DataSourceHandle:prefer-dataset and DataSourceHandle:merge-by-field = false then
+                do: 
+                    FindAndCompareSource(phBeforeBuffer).
+                    // save-row-changes will update all values, so hiddenfields witrh no changes
+                    // will get the default value
+                    // - so if the before and after is the same set after from the DB 
+                    //   so that it does not overwrite                        
+                    ApplyHiddenFieldsValuesFromDB(phBeforebuffer,BufferHandle).
+                end.   
+            end.     
+            lok = phBeforeBuffer:save-row-changes(1,"",NoLobs). 
+        end.
+ 
+        catch e1 as ConflictError:
+            undo, throw e1.
+        end.
+        catch e2 as class Error:
+            SaveRowErrorHandler(e2, phBeforeBuffer, UpdateSource,cAllChanges).
+        end.
+         
     end method.
     
     method public void DatasetTransactionEnd( input dataset-handle phDataset ).
     end method.
     
+    method protected void SaveRowErrorHandler  (pe as Error, phBeforeBuffer as handle, piSource as integer, pcChanges as character):
+        define variable cMsg              as character no-undo.
+        define variable cField            as character no-undo.
+        define variable hField            as handle no-undo.
+        define variable cKeyExpression    as character no-undo.
+        define variable hDataFields       as handle extent no-undo.
+        define variable hSourceFields     as handle extent no-undo.
+        define variable cChanges          as character no-undo.
+        
+        // don't  wrap illlegalstate  
+        if type-of(pe,IllegalStateError) then 
+            undo, throw pe. 
+        cMsg = pe:GetMessage(1).
+        
+        if piSource > 0 then 
+        do: 
+            //cMsg = right-trim(replace(cMsg,subst("(&1)",pe:GetMessageNum(1)),"")).
+            case pe:GetMessageNum(1):
+                // lead attributes due to invalid handle and bad data-source-complete ref errors then throw as-is to get full staclk 
+                when 10068 or when 12780 then 
+                    undo, throw pe.
+                
+                when 11894  then // KEYS phrase for data source buffer <db buffer> contains ROWID and no filed in <before image table> is mapped to the rowid durng attach source                          
+                    do: 
+                        cMsg = subst("Cannot save &1 changes ",BufferUtil:GetRowName(DataBuffer))
+                            + subst("because the database table key is rowid. A unique key consisting of field name(s) must be defined. This can be done in a GetDataSourceKeys override in the &1 DataSource.",
+                            this-object:GetClass():TypeName).
+                    end.    
+                when 11913  then // SAVE-ROW-CHANGES found <name> record with conflicting change by another user. (11913) 
+                    do on error undo, throw: 
+                        Databuffer:find-by-rowid (phBeforeBuffer:after-rowid).
+                        FindSources(exclusive-lock).
+                    
+                        cChanges = CompareBufferWithDb(phBeforeBuffer, "",true, output hDataFields, output hSourceFields).
+                    
+                        if cChanges > "" then 
+                            StringUtil:AppendEntry(pcChanges, cChanges). 
+                    
+                        if pcChanges > "" then     
+                            ThrowConflictError(phBeforebuffer,BufferUtil:GetFieldLabels(Databuffer,pcChanges)).
+                        else
+                            ThrowConflictError(phBeforebuffer).  
+                        catch e1 as ConflictError :
+                            undo, throw e1.
+                        end.
+                        catch e2 as Progress.Lang.Error :
+                            BufferError(phBeforeBuffer, GetRowErrorMessage(e2:GetMessage(1),phBeforeBuffer:row-state)).
+                        end catch.     
+                    end.    
+                when 132  then 
+                    do: //** <file-name> already exists with <field/value...>. (132) 
+                        cMsg = GetPublicAlreadyExistsMessage(cmsg, phBeforebuffer, piSource).
+                    end.
+                when 138 // <file-name> record not on file
+                or 
+                when 11912 /* Unable to find record for db buffer <name> during SAVE-ROW-CHANGES. */ then 
+                    do: //** <file-name> record not on file. (132)
+                    // use the QueryUtil to get the QueryPredicate:ToString(buffer,useserializename)
+                        cKeyExpression = cast(QueryUtil:GetCurrentRowKeyEntry(phBeforeBuffer),Pmfo.Core.BusinessLogic.IQueryEntry):ToString(phBeforeBuffer,true).
+                        cMsg = subst("&1 where &2 does not exist",BufferUtil:GetRowName(phBeforeBuffer,true),cKeyExpression).
+                    end.
+                when 275 or when 110 then 
+                    do: // ** <Field-name> is mandatory, but has a value of ?. (275)
+                     // ** <file-name>.<field-name> is mandatory, but has unknown (?) value. (110). 
+                        cField = entry(2,cMsg," ").
+                        if num-entries(cField,".") > 1 then 
+                            cField = entry(2,CField,".").
+                    
+                        hfield = phBeforebuffer:buffer-field(cField) no-error.
+                        if valid-handle(hField) then
+                        do:
+                            entry(2,cMsg," ") = BufferUtil:GetFieldLabel(hField).
+                        end.     
+                    end.
+                otherwise do:
+                    // DataAccess jcjust return "ERROR" as string if dataset error, so make sure
+                    // the error is added to the buffer to reach the client
+                    // (TODO? num-messages? probably not important as the secondary ABL messages are typically not helpful   
+                    if phBeforeBuffer:dataset:error then
+                        cMsg = pe:GetMessage(1).
+                    else     
+                        undo, throw pe.
+                end.       
+            end.
+        end.
+        BufferError(phBeforeBuffer, GetRowErrorMessage(cMsg,phBeforeBuffer:row-state)).
+    end method.
+    
+    
+    method protected character CompareBufferWithDb(phBuffer as handle, pcFields as character,plHonorExceptFields as logical):
+        define variable hDummy1 as handle extent no-undo.
+        define variable hDummy2 as handle extent no-undo.
+        
+        return CompareBufferWithDb(phBuffer,pcfields,plHonorExceptFields,output hdummy1, output hDummy2). 
+    end method.
+    
+    method protected character CompareBufferWithDb(phBuffer as handle,pcfields as character, plHonorExceptFields as logical, output phDataFields as handle extent, output phSourceFields as handle extent ):
+        define variable cFieldMaps        as character extent no-undo.
+        define variable cExceptLists      as character extent no-undo.
+        define variable i                 as integer          no-undo.
+        define variable cHiddenFields     as character no-undo.
+        define variable cLobs             as character no-undo.
+        define variable iLob              as integer no-undo.
+        define variable cLobField         as character no-undo.
+        define variable cChanges          as character no-undo.
+        define variable cBufferChanges    as character no-undo.
+        define variable cProxyChanges     as character no-undo.
+        define variable hBeforebuffer     as handle no-undo.
+        define variable hDatafields       as handle extent no-undo.
+        define variable hSourcefields     as handle extent no-undo.
+        define variable hDatafieldsWork   as handle extent no-undo.
+        define variable hSourcefieldswork as handle extent no-undo.
+        define variable cMetricChanges    as character no-undo.
+        define variable cExceptFields     as character no-undo.
+        if not phBuffer:avail then
+            undo, throw new IllegalStateError(subst("Buffer '&1' is not available",phBuffer:name)).
+      
+        if not BufferHandle:avail then
+            undo, throw new IllegalStateError(subst("Database table '&1' is not available",BufferHandle:name)).
+        // @TODO - test and fix the following 
+        // the field maps is likely not necessary since buffer compare uses the attach field map if 
+        // one buffer is dataset buffer and the other is datasource buffer 
+        
+        SplitFieldMap(FieldMap, output cFieldMaps,output cExceptLists).        
+        cHiddenFields = BufferUtil:GetHiddenFields(phBuffer).
+        if plHonorExceptFields then 
+            cExceptFields = OptimisticLockExceptFields.
+        
+        if NoLobs then 
+            cLobs = GetLobFields().  
+        
+        do i = 1 to extent(BufferHandles):
+            if BufferHandle = BufferHandles[i] then
+            do: 
+                cExceptLists[i] = trim(cExceptLists[i] + "," + cHiddenFields,",").
+                if cExceptFields > "" then
+                   cExceptLists[i] = trim(cExceptLists[i] + "," + cExceptFields,",").
+                if NoLobs and cLobs > "" then 
+                do iLob = 1 to num-entries(cLobs): 
+                    cLobField = entry(iLob,cLobs).
+                    if lookup(cLobField,cExceptLists[i]) = 0 then
+                        cExceptLists[i] = cExceptLists[i] 
+                            + (if cExceptLists[i] = "" then "" else ",") 
+                            + cLobField.
+                end.
+                     
+                if phBuffer:buffer-compare(BufferHandle,"case-sensitive",cExceptLists[i] ,cFieldMaps[i]) = false then
+                do:
+                    extent(hDataFields) = ?.
+                    extent(hSourceFields) = ?.
+                    
+                    // if sonething is different return the field names  
+                    cBufferChanges = BufferUtil:CompareFields(phBuffer, BufferHandle, cExceptLists[i],pcfields, output hDataFields, output hSourceFields).
+                     
+                    if cBufferChanges > "" then
+                    do:
+                        cChanges = left-trim(subst("&1,&2",cChanges,cBufferChanges),",").
+                        if extent(phdatafields) > 0 then
+                        do:
+                            assign
+                                extent(hDataFieldsWork) = ?
+                                extent(hSourceFieldsWork) = ?
+                                hDataFieldsWork = phDataFields
+                                hSourcefieldswork = phSourceFields
+                                extent(phDataFields) = ?
+                                extent(phSourceFields) = ?
+                                phDataFields   = Array:mergeArrays(hDataFieldsWork, hDataFields)
+                                phSourceFields = Array:mergeArrays(hSourceFieldsWork, hSourceFields)
+                                .
+                        end.
+                        else 
+                            assign                        
+                                phDataFields = hDatafields
+                                phSourceFields = hSourcefields
+                                .
+                    end.    
+                end.
+            end.    
+        end.
+        return cChanges.  
+    end method.
+    
+    method protected void SplitFieldMap(pcFieldMap as character, output pcFieldPairs as character extent, output pcExceptList as character extent):
+        define variable cMaps as character extent no-undo.
+        define variable i as integer no-undo.
+        define variable j as integer no-undo.
+        define variable cTTField  as character no-undo.
+        define variable cDbField  as character no-undo.
+        define variable cDbTable  as character no-undo.
+        define variable iTable    as integer no-undo.
+        define variable iArrayPos as integer no-undo.
+        extent(pcFieldPairs) = extent(BufferHandles).
+        extent(pcExceptList) = extent(BufferHandles).
+        if pcFieldMap > "" then
+        do i = 1 to num-entries(pcFieldMap) by 2:
+            assign
+                cTTField = entry(i,pcFieldMap)
+                cDbField = entry(i + 1,pcFieldMap)
+                cDbTable = if num-entries(cDbField,".") = 2 then entry(1,cDbField,".") 
+                           else if cDbField begins "rowid(" then StringUtil:ExtractParenthesis(cDbField,true) 
+                           else BufferName
+                iTable = lookup(cDbTable,BufferNames)
+                pcFieldPairs[iTable] = pcFieldPairs[iTable] 
+                              + (if pcFieldPairs[iTable] = "" then "" else ",")
+                              + cTTField
+                              + ","
+                              + cDbField.
+            // we must put all mapped fields in except list for other tables for buffer-copy to work like fill 
+            exceptloop:
+            do j = 1 to extent(pcExceptList):
+                if j <> iTable then   
+                do:
+                    iArrayPos = index(cTtField,"[").  
+                    if iArrayPos > 0 then
+                    do:
+                        cTTField = substring(cTTField,1,iArrayPos - 1).
+                        if lookup(cTTField,pcExceptList[j]) > 0 then 
+                            next exceptloop.
+                    end.    
+                    pcExceptList[j] = pcExceptList[j]
+                        + (if pcExceptList[j] = "" then "" else ",") 
+                        + cTtField.
+                end.                                     
+            end.     
+        end. 
+    end.    
+    
+    // hidden fields are not attached and prefer-dataset and DataSourceHandle:merge-by-field is set to true 
+    // to ensure before values are not overridden in save-row-changes 
+    // see comments in SaveRow  about-DataSourceHandle:prefer-dataset
+    // This method ensures that hdiden fields that actually have been changed in the BE are saved  
+    method private void ApplyHiddenFieldsValuesFromDB(phBeforeBuffer as handle, phDbSource as handle):
+        define variable cHiddenFields as character no-undo.
+        define variable i             as integer no-undo.
+        define variable hField        as handle no-undo.
+        define variable hBeforeField  as handle no-undo.
+        define variable cDbField      as character no-undo.
+        define variable hDbField      as handle no-undo.
+        define variable hBuffer       as handle no-undo.
+        define variable cField        as character no-undo.
+        define variable iArrayPos     as integer no-undo.
+        define variable iExtent       as integer no-undo.
+        // annoying behavior - the record is lost during save-row-changes  
+        hBuffer = phBeforebuffer:after-buffer. 
+        hBuffer:find-by-rowid (phBeforebuffer:after-rowid).  
+        cHiddenFields = BufferUtil:GetHiddenFields(hBuffer).
+                
+        do i = 1 to num-entries(cHiddenFields):
+            cField = entry(i,CHiddenFields). 
+            // skip the seqence - not really a problem since there will be no db field.. 
+            if cField <> BufferUtil:SeqFieldName then
+            do: 
+                hField       = hBuffer:buffer-field(entry(i,CHiddenFields)).
+                hBeforeField = phBeforebuffer:buffer-field(entry(i,CHiddenFields)).
+                if hField:buffer-value = hBeforeField:buffer-value then
+                do:  
+                    cDbField = StringUtil:GetMappedName(subst("&1.&2",hBuffer:name,hField:name),hBuffer:data-source-complete-map).
+                    if cDbField > "" and cDbField begins BufferHandle:name + "." then
+                    do:
+                        iArrayPos = index(cDbField,"[").  
+                        if iArrayPos > 0 then
+                        do:
+                            iExtent = integer(right-trim(substring(cDbField,iArrayPos + 1),"]")).
+                            cDbField = substring(cDbField,1,iArrayPos - 1).
+                        end.
+                        hDbfield = BufferHandle:buffer-field(entry(2,cDbField,".")) no-error.   
+                        if valid-handle(hDBField) then 
+                            hField:buffer-value = hDbField:buffer-value(IarrayPos).                             
+                    end.         
+                end.
+            end.  
+        end.    
+    end method. 
+    
+    method protected handle GetAndAssertErrorBuffer():
+        if DataBuffer:before-buffer:avail and DataBuffer:before-buffer:row-state = row-deleted then
+            return DataBuffer:before-buffer.
+        else if DataBuffer:Avail = false then
+        do:
+            undo, throw new IllegalOperationError(subst("Error in error handling: Buffer '&1' is not available",DataBuffer:name)).
+        end.         
+        return DataBuffer.    
+    end method.
+       
     method protected character GetFieldMap(): 
         define variable oIterator   as IIterator   no-undo.
         define variable cExceptList as character no-undo.
@@ -758,21 +1495,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         
         if extent(BufferHandles) = 1 then 
             return "".
-                     
-       // if valid-object(ProxyManager) then
-       //  as of current ProxyFieldNames is managed in AddProxyField and also set directly
-       //  to manage keys and specifically join to keys in sources mapped to generic tables
-       // TODO use FieldProxy always (FieldMap)    
-                   
-        // if main buffer is not first buffer then check if key can be mapped to an earlier table
-        // this may seem a bit loose and odd, but it is actually what will happen in a case where 
-        // no fieldmap is provided in attach 
-        // -  the GetFieldMAp used to return "" so this logic was added to preserve
-        //    similar behavior after adding new logic here that ensures the fields are
-        //    mapped correctly for the main table 
-        // -  without  this change mapping the key to the main table when not first in query will cause   
-        // error  Unable to auto-generate a FILL query predicate for <table> if field <keyfield in <ttname> is not mapped. (11883)"
-         
+             
         if Bufferhandle <> BufferHandles[1] then 
         do:
             cKeys = Bufferhandle:keys.
@@ -807,7 +1530,52 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         return cMap.    
     end method.
     
+    method protected character GetLobFields ():
+        define variable i       as integer no-undo.
+        define variable cFields as character no-undo.
+        define variable hFld    as handle no-undo. 
+        do i = 1 to DataBuffer:num-fields:
+            hFld = Databuffer:buffer-field(i).
+            if hFld:data-type = "BLOB" or hFld:data-type = "CLOB" then 
+                cFields = cFields 
+                    + (if cFields = "" then "" else ",")
+                    + hFld:name. 
+        end.    
+        return cFields.
+        
+    end method.
     
+    
+     // allow subclasses to customize alreayd exists error - default to replace db table with GetRowname the 
+    method protected character GetPublicAlreadyExistsMessage(pcMessage as character,phBeforebuffer as handle, piSource as integer):
+        return replace(pcMessage,BufferHandles[piSource]:name,BufferUtil:GetRowName(phBeforeBuffer)).
+    end method.
+    
+    method protected void ThrowConflictError(phBeforebuffer as handle):
+        undo, throw new ConflictError(phBeforeBuffer). 
+    end method.    
+    
+    method protected void ThrowConflictError(phBeforebuffer as handle,pcchanges as character):
+        undo, throw new ConflictError(phBeforeBuffer,pcChanges). 
+    end method. 
+      
+    method protected void BufferError(hBuffer as handle,pcMsg as character):
+        ErrorStringUtil:AddError(hBuffer, pcMsg).
+    end method.    
+    
+    method protected void BufferError(hBuffer as handle,pcMsg as character, pcField as character):
+        ErrorStringUtil:AddError(hBuffer, pcMsg, pcField).
+    end method.    
+    
+    method protected void ThrowBufferError(hBuffer as handle,pcMsg as character):
+        ErrorStringUtil:AddError(hBuffer, pcMsg).
+        undo, throw new TransactionError().
+    end method. 
+    
+    method protected void ThrowBufferError(hBuffer as handle,pcMsg as character, pcField as character):
+        ErrorStringUtil:AddError(hBuffer, pcMsg, pcField).
+        undo, throw new TransactionError().
+    end method.
      /* return source columns for query mapping 
     (implements IDataSOurceMap interface used by QueryBuilder map query */
     method public character ColumnSource (pcColumn as char):
@@ -821,26 +1589,9 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         define variable hFld        as handle      no-undo.
         define variable i           as integer     no-undo.
         define variable oIterator   as IIterator   no-undo.
-     //   define variable oFieldProxy as IFieldProxy no-undo. 
         define variable cProxyColumn as character no-undo.
         define variable cColumnName as character no-undo.
         define variable cMappedName as character no-undo.
-     
-        /*  inner join reference to other buffers can be passed from client,
-            so we use the buffer's dataset to get those datasources' 
-            fieldmap. This assume that any buffer that has been attached to a 
-            datasource is referencing the same physical storage, (keep in mind that all connected 
-            progress databases are the same physical storage in this context), so all dataset mapping 
-            is valid for this datasource. 
-            Note that this secondary inner join is passed from the client as an option to reduce the 
-            number of records to fill for THIS table. 
-            The actual fill of the joined table is handled by another datasource.  */
-/*        if lookup(pcColumn,ProxyFieldNames) > 0 and valid-object(ProxyManager) then*/
-/*        do:                                                                        */
-/*            cProxyColumn = ProxyManager:ColumnSource(pcColumn).                    */
-/*            if cProxyColumn > "" then                                              */
-/*                return cProxyColumn.                                               */
-/*        end.                                                                       */
         
         if num-entries(pcColumn,".") = 1 then 
         do:        
@@ -922,5 +1673,28 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     method public IQueryEntry ColumnExpression(pPredicate as IQueryPredicate):
         return pPredicate. 
     end method.   
-        
+    
+    // hook
+    method protected void CreateBeginTransValidate(input dataset-handle phDataset):
+    end method.    
+    
+    // hook
+    method protected void CreateEndTransValidate(input dataset-handle phDataset):
+    end method.    
+    
+    // hook
+    method protected void WriteBeginTransValidate(input dataset-handle phDataset):
+    end method.    
+   
+    // hook
+    method protected void WriteEndTransValidate(input dataset-handle phDataset):
+    end method.
+   
+    // hook 
+    method protected void DeleteBeginTransValidate(input dataset-handle phDataset):
+    end method.    
+    
+    // hook
+    method protected void DeleteEndTransValidate(input dataset-handle phDataset):
+    end method.     
 end class.

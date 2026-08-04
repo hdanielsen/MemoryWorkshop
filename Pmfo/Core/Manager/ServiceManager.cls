@@ -48,7 +48,6 @@ using Pmfo.Core.Service.BusinessEntityOperationHandler from propath.
 using Pmfo.Core.Service.DataObjectService from propath.
 using Pmfo.Core.Service.JsonEntityWriter from propath.
 using Pmfo.Core.Service.OperationHandlerService from propath.
-using Pmfo.Repository.Business.LookupTypeBE from propath.
 using Pmfo.Repository.Business.PublicNameBE from propath.
 using Pmfo.Repository.Business.ResourceBE from propath.
 using Pmfo.Repository.DataAccess.ResourceDA from propath.
@@ -56,7 +55,6 @@ using Pmfo.Repository.DataSource.DataAccessDS from propath.
 using Pmfo.Repository.DataSource.DataSourceDS from propath.
 using Pmfo.Repository.DataSource.DataSourceErrorDS from propath.
 using Pmfo.Repository.DataSource.EntityDS from propath.
-using Pmfo.Repository.DataSource.LookupTypeDS from propath.
 using Pmfo.Util.Array from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
@@ -343,17 +341,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     method public logical CanFindDataSource( input pcName as character ):
         return can-find(ttDataSource where ttDataSource.EntityName = pcname). 
     end method.    
-    
-    method public logical CanFindDataSource( input pcName as character, output pcType as character).
-        find ttDataSource where ttDataSource.EntityName = pcName no-error. 
-        if avail ttDataSource then 
-        do:
-            pcType = ttDataSource.Type.
-            return true.
-        end.    
-        return false.
-    end method.
-    
+ 
     method public IDataAccess CreateNewDataAccess(input pcName as character):
         return new DynamicDataAccess(pcName).     
     end method.
@@ -415,26 +403,6 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         return new DataAccessDS().       
     end method.
     
-     // The pmfo LookupTypeDS is abstract, so we need to new the application subclass 
-     // default implementation - subclass will typically override with static code
-    method protected LookupTypeDS CreateLookupTypeDS():
-        define variable cClass as character no-undo.
-        define variable oDS    as LookupTypeDS no-undo.
-        cClass =  subst("&1.&2",DataSourceDirectory,"LookupTypeDS").
-        oDs = dynamic-new cClass ().
-        return oDs.       
-    end method.
-    
-     // The pmfo LookupTypeBE is abstract, so we need to new the application subclass 
-     // default implementation - subclass will typically override with static code
-    method protected LookupTypeBE CreateLookupTypeBE():
-        define variable cClass as character no-undo.
-        define variable oBE    as LookupTypeBE no-undo.
-        cClass =  subst("&1.&2",EntityDirectory,"LookupTypeBE").
-        oBE = dynamic-new cClass ().
-        return oBE.       
-    end method.
-    
      // The pmfo PublicNameBE is abstract, so we need to new the application subclass 
     method protected PublicNameBE CreatePublicNameBE():
         define variable cClass as character no-undo.
@@ -457,9 +425,6 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             return CreateEntityDS().       
         else if pcName = "dataAccess" then 
             return CreateDataAccessDS().
-        // used in resource.json generation, and must work if there is none    
-        else if pcName = "lookupTypes" then 
-            return CreateLookupTypeDS().
         // used in resource.json generation will be called to cleanup existing
         // records may be added when generating datasource and a source cannot be found 
         // May not be an error, but could be)    

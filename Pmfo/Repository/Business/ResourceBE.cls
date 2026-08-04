@@ -40,7 +40,6 @@ using Pmfo.Util.StringUtil from propath.
 class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity: 
     
     {Pmfo/Repository/Business/defs/resources-dataset.i} 
-    {Pmfo/Repository/schema/lookuptype.i}
     
     define temp-table ttTableMap no-undo 
         field name as character
@@ -123,7 +122,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
       //  FetchLookupTypes(output table-handle hLookupTypeTable ).
       //  WarningMessages = new WarningMessages(hdataset). 
         // Add datasourced of type "CodeTable" from Lookuptypes and type "Table" using DataAdminService  
-        AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hLookupTypeTable by-reference, input table-handle hDataSourceErrorTable by-reference).
+        AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hDataSourceErrorTable by-reference).
         // save to resources.json
         UpdateData(input-output dataset-handle hDataset by-reference). 
         empty temp-table ttTableMap.
@@ -137,7 +136,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         define variable hDataset              as handle no-undo.
         define variable hEntityTable          as handle no-undo.
         define variable hDataSourceTable      as handle no-undo.
-        define variable hLookupTypeTable      as handle no-undo. 
+       
         define variable hDataSourceErrorTable as handle no-undo.        
         
         hDataset = Datasets[1].
@@ -152,9 +151,9 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         hDataSourceTable = hDataset:get-buffer-handle("ttDataSource"):table-handle.
         hDataSourceErrorTable = hDataset:get-buffer-handle("ttDataSourceError"):table-handle.
         // fetch all lookup types from the lookup table  
-        FetchLookupTypes(output table-handle hLookupTypeTable ).
+       
         // Add datasourced of type "CodeTable" from Lookuptypes and type "Table" using DataAdminService  
-        AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hLookupTypeTable by-reference, input table-handle hDataSourceErrorTable by-reference).
+        AddDynamicDataSources(input table-handle hEntityTable by-reference, input table-handle hDataSourceTable by-reference, input table-handle hDataSourceErrorTable by-reference).
     // save to resources.json
         UpdateData(input-output dataset-handle hDataset by-reference). 
         empty temp-table ttTableMap.    
@@ -163,7 +162,6 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
     method protected void AddDynamicDataSources(
         input table ttEntity, 
         input table ttDataSource, 
-        input table ttLookupType, 
         input table ttDataSourceError
         ):
         
@@ -180,7 +178,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
                 lOk = AddDynamicDataSource(ttEntity.Resource, 
                                            input table ttEntity by-reference,
                                            input table ttDataSource by-reference, 
-                                           input table ttLookupType by-reference,
+                                         
                                            input table ttTablemap by-reference 
                                            ).
                                           
@@ -196,7 +194,6 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
                     lOk = AddDynamicDataSource(cEntity, 
                                            input table ttEntity by-reference,
                                            input table ttDataSource by-reference, 
-                                           input table ttLookupType by-reference,
                                            input table ttTablemap by-reference 
                                            ).
        
@@ -243,26 +240,11 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         input pcEntity as character, 
         input table ttEntity, 
         input table ttDataSource, 
-        input table ttLookupType, 
         input table ttTablemap  
           ):
         if not can-find(ttDataSource where ttDataSource.EntityName = pcEntity) then
         do: 
-            find ttLookupType where ttLookupType.EntityName = pcEntity no-error.
-            if ambiguous ttLookupType then 
-                undo, throw new IllegalStateError(subst("More than one lookup currently resolves its entity name to '&1'. The NameService must be updated to disambuguate these lookups.",pcEntity)). 
-            if avail ttLookupType then
-            do:     
-                create ttDataSource. 
-                assign 
-                    ttDatasource.EntityName = ttLookupType.EntityName
-                    ttDatasource.TypeCode   = ttLookupType.TypeCode
-                    // just for consistency with other datasources since the typekey is not unique and init 0  
-                    ttDatasource.TypeKey    = if ttLookupType.TypeKey = ? then 0 else ttLookupType.TypeKey
-                    ttDatasource.Type       = "CodeTable".   
-                return true.     
-            end.
-            else if ttEntity.ClientOnly = false then
+            if ttEntity.ClientOnly = false then
             do: 
                 find ttTableMap where ttTableMap.publicName = pcEntity no-error.
                 if avail ttTableMap then 

@@ -36,6 +36,14 @@ using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.DatasetUtil from propath.
 using Progress.Lang.Object from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataResponse from propath.
+using Progress.Lang.Error from propath.
+using Pmfo.Core.Error.ValidationError from propath.
+using OpenEdge.Core.String from propath.
+using Pmfo.Core.BusinessLogic.IClientEntity from propath.
+using Progress.Json.ObjectModel.JsonObject from propath.
+using Pmfo.Core.Service.JsonDatasetErrorProcessor from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
  //   define public property Public         as logical   no-undo get. protected set.
@@ -210,6 +218,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             end.     
         end case.
         Resource = DataSets[1]:serialize-name. 
+        
         if not lAsserted then 
             AssertDatasetName(DefaultDataset).    
     end constructor.
@@ -269,8 +278,8 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         end.
     end method.     
     
-    
     method public void GetDataset (output dataset-handle phDataset).
+       phDataset = defaultDataset. 
     end method.    
     
     method public void GetData():    
@@ -378,7 +387,87 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     method public Object UpdateData (input-output dataset-handle phDataset,poUpdateDataRequest as IUpdateDataRequest).     
         AssertInitialized().    
+        define variable oResponse as Object no-undo.
+        define variable oUpdateResponse as IUpdateDataResponse no-undo.
+        define variable hWarning   as handle no-undo.
+        
+        define variable lError as logical no-undo.
+        define variable oReceiveError as Error no-undo.
+        define variable oError as Error no-undo.
+        
+        Assert:NotNull(phdataset,"Dataset passed to UpdateData").
+        Assert:NotNull(poUpdateDataRequest,"UpdateDataRequest passed to UpdateData").
+        
+        do on error undo, throw :
+            
+            // standard crud call before uopdate (actions are handled in ValidateAction to ensure they are called also from other BEs
+            do on error undo, throw: 
+            //   BeforeUpdateDataset( poUpdateDataRequest, phDataset).
+                if phDataset:error then
+                    lError = true.
+                catch eval as ValidationError:
+                    if phDataset:error then 
+                        lError = true.
+                    // rethrow or rethrow as Qquestion if question       
+                    else 
+                        undo, throw eVal.  
+.       
+                end catch.                  
+            end.
+        
+            if not phDataset:error then
+            do: 
+                oResponse = SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset by-reference).
+                // Need research on how to manage dataset error to the by-reference 
+                // from the return from DataAccess input-output deep copy ) - bug?
+                // This is a workaround in the DataAccess  
+                if valid-object(oResponse) and type-of(oResponse,String) then
+                do:
+                    if cast(oResponse,String):Value = "error" then
+                    do:
+                        phDataset:error = true.
+                        lError = true.
+                    end.   
+                end.
+                  
+            end.
+            else 
+                lError = true.
+            catch e as Progress.Lang.Error :
+                oError = e.
+                lError = true.     
+            end catch.
+        end.       
+        do on error undo, throw:
+            RefreshData(poUpdateDataRequest,phDataset,lError).
+            catch e2 as Progress.Lang.Error :
+                oReceiveError = e2.
+            end catch.
+        end. 
+       
+        if valid-object(oError) then
+            undo, throw oError.
+        
+        if phDataset:error then  
+            ThrowDatasetError(phDataset).
+         
+        return oResponse.        
+        
     end method.    
+    
+    method public Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+         
+        // Use of BufferError outside managed hooks may end here if not managed  
+        // (this is considered part of the framework, as it allows BufferError to be used also outside of 
+        // the validate hooks
+       if phDataset:error then
+           ThrowDatasetError(phDataset).
+        
+        
+       return DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset).        
+        
+       
+    end method.
     
     method public Object UpdateData(input-output dataset-handle phDataset).
         AssertInitialized().    
@@ -414,7 +503,8 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         do:
             // get the last buffer in the collections (extracged from rest path)
             hMainBuffer = DatasetUtil:GetRequestedBuffer(hDataset, pClientRequest:Collections).
-            pUpdateRequest = CreateUpdateDataRequest(hMainBuffer). 
+        
+            pUpdateRequest = new UpdateDataRequest(hMainBuffer:name). 
             pUpdateRequest:CommitScope = GetCommitScope(pClientRequest).    
         end.  
        
@@ -504,6 +594,61 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method protected CommitScopeEnum GetCommitScope(pClientRequest as IClientRequest):
         return CommitScopeEnum:All.
     end method.
+    
+    method public void ThrowDatasetError( phDataset as handle): 
+        define variable oJson as JsonObject no-undo.
+        define variable oErrorProcessor as JsonDatasetErrorProcessor no-undo.
+        define variable oError as Error no-undo.
+        define variable iRelation as integer no-undo.
+        
+        oJson = new JsonObject().
+        do iRelation = 1 to phDataset:num-relations:
+            // ensure keys are in json so they can be added to error 
+            // as of current the dataset is not returne for errors 
+            // we may return datasets for 409 in futrure , but the assumption is that it causes no isses since it will always be correct 
+            // TODO  use parent relation  
+            phDataset:get-relation (iRelation):foreign-key-hidden = false.
+        end.       
+        phDataset:write-json ("JsonObject",oJson,no,?,no,yes, yes).
+        oErrorProcessor = new JsonDatasetErrorProcessor().
+            
+        if DatasetUtil:HasBeforeState(phDataset,row-deleted) then 
+            oError = oErrorProcessor:CreateDeleteError (ojson, phdataset).
+        else 
+            oError = oErrorProcessor:CreateError (ojson, phdataset).
+        
+        if valid-object(oError) then
+        do:
+            undo, throw oError .
+        end.
+        else do:
+            // this should no longer happen since JsonDatasetErrorProcessor now should manage all cases that ended up here before  
+            oError = new ApplicationError("Update of data failed, but no error information was returned to the client. Please Contact IT.").
+            undo, throw oError. 
+        end.     
+        
+    end method.    
+    
+    method protected final void RefreshData(poUpdateRequest as IUpdateDataRequest, phDataset as handle, plUpdateError as logical):
+        define variable oGetRequest as Pmfo.Core.BusinessLogic.IGetDataRequest no-undo.
+        oGetRequest = CreateGetRequestForRefresh(poUpdateRequest,phDataset).
+        // this is called also after an error, but if an error occurs here it will only cause a warning 
+        // the lError passed in is just for information to the event  
+        // we use ReceiveDataEventArgs constructor that has parameter for the update 
+        ReceiveData(oGetRequest, 
+                    new GetDataResponse(),
+                    phDataset).
+    end method. 
+    
+    method protected IGetDataRequest CreateGetRequestForRefresh(poUpdateRequest as IUpdateDataRequest,phDataset as handle):
+        define variable i as integer no-undo.
+        define variable oGetTableRequests as Pmfo.Core.BusinessLogic.IGetDataTableRequest no-undo extent.
+        extent(oGetTableRequests) = phDataset:num-buffers. 
+        do i = 1 to phDataset:num-buffers:
+            oGetTableRequests[i] = new GetDataTableRequest(phDataset:get-buffer-handle(i):table-handle:name).
+        end.    
+        return new GetDataRequest(oGetTableRequests).
+    end method.    
     
     method protected void AssertInitialized():
         if not Initialized then 

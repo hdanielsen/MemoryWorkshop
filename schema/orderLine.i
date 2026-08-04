@@ -15,7 +15,7 @@ define temp-table ttOrderLine no-undo serialize-name "orderLines" {1}  before-ta
    field OrderLineStatus                  as character   serialize-name "orderLineStatus"
    field OrderNum                         as integer     serialize-name "orderNum"
    field Price                            as decimal     serialize-name "price"
-   field Qty                              as integer     serialize-name "qty"
+   field Qty                              as integer     serialize-name "quantity"
    field zz_seq                           as int64       serialize-hidden
    index ItemNum ItemNum
    index OrderLine as unique OrderNum LineNum

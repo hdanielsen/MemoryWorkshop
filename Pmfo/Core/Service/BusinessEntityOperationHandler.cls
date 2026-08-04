@@ -216,46 +216,27 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable oUpdateDataRequest    as IUpdateDataRequest no-undo. 
         define variable jsonResponse          as JsonObject no-undo.
         define variable oGetDataRequest       as IGetDataRequest no-undo. 
-        define variable oGetActionDataRequest as IGetDataRequest no-undo. 
         define variable hRequestedBuffer      as handle no-undo.
-        define variable oError                as Error no-undo.
         define variable lBeforeImage          as logical no-undo.
         define variable lBeforeImageRequired  as logical no-undo.
  
-        define variable oJsonRequest          as JsonConstruct no-undo.
-        define variable oJsonParent           as JsonObject no-undo.
-        define variable oJsonChildArray       as JsonArray  no-undo.
-       
-        define variable oUpdateBe             as IBusinessEntity no-undo.  
-        define variable oEmptyTableRequests   as IGetDataTableRequest extent no-undo.
       //  define variable cActionFields         as character no-undo.
-        define variable iField                as integer no-undo.
-        define variable lNoData               as logical no-undo.
-        define variable iJson                 as integer no-undo.
-        define variable lActionWithoutBody    as logical no-undo.
-        define variable lRowCreatedFromURL    as logical no-undo.
-        define variable lUniqueAction         as logical no-undo.
-        define variable oBusinessEntity       as IbusinessEntity no-undo.
-        define variable iCollection           as integer no-undo.
-        define variable lDeleteAndNoContent   as logical no-undo.
-        define variable lActionHasParent            as logical no-undo.
+        define variable oBusinessEntity        as IbusinessEntity no-undo.
         define variable oResponse              as Object  no-undo.
-        define variable cBeforeImageNames      as character extent no-undo.
-        define variable lUseJsonReaderOnPost   as logical no-undo.
         define variable lReturnDataAfterDelete as logical no-undo.
-        define variable lRecursive             as logical no-undo.
       
         if type-of(pEntity,IBusinessEntity) then 
              oBusinessEntity = cast(pEntity,IBusinessEntity).
         else     
-            undo, throw new IllegalArgumentError(subst("Entity of Type &1",pEntity:GetClass():TypeName)).
+            undo, throw new UnsupportedOperationError(subst("Entity of Type &1",pEntity:GetClass():TypeName)).
             
         if oBusinessEntity:ReadOnly then
             undo, throw new MethodNotAllowedError(pcMethod).
         
         if valid-object(pMessageBody) and type-of(pMessageBody,JsonObject) = false then
-            pMessageBody = ?.
+            undo, throw new UnsupportedOperationError(subst("Body of Type &1",pMessageBody:GetClass():TypeName)).
         
+              
         case pcMethod:
             when "PUT" then do:
                 if oBusinessEntity:ReadOnly then
@@ -274,12 +255,16 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
             otherwise 
                 undo, throw new IllegalArgumentError(subst("Method parameter '&1'",pcMethod)).
         end case.
-                 
-        oClientUpdateRequest          = CreateClientUpdateRequest(oBusinessEntity,pcMethod,pcServiceURI,pURIQuery,cast(pMessageBody,JsonObject)).
-        oBusinessEntity:getDataset(output dataset-handle hDataset). 
         
+        jsonRequest  = cast(pMessageBody,JsonObject).
+        lBeforeImage = JsonUtil:HasBeforeImage(jsonRequest).
+               
+        oClientUpdateRequest = CreateClientUpdateRequest(oBusinessEntity,pcMethod,pcServiceURI,pURIQuery,cast(pMessageBody,JsonObject)).
+        hDataset             = oBusinessEntity:GetUpdateRequestDataset(oClientUpdateRequest,output lBeforeImageRequired, output  oUpdateDataRequest ).
+ 
         if oUpdateDataRequest:MainRequestedBuffer = "" or oUpdateDataRequest:MainRequestedBuffer = ?  then 
             undo, throw new IllegalStateError("Main Requested Buffer not defined in update request").
+        
          
         hRequestedBuffer = hdataset:get-buffer-handle (oUpdateDataRequest:MainRequestedBuffer).
                                                                                                    
@@ -306,46 +291,62 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
             end.
         end case.
         
-         
-        // probably not necessary to check both conditions 
-      //  if extent(oClientUpdateRequest:Collections) > 1 + (if valid-object(oUpdateDataRequest:CustomRequest) and type-of(oUpdateDataRequest:CustomRequest,IAction) then 1 else 0) 
-      //  and oBusinessEntity:resource <> hRequestedBuffer:table-handle:serialize-name then
-       //     oUpdateBe = ServiceManager:CreateBusinessEntity(hRequestedBuffer:table-handle:serialize-name).
-      //  else
-        oUpdateBe = oBusinessEntity.
-        
+        jsonDatasetRequest = JsonUtil:WrapRequestForDataset(jsonRequest, hDataset, hRequestedBuffer:name).
+                   
+        if lBeforeImage = false then 
         do: 
-            // create, delete or modify with a key  provided for the requested entity
-            if valid-handle(hRequestedBuffer)
-            and oClientUpdateRequest:Keywheres[extent(oClientUpdateRequest:Keywheres)] > "" then
-            do:
-                // return true if created  (no messagebody) 
-                lRowCreatedFromURL = AssignKeysFromUrl(pcMethod, oClientUpdateRequest, pMessageBody, hRequestedBuffer, false). // false = not action
-            end.     
-        end.
+            if lBeforeImageRequired then 
+                undo, throw new UnprocessableEntityError(subst("The entity body must have before image data to execute a '&1' request for '&2'",
+                                                               pcMethod,
+                                                               oBusinessEntity:Resource
+                                                               )
+                                                         ).      
          
-                 
-         // NOT an action with no body 
-       // else @TODO need error handling or management of metric support for actions woth no body 
-        // if we have a BE for the requested table different than the requested resource use that from now on 
+         
+            case pcMethod:
+                when "POST" then
+                    DatasetUtil:SetTrackingChanges(hDataset,true).
+                when "PUT" then 
+                    undo, throw new UnsupportedOperationError(substitute ("&1 &2 without before-image",
+                                                                         pcMethod,
+                                                                         hRequestedBuffer:serialize-name
+                                                                         )
+                                                              ).
+            end case.
+        end.
         
-        oBusinessEntity = oUpdateBe.
+        do on error undo, throw:
+            hDataset:read-json ("JsonObject",jsonDatasetRequest,"append"). // empty, but if there is data replace is correct
+            
+            catch e as Progress.Lang.Error :
+               if e:GetMessageNum(1) = 132 then 
+                   undo, throw new UnsupportedOperationError(substitute ("&1 &2 json with more than one record without unique keys",
+                                                                         pcMethod,
+                                                                         hRequestedBuffer:serialize-name
+                                                                         ) 
+                                                             ).
+               else
+                   undo, throw e. 
+            end.    
+         end.  
+        
+        if lBeforeImage = false then 
+        do: 
+            case pcMethod:
+                when "POST" then
+                    DatasetUtil:SetTrackingChanges(hDataset,false).
+                when "DELETE" then 
+                    DeleteDataAndTrack(hdataset).
+            end case.
+        end.
+ 
         oResponse = oBusinessEntity:UpdateData(input-output dataset-handle hDataset by-reference,oUpdateDataRequest).
-        
-        // we have a bug  - some large dataset with more than one top buffer loses the serialize-name
-/*        do i = 1 to hDataset:num-buffers:                                                                                           */
-/*            hDataset:get-buffer-handle(i):buffer-release().                                                                         */
-/*          //  hDataset:get-buffer-handle(i):table-handle:serialize-name = hDataset:get-buffer-handle(i):table-handle:serialize-name.*/
-/*            hDataset:get-buffer-handle(i):serialize-name = hDataset:get-buffer-handle(i):serialize-name.                            */
-/*        end.                                                                                                                        */
-        
-        
         
         // anticipate set of main requested buffer for multi table reqest that may have changed the relations to one top 
         if valid-handle(hRequestedBuffer) = false and oUpdateDataRequest:MainRequestedBuffer > "" then  
              hRequestedBuffer = hdataset:get-buffer-handle (oUpdateDataRequest:MainRequestedBuffer).
         jsonResponse = new JsonObject().
-        
+        hDataset:write-json ("JsonObject",jsonResponse,no,?,no,yes).
         if pcMethod = "DELETE" then 
         do:
             // support repsone with refreshed data after delete - added for recursive cases where 
@@ -368,39 +369,11 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         
         // create response unless this is a delete or delete returns data 
         // (delete returns data  = for example delete from recursive tree may return refreshed tree)    
-        if pcMethod <> "DELETE" or lReturnDataAfterDelete then
-        do:
-           // check if the action should return no content or sucdess instead of data  
-                 
-             
-        end. // not delete
-        else // set flag to return ? - will be set false if sucess or warning messages are added  
-            lDeleteAndNoContent = true.
-           
-        /***
-           UpdateDataResponse:Messages, WarningMessages and successMessages have some differences that currently requires different approaches
-           TODO - UpdateDataResponse:Messages is intended to unify and abstract this togeterh
-           //  and also add info messages
-        ***/   
-                  /*
-           Warningmessages Can be also be added on server and is currently returned from DA in a temp-table
-                           It is also used both on GET and here    
-                           The WarningMessages is thus a temp-table wrapper created at the start of a request
-                           that knows the dataset of the request
-                           The dataset is used to convert internal field names to serfializenames gfetting 
-                           the dataset buffer form serializ-name
-        */
-         
-        /**
-           Successmessages is pure OO ands is currently (?) only managed in the BE 
-           The SuccessMessage objects have constructors that requires public field keys and field names
-           so there is no need to know the dataset 
-           The class is thus lazyloaded and HasSuccessMessages is set when used
-           It is deleted on start of update request toi make sure no statle data is present if 
-           a BE UpdateData is called twice    
-        */ 
-       
+        if pcMethod = "DELETE" and lReturnDataAfterDelete = false then
+            return ?.  // flag to caller to return http 204 no content  
+        
         return jsonResponse.
+       
     end method.
     
     method protected void HandleTableNotFoundForUniqueFunction(phRequestedbuffer as handle,plOneToOneParent as logical,pcKeyExpression as character):
@@ -458,9 +431,50 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                 return oMethods[i].
         end.    
     end.
-    
-     
    
+    /*------------------------------------------------------------------------------
+     Purpose: Mark all records as deleted. 
+     Notes: mark-row-state does not remove after-buffer. (last tested 11.7)
+    ------------------------------------------------------------------------------*/
+
+    method public void DeleteDataAndTrack( phdataset as handle ):
+        define variable i       as integer no-undo.
+        define variable hQuery  as handle no-undo.
+        define variable hBuffer as handle no-undo.
+        define variable hBufferDel as handle no-undo.
+        define variable hTable  as handle no-undo.
+        define variable rRowid as rowid no-undo.
+        DatasetUtil:SetTrackingChanges(phDataset,true).
+        do i = 1 to phDataset:num-buffers.
+            hBuffer = phDataset:get-buffer-handle(1).
+            hTable = hBuffer:table-handle.
+            create buffer hBufferDel for table hTable. 
+            
+            create query hQuery.
+            hQuery:add-buffer(hBuffer).
+            hQuery:query-prepare(substitute("for each &1",hBuffer:name)).
+            hQuery:query-open.
+            hQuery:get-first.
+            do while hBuffer:avail:
+                rRowid = hBuffer:rowid.
+                hQuery:get-next.
+                hBufferDel:find-by-rowid(rRowid).
+                hBufferDel:buffer-delete().
+            end.
+            
+            delete object hQuery.
+            delete object hBufferDel.   
+        end.
+        finally:
+            DatasetUtil:SetTrackingChanges(phDataset,false).
+            if valid-handle(hQuery) then
+                delete object hQuery.
+            if valid-handle(hBufferDel) then
+                delete object hBufferDel.   
+        end.            
+     
+    end method.
+
     method protected IBusinessEntity ResolveGetRequest(pClientGetRequest as IClientGetRequest,input pRequestedBe as IBusinessEntity, output pRequest as IGetDataRequest, output phDataset as handle).
         define variable cRedirect        as character no-undo.
         define variable cRedirects       as character extent no-undo.
