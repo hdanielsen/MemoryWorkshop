@@ -38,4 +38,9 @@ class DataSource.EmployeeDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttEmployee.EmpNum  = next-value (NextEmpnum).
+    end method.
+    
+    
 end class.

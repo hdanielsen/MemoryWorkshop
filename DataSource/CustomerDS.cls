@@ -11,7 +11,7 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
-using Pmfo.Core.Error.ApplicationError from propath.
+using Pmfo.Core.Error.BadRequestError from propath.
 
 class DataSource.CustomerDS inherits DataSource:
 
@@ -45,6 +45,6 @@ class DataSource.CustomerDS inherits DataSource:
     
     method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
         if can-find(first Order where Order.CustNum = biCustomer.Custnum) then 
-            undo, throw new ApplicationError(substitute("Cannot delete customer &1 that has orders",biCustomer.Custnum)).
+            BufferError(buffer biCustomer:handle,substitute("Cannot delete customer &1 that has orders",biCustomer.Custnum)).
     end method.
 end class.
