@@ -23,6 +23,7 @@ using Pmfo.Core.BusinessLogic.QueryBuilder.QueryBuilder from propath.
 using Pmfo.Core.DataLayer.DbQuery from propath.
 using Pmfo.Core.DataLayer.IDataSource from propath.
 using Pmfo.Core.DataLayer.IUpdateTarget from propath.
+using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Error.BadRequestError from propath.
 using Pmfo.Core.Error.ConflictError from propath.
@@ -31,6 +32,7 @@ using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.IllegalStateError from propath.
 using Pmfo.Core.Error.NotFoundError from propath.
 using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Error.TableNotFoundError from propath.
 using Pmfo.Core.Error.TransactionError from propath.
 using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Util.Array from propath.
@@ -41,8 +43,6 @@ using Pmfo.Util.ServiceInfo from propath.
 using Pmfo.Util.StringUtil from propath.
 using Progress.Lang.AppError from propath.
 using Progress.Lang.Error from propath.
-using Pmfo.Core.Error.TableNotFoundError from propath.
-using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 
 class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IUpdateTarget abstract: 
     
@@ -1155,7 +1155,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         // FindAndCompareSource ignores the serialize-hidden fields
         if phBeforeBuffer:row-state = row-deleted then
         do: 
-            // NoLobs is honored in the compare and ProxyManager:CheckProxyConflicts will be called  
+            // NoLobs is honored in the compare  
             FindAndCompareSource(phBeforeBuffer).
             lok = BufferHandle:buffer-delete().
             return lok.      
