@@ -229,7 +229,7 @@ class Pmfo.Util.Array:
         do:
             extent(hValues) = num-entries(pcString,pcDelimiter).
             do i = 1 to extent(hValues):
-               hValues[i] = widget-handle(entry(i,pcString,pcDelimiter)).
+               hValues[i] = handle(entry(i,pcString,pcDelimiter)).
             end.
         end.
               
