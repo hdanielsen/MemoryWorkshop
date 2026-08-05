@@ -42,6 +42,10 @@ class DataSource.CustomerDS inherits DataSource:
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         assign ttCustomer.CustNum = next-value (NextCustnum).
         
-        undo, throw new ApplicationError("This is nt ").
+    end method.
+    
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        if can-find(first Order where Order.CustNum = biCustomer.Custnum) then 
+            undo, throw new ApplicationError(substitute("Cannot delete customer &1 that has orders",biCustomer.Custnum)).
     end method.
 end class.
