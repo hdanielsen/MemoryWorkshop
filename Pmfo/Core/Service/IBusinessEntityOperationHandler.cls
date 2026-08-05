@@ -1,0 +1,34 @@
+
+/*------------------------------------------------------------------------
+    File        : IBusinessEntityOperationHandler
+    Purpose     : 
+    Syntax      : 
+    Description : 
+    Author(s)   : hdaniels
+    Notes       : 
+  ----------------------------------------------------------------------*/
+
+using OpenEdge.Web.DataObject.IOperationHandler.
+using Progress.Json.ObjectModel.JsonObject from propath.
+using OpenEdge.Core.Collections.IStringStringMap from propath.
+using Pmfo.Core.BusinessLogic.IEntity from propath.
+using Progress.Lang.Object from propath.
+
+interface Pmfo.Core.Service.IBusinessEntityOperationHandler inherits IOperationHandler:  
+                                                
+    method public JsonObject ExecuteGetOrHead(
+        pcMethod as character,
+        pcBaseAppTransportServiceURI as character,
+        pcServiceURI as character,
+        pURIQuery as IStringStringMap,
+        pEntity as IEntity). 
+        
+    method public JsonObject ExecutePostOrPutOrDelete(
+        pcMethod as character,
+        pMessageBody as Object,
+        pcBaseAppTransportServiceURI as character,
+        pcServiceURI as character,
+        pURIQuery as IStringStringMap,
+        pEntity as IEntity).
+            
+end interface.

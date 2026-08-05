@@ -39,28 +39,22 @@ using Pmfo.Core.Service.ClientGetRequest from propath.
 using Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder from propath.
 using OpenEdge.Core.JsonDataTypeEnum from propath.
 using Progress.Json.ObjectModel.JsonDataType from propath.
- 
+using Pmfo.Core.Service.IBusinessEntityOperationHandler from propath.
  
 
 class Pmfo.Tools.Test.TestBase abstract inherits DataService:
     define protected property ShowErrors as logical no-undo get. set. 
  
     define protected property ShowErrorsInWindow as logical   no-undo 
-       get. 
-       set(plShow as logical):
-           if plShow then
+        get. 
+        set(plShow as logical):
+            if plShow then
                ShowErrors = true.
-           ShowErrorsInWindow = plShow.     
-       end.    
+            ShowErrorsInWindow = plShow.     
+        end.    
        
     define protected property ErrorEntity as JsonConstruct no-undo get. set. 
- 
-    
-/*    define protected property FindService as IFindService no-undo                                              */
-/*       get():                                                                                                  */
-/*           return cast(Ccs.Common.Application:ServiceManager:getService(get-class(IFindService)),IFindService).*/
-/*       end.                                                                                                    */
-/*                                                                                                               */
+                                                                                                                
     define protected property ServiceManager as  IServiceManager no-undo
         get():
             return cast(Ccs.Common.Application:ServiceManager,IServiceManager).
@@ -73,7 +67,7 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
         end get.
         protected set.
     
-    define abstract property OperationHandler as BusinessEntityOperationHandler no-undo get. set.
+    define abstract property OperationHandler as IBusinessEntityOperationHandler no-undo get. set.
    
     
     define property DatasetErrorHandler as DatasetErrorProcessor no-undo
