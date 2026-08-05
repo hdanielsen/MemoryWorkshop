@@ -174,7 +174,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         end.
     end method.
     
-    method public override JsonObject ExecutePostOrPutOrDelete
+    method public override JsonObject ExecuteUpdate
                                   (pcMethod as character,
                                    pMessageBody as Object,
                                    pcBaseAppTransportServiceURI as character,
@@ -400,7 +400,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         handle  GET or HEAD request 
        The head request returns after url and query has been processed and validated                               
     */                                          
-    method public override JsonObject ExecuteGetOrHead
+    method public override JsonObject ExecuteRead
                                           (pcMethod as character,
                                            pcBaseAppTransportServiceURI as character,
                                            pcServiceURI as character,

@@ -117,7 +117,7 @@ class Pmfo.Core.Service.OperationHandler abstract implements IOperationHandler,I
     method protected abstract character MethodsAllowedList(pObject as Object).
     method protected abstract integer WriteAllowedHeader(pObject as Object, poResponse as IHttpResponse, pStatusCodeEnum as StatusCodeEnum). 
     
-    method public abstract JsonObject ExecutePostOrPutorDelete( 
+    method public abstract JsonObject ExecuteUpdate( 
                                        pcMethod                     as character,
                                        pMessageBody                 as Object,
                                        pcBaseAppTransportServiceURI as character,
@@ -125,7 +125,7 @@ class Pmfo.Core.Service.OperationHandler abstract implements IOperationHandler,I
                                        pURIQuery                    as IStringStringMap,
                                        pEntity                      as IEntity).
    
-   method public abstract JsonObject ExecuteGetOrHead( 
+   method public abstract JsonObject ExecuteRead( 
                                        pcMethod as character,
                                        pcBaseAppTransportServiceURI as character,
                                        pcServiceURI as character,
@@ -165,11 +165,11 @@ class Pmfo.Core.Service.OperationHandler abstract implements IOperationHandler,I
                         return WriteOptionsHeader(poEntity,poResponse,StatusCodeEnum:NoContent).
                     end.   
                     when "GET" or when "HEAD"  then do on error undo, throw:
-                        jsonResponse  = ExecuteGetOrHead(poRequest:Method,
-                                                         cFullRootPath,
-                                                         poOperation:ServiceURI,
-                                                         poRequest:URI:GetQueryMap(),
-                                                         cast(poEntity,IEntity)).
+                        jsonResponse  = ExecuteRead(poRequest:Method,
+                                                    cFullRootPath,
+                                                    poOperation:ServiceURI,
+                                                    poRequest:URI:GetQueryMap(),
+                                                    cast(poEntity,IEntity)).
                         if poRequest:Method = "HEAD" then                                                                                                                                            
                         do:                                                                                                                                                                          
                             return WriteAllowedHeader(cast(poEntity,IEntity),poResponse,StatusCodeEnum:NoContent).                                                                                          
@@ -178,12 +178,12 @@ class Pmfo.Core.Service.OperationHandler abstract implements IOperationHandler,I
                     when "POST" or when "PUT" or when "DELETE" then
                     do:
                               
-                        jsonResponse  = ExecutePostOrPutorDelete(poRequest:Method,
-                                                                 poMessageBody,
-                                                                 cFullRootPath,
-                                                                 poOperation:ServiceURI,
-                                                                 poRequest:URI:GetQueryMap(),
-                                                                 cast(poEntity,IEntity)).
+                        jsonResponse  = ExecuteUpdate(poRequest:Method,
+                                                      poMessageBody,
+                                                      cFullRootPath,
+                                                      poOperation:ServiceURI,
+                                                      poRequest:URI:GetQueryMap(),
+                                                      cast(poEntity,IEntity)).
                               
                     end.
                     otherwise 

@@ -41,5 +41,7 @@ class DataSource.CustomerDS inherits DataSource:
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         assign ttCustomer.CustNum = next-value (NextCustnum).
+        
+        undo, throw new ApplicationError("This is nt ").
     end method.
 end class.

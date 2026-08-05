@@ -16,14 +16,14 @@ using Progress.Lang.Object from propath.
 
 interface Pmfo.Core.Service.IBusinessEntityOperationHandler inherits IOperationHandler:  
                                                 
-    method public JsonObject ExecuteGetOrHead(
+    method public JsonObject ExecuteRead(
         pcMethod as character,
         pcBaseAppTransportServiceURI as character,
         pcServiceURI as character,
         pURIQuery as IStringStringMap,
         pEntity as IEntity). 
         
-    method public JsonObject ExecutePostOrPutOrDelete(
+    method public JsonObject ExecuteUpdate(
         pcMethod as character,
         pMessageBody as Object,
         pcBaseAppTransportServiceURI as character,
