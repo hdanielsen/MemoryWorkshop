@@ -24,7 +24,7 @@ class DataSource.RefCallDS inherits DataSource:
 
     method protected void Bind( input table ttRefCall bind):
     end method.
-
+  
     method override protected void PrepareBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         pBuffer:set-callback("After-Row-fill","AfterRow").
@@ -38,4 +38,7 @@ class DataSource.RefCallDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttRefCall.CallNum = string(next-value (NextRefNum),"999999").
+    end method.
 end class.
