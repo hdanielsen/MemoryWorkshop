@@ -38,4 +38,20 @@ class DataSource.ItemDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttitem.ItemNum = next-value (NextItemnum).
+    end method.
+    
+    method public override logical SaveRow(phBeforeBuffer as handle):       
+        if phBeforeBuffer:row-state = row-deleted then
+        do: 
+            FindAndCompareSource(phBeforeBuffer).
+            delete item. //static due to schema delete validation
+            return true.      
+        end.
+        else 
+            return super:SaveRow(phBeforeBuffer).
+           
+    end method.   
+    
 end class.
