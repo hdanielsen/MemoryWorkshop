@@ -43,11 +43,11 @@ using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
 using Pmfo.Core.Service.ClientGetRequest from propath.
 using Pmfo.Core.Service.ClientUpdateRequest from propath.
+using Pmfo.Core.Service.IBusinessEntityOperationHandler from propath.
 using Pmfo.Core.Service.IClientGetRequest from propath.
 using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Core.Service.IClientUpdateRequest from propath.
 using Pmfo.Core.Service.OperationHandler from propath.
-using Pmfo.Core.Service.IBusinessEntityOperationHandler from propath.
 using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.DatasetUtil from propath.
 using Pmfo.Util.ErrorStringUtil from propath.
@@ -189,6 +189,8 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable hDataset              as handle no-undo.
         define variable oUpdateDataRequest    as IUpdateDataRequest no-undo. 
         define variable jsonResponse          as JsonObject no-undo.
+        define variable jsonWrapperResponse   as JsonObject no-undo.
+        
         define variable oGetDataRequest       as IGetDataRequest no-undo. 
         define variable hRequestedBuffer      as handle no-undo.
         define variable lBeforeImage          as logical no-undo.
@@ -339,7 +341,10 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         if pcMethod = "DELETE" and lReturnDataAfterDelete = false then
             return ?.  // flag to caller to return http 204 no content  
         
-        return jsonResponse.
+        
+        jsonWrapperResponse = new JsonObject().   
+        jsonWrapperResponse:Add(ResponseNodeName, jsonResponse).
+        return jsonWrapperResponse.
        
     end method.
     
