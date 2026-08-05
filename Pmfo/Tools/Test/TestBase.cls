@@ -84,8 +84,14 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
         end get.
         protected set.
     
-    define abstract property OperationHandler as IBusinessEntityOperationHandler no-undo get. set.
-   
+     
+     define property OperationHandler as IBusinessEntityOperationHandler no-undo
+        get():
+            if not valid-object(OperationHandler) then
+                OperationHandler = new BusinessEntityOperationHandler().
+            return OperationHandler.    
+        end.
+        set.
     
     define property DatasetErrorHandler as DatasetErrorProcessor no-undo
         get():
