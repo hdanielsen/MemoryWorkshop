@@ -41,7 +41,6 @@ class DataSource.CustomerDS inherits DataSource:
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         assign ttCustomer.CustNum = next-value (NextCustnum).
-        
     end method.
     
     method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):

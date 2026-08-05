@@ -131,11 +131,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             CanRead = plCanRead.
         end.    
     
-    
-    
-    
     define public property ClientOnly     as logical        no-undo get. protected set.
-    
     
     define protected property Initialized as logical no-undo get. set. 
     
