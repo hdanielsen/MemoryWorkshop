@@ -38,4 +38,15 @@ class DataSource.SalesRepDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method public override logical SaveRow(phBeforeBuffer as handle):       
+        if phBeforeBuffer:row-state = row-deleted then
+        do: 
+            FindAndCompareSource(phBeforeBuffer).
+            delete salesrep. //static due to schema delete validation
+            return true.      
+        end.
+        else 
+            return super:SaveRow(phBeforeBuffer).
+           
+     end method.   
 end class.
