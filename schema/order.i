@@ -16,7 +16,7 @@ define temp-table ttOrder no-undo serialize-name "orders" {1}  before-table biOr
    field OrderDate                        as date        serialize-name "orderDate"
    field OrderNum                         as integer     serialize-name "orderNum"
    field OrderStatus                      as character   serialize-name "orderStatus"
-   field PO                               as character   serialize-name "pO"
+   field PO                               as character   serialize-name "purchaseOrder"
    field PromiseDate                      as date        serialize-name "promiseDate"
    field SalesRep                         as character   serialize-name "salesRep"
    field ShipDate                         as date        serialize-name "shipDate"

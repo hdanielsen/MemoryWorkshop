@@ -15,8 +15,11 @@ using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 class Business.PurchaseOrderBE inherits BusinessEntity:
 
     {schema/purchaseOrder.i}
-
-    define dataset dsPurchaseOrder for ttPurchaseOrder.
+    {schema/purchaseOrderLine.i}
+    
+    define dataset dsPurchaseOrder for ttPurchaseOrder,ttPurchaseOrderLine
+        data-relation order-lines for ttPurchaseOrder, ttPurchaseOrderLine relation-fields(PONum,PONum) nested foreign-key-hidden
+       .
 
     constructor PurchaseOrderBE():
         super(dataset dsPurchaseOrder:handle).

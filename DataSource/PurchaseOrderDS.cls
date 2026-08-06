@@ -38,4 +38,9 @@ class DataSource.PurchaseOrderDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttPurchaseOrder.PONum = next-value (NextPonum).
+    end method.
+    
+    
 end class.

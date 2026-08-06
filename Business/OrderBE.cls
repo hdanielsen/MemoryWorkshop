@@ -15,8 +15,11 @@ using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 class Business.OrderBE inherits BusinessEntity:
 
     {schema/order.i}
-
-    define dataset dsOrder for ttOrder.
+    {schema/orderline.i}
+    define dataset dsOrder for ttOrder, ttOrderLine
+       data-relation order-lines for ttOrder, ttOrderLine relation-fields(orderNum,orderNum) nested foreign-key-hidden
+       .
+    
 
     constructor OrderBE():
         super(dataset dsOrder:handle).

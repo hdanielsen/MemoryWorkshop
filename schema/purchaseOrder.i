@@ -9,8 +9,8 @@
 ------------------------------------------------------------------------------*/
 define temp-table ttPurchaseOrder no-undo serialize-name "purchaseOrders" {1}  before-table biPurchaseOrder
    field DateEntered                      as date        serialize-name "dateEntered"
-   field PONum                            as integer     serialize-name "pONum"
-   field POStatus                         as character   serialize-name "pOStatus"
+   field PONum                            as integer     serialize-name "purchaseOrderNum"
+   field POStatus                         as character   serialize-name "purchaseOrderStatus"
    field ReceiveDate                      as date        serialize-name "receiveDate"
    field SupplierIDNum                    as integer     serialize-name "supplierIDNum"
    field zz_seq                           as int64       serialize-hidden

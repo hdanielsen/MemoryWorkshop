@@ -274,28 +274,28 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
         pRequests:Add(oTableRequest).
         if type-of(pClientRequest,IClientGetRequest) then 
         do:
-            cClientFilter = cast(pClientRequest,IClientGetRequest):GetChildFilter(pcRelativePath).
-            cClientSort  = cast(pClientRequest,IClientGetRequest):GetChildSort(pcRelativePath).
-            if cClientFilter > ""  or cClientSort > "" then
-            do: 
-                oFilterParser    = new FilterParser(FieldMapHolder,pClientRequest:ExpandedRelations).
-                oQueryDefinition = oFilterParser:GetQueryDefinition(phBuffer,cClientFilter,cClientSort).  
-                
-                if oFilterParser:HasWarnings then 
-                do: 
-                    Warnings = oFilterParser:Warnings. 
-                end.    
-/*                                                                                                                                  */
-/*               // if cFilter > "" and pclientRequest:Wildcards then                                                               */
-/*               // do:                                                                                                             */
-/*                 //   new QueryWildcardConverter():Traverse(oQueryDefinition).                                                    */
-/*               // end.                                                                                                            */
-/*                // for a function we may have used keywhere to build a filter already so add it to the new definition             */
-/*                if valid-object(oTableRequest:QueryDefinition) and valid-object(oTableRequest:QueryDefinition:QuerySelection) then*/
-/*                    oQueryDefinition:AddEntry(oTableRequest:QueryDefinition:QuerySelection).                                      */
-/*                                                                                                                                  */
-                oTableRequest:QueryDefinition = oQueryDefinition.
-            end.
+/*            cClientFilter = cast(pClientRequest,IClientGetRequest):GetChildFilter(pcRelativePath).                                    */
+/*            cClientSort  = cast(pClientRequest,IClientGetRequest):GetChildSort(pcRelativePath).                                       */
+/*            if cClientFilter > ""  or cClientSort > "" then                                                                           */
+/*            do:                                                                                                                       */
+/*                oFilterParser    = new FilterParser(FieldMapHolder,pClientRequest:ExpandedRelations).                                 */
+/*                oQueryDefinition = oFilterParser:GetQueryDefinition(phBuffer,cClientFilter,cClientSort).                              */
+/*                                                                                                                                      */
+/*                if oFilterParser:HasWarnings then                                                                                     */
+/*                do:                                                                                                                   */
+/*                    Warnings = oFilterParser:Warnings.                                                                                */
+/*                end.                                                                                                                  */
+/*/*                                                                                                                                  */*/
+/*/*               // if cFilter > "" and pclientRequest:Wildcards then                                                               */*/
+/*/*               // do:                                                                                                             */*/
+/*/*                 //   new QueryWildcardConverter():Traverse(oQueryDefinition).                                                    */*/
+/*/*               // end.                                                                                                            */*/
+/*/*                // for a function we may have used keywhere to build a filter already so add it to the new definition             */*/
+/*/*                if valid-object(oTableRequest:QueryDefinition) and valid-object(oTableRequest:QueryDefinition:QuerySelection) then*/*/
+/*/*                    oQueryDefinition:AddEntry(oTableRequest:QueryDefinition:QuerySelection).                                      */*/
+/*/*                                                                                                                                  */*/
+/*                oTableRequest:QueryDefinition = oQueryDefinition.                                                                     */
+/*            end.                                                                                                                      */
         end.
         
         AddTableChildrenToRequestTree(prequests,pClientRequest, phBuffer, pcRelativePath, plSkipRepos). 
