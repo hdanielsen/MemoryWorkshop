@@ -42,20 +42,10 @@ class DataSource.OrderDS inherits DataSource:
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         define variable iNewOrderNum as integer no-undo.
-        message ttOrder.ordernum
-        view-as alert-box.
+        
         iNewOrderNum = next-value (NextOrdnum).
         // propagate key change to all related tables and assign to self 
-       UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
-    end method.
-    
-    method override protected void CreateEndTransValidate( input dataset-handle  phDataset):
-        define variable iNewOrderNum as integer no-undo.
-          message ttOrder.ordernum avail Order current-value(NextOrdnum)
-        view-as alert-box.
-       // iNewOrderNum = next-value (NextOrdnum).
-        // propagate key change to all related tables and assign to self 
-       // UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
+        UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
     end method.
     
     method public override logical SaveRow(phBeforeBuffer as handle):       
