@@ -11,11 +11,12 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Util.UpdateUtil from propath.
 
 class DataSource.OrderDS inherits DataSource:
 
     {schema/order.i reference-only}
-
+   
     define public override property EntityName as character init "orders" no-undo get.
 
     constructor OrderDS():
@@ -24,22 +25,37 @@ class DataSource.OrderDS inherits DataSource:
 
     method protected void Bind( input table ttOrder bind):
     end method.
-
+    
     method override protected void PrepareBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         pBuffer:set-callback("After-Row-fill","AfterRow").
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        this-object:Bind (table-handle hTable bind).        
     end method.
     
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
-        define variable hTable as handle no-undo.
+        define variable hTable      as handle  no-undo.
+ 
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        this-object:Bind (table-handle hTable bind).    
     end method.
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
-        assign ttOrder.OrderNum = next-value (NextOrdnum).
+        define variable iNewOrderNum as integer no-undo.
+        message ttOrder.ordernum
+        view-as alert-box.
+        iNewOrderNum = next-value (NextOrdnum).
+        // propagate key change to all related tables and assign to self 
+       UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
+    end method.
+    
+    method override protected void CreateEndTransValidate( input dataset-handle  phDataset):
+        define variable iNewOrderNum as integer no-undo.
+          message ttOrder.ordernum avail Order current-value(NextOrdnum)
+        view-as alert-box.
+       // iNewOrderNum = next-value (NextOrdnum).
+        // propagate key change to all related tables and assign to self 
+       // UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
     end method.
     
     method public override logical SaveRow(phBeforeBuffer as handle):       

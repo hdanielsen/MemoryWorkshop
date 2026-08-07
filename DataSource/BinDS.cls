@@ -29,13 +29,17 @@ class DataSource.BinDS inherits DataSource:
         define variable hTable as handle no-undo.
         pBuffer:set-callback("After-Row-fill","AfterRow").
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        bind (table-handle hTable bind).        
     end method.
     
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        bind (table-handle hTable bind).        
+    end method.
+    
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        assign ttBin.BinNum = next-value(NextBinNum).
     end method.
     
 end class.

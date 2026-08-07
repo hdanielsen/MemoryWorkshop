@@ -370,20 +370,24 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable hBufferDel as handle no-undo.
         define variable hTable  as handle no-undo.
         define variable rRowid as rowid no-undo.
+                  phdataset:write-json ("file","/MemoryWorkshop-test/Temp/befdelete.json",yes,?,no,yes,yes).    
+        
         DatasetUtil:SetTrackingChanges(phDataset,true).
         do i = 1 to phDataset:num-buffers.
-            hBuffer = phDataset:get-buffer-handle(1).
+            hBuffer = phDataset:get-buffer-handle(i).
             hTable = hBuffer:table-handle.
             create buffer hBufferDel for table hTable. 
             
             create query hQuery.
             hQuery:add-buffer(hBuffer).
-            hQuery:query-prepare(substitute("for each &1",hBuffer:name)).
+            hQuery:query-prepare(substitute("preselect each &1",hBuffer:name)).
+           
             hQuery:query-open.
             hQuery:get-first.
             do while hBuffer:avail:
                 rRowid = hBuffer:rowid.
                 hQuery:get-next.
+                
                 hBufferDel:find-by-rowid(rRowid).
                 hBufferDel:buffer-delete().
             end.
@@ -397,6 +401,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                 delete object hQuery.
             if valid-handle(hBufferDel) then
                 delete object hBufferDel.   
+            phdataset:write-json ("file","/MemoryWorkshop-test/Temp/delete.json",yes,?,no,yes,yes).    
         end.            
      
     end method.

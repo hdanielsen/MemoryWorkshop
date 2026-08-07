@@ -11,11 +11,12 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Util.UpdateUtil from propath.
 
 class DataSource.PurchaseOrderDS inherits DataSource:
 
     {schema/purchaseOrder.i reference-only}
-
+    
     define public override property EntityName as character init "purchaseOrders" no-undo get.
 
     constructor PurchaseOrderDS():
@@ -24,23 +25,28 @@ class DataSource.PurchaseOrderDS inherits DataSource:
 
     method protected void Bind( input table ttPurchaseOrder bind):
     end method.
-
+    
     method override protected void PrepareBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
+        
         pBuffer:set-callback("After-Row-fill","AfterRow").
         hTable = pBuffer:table-handle.
         Bind (table-handle hTable bind).        
     end method.
     
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
-        define variable hTable as handle no-undo.
+        define variable hTable      as handle  no-undo.
+ 
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        this-object:Bind (table-handle hTable bind).    
     end method.
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
-        assign ttPurchaseOrder.PONum = next-value (NextPonum).
+        define variable iNewPoNum as integer no-undo.
+        iNewPoNum =  next-value (NextPonum).
+      
+        // propagate key change to all related tables and assign to self 
+        UpdateUtil:UpdateKey(buffer ttPurchaseOrder:handle, "PONum",iNewPoNum). 
     end method.
-    
     
 end class.
