@@ -15,9 +15,14 @@ using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 class Business.SupplierBE inherits BusinessEntity:
 
     {schema/supplier.i}
+    {schema/supplierItemXRef.i}
+    {schema/item.i}
 
-    define dataset dsSupplier for ttSupplier.
-
+    define dataset dsSupplier for ttSupplier, ttSupplierItemXref, ttItem
+        data-relation sup-xref for ttSupplier, ttSupplierItemXref relation-fields(SupplierIDNum ,SupplierIDNum) nested foreign-key-hidden
+        data-relation xref-item for ttSupplierItemXref, ttItem relation-fields(ItemNum,ItemNum) nested foreign-key-hidden
+        .
+     
     constructor SupplierBE():
         super(dataset dsSupplier:handle).
     end constructor.
