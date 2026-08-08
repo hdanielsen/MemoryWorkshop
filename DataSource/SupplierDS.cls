@@ -29,13 +29,18 @@ class DataSource.SupplierDS inherits DataSource:
         define variable hTable as handle no-undo.
         pBuffer:set-callback("After-Row-fill","AfterRow").
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        bind (table-handle hTable bind).        
     end method.
     
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        define variable iNewOrderNum as integer no-undo.
+        
+        ttSupplier.SupplierIDNum = next-value(NextSupplNum).
+    end method. 
 end class.
