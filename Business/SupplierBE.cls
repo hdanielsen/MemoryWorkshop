@@ -11,20 +11,33 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
+using Pmfo.Util.Array from propath.
 
 class Business.SupplierBE inherits BusinessEntity:
 
     {schema/supplier.i}
     {schema/supplierItemXRef.i}
     {schema/item.i}
-
-    define dataset dsSupplier for ttSupplier, ttSupplierItemXref, ttItem
+    
+    define temp-table ttSupplierItem like ttItem
+        field SupplierIDNum as integer serialize-name "supplierIDNum"
+        index supplier-item as primary unique SupplierIDNum itemNum.
+        .
+    
+     
+    define dataset dsSupplierServer for ttSupplier, ttSupplierItemXref, ttItem
         data-relation sup-xref for ttSupplier, ttSupplierItemXref relation-fields(SupplierIDNum ,SupplierIDNum) nested foreign-key-hidden
         data-relation xref-item for ttSupplierItemXref, ttItem relation-fields(ItemNum,ItemNum) nested foreign-key-hidden
         .
+    
+    define buffer btSupplier for ttSupplier serialize-name "suppliers".
+    
+    define dataset dsSupplier for btSupplier, ttSupplierItem
+        data-relation sup-item for btSupplier, ttSupplierItem relation-fields(SupplierIDNum,SupplierIDNum) nested foreign-key-hidden
+        .
      
     constructor SupplierBE():
-        super(dataset dsSupplier:handle).
+        super(dataset dsSupplierServer:handle).
     end constructor.
 
 end class.

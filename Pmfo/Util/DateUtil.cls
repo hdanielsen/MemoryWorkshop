@@ -92,6 +92,16 @@ class Pmfo.Util.DateUtil:
             return date(pcDate).
     end method.
     
+    method public static integer GetTimeInSecondsFromHoursAndMinutes(pTime as integer):
+        define variable iHours as integer no-undo.
+        define variable iMinutes as integer no-undo.
+        
+        
+        iHours   = integer(truncate(pTime / 100, 0)).
+        iMinutes = ptime modulo 100.
+        return int(iHours * 60 * 60) + (iMinutes * 60).   
+    end method. 
+    
     method public static integer GetTimeInSeconds(pcTime as char):
         define variable cSegments as character extent no-undo.
         define variable cMsgTemplate as character init '"&1" is not valid. Expected formats are "HH:MM", HH:MM:SS" with optional AM or PM' no-undo.
@@ -143,7 +153,8 @@ class Pmfo.Util.DateUtil:
             if iSeconds < 0 then
                undo, throw new IllegalArgumentError('Seconds must be positive').
         end.
-       
+       message ihours iminutes iseconds
+       view-as alert-box.
         return (ihours * 60 * 60) + (iMinutes * 60) + iSeconds.     
         catch e1 as IllegalArgumentError :
             undo, throw e1.

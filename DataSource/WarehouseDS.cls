@@ -38,4 +38,8 @@ class DataSource.WarehouseDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
+        ttWarehouse.WarehouseNum = next-value (NextWarenum).
+    end method.
+    
 end class.

@@ -213,6 +213,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
                 undo, throw new IllegalArgumentError(Cmsg + " must be buffer, temp-table or dataset").
             end.     
         end case.
+        
         Resource = DataSets[1]:serialize-name. 
         
         if not lAsserted then 
@@ -317,7 +318,8 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         if ClientOnly = true then 
             oGetResponse = CreateDataResponse(pRequest). 
         else
-            oGetResponse = DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
+           // oGetResponse = DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
+           oGetResponse = FetchData(pRequest, input-output dataset-handle phdataset by-reference).
         
         ReceiveData(pRequest, oGetResponse, phDataset).
            
@@ -451,7 +453,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         
     end method.    
     
-    method public Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+    method protected Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
          
         // Use of BufferError outside managed hooks may end here if not managed  
         // (this is considered part of the framework, as it allows BufferError to be used also outside of 
@@ -463,6 +465,10 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
        return DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset).        
         
        
+    end method.
+    
+    method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):
+        return DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
     end method.
     
     method public Object UpdateData(input-output dataset-handle phDataset).
