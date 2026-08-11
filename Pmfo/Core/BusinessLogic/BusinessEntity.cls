@@ -317,10 +317,9 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         
         if ClientOnly = true then 
             oGetResponse = CreateDataResponse(pRequest). 
-        else
-           // oGetResponse = DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
-           oGetResponse = FetchData(pRequest, input-output dataset-handle phdataset by-reference).
-        
+        else  
+            oGetResponse = FetchData(pRequest, input-output dataset-handle phdataset by-reference).
+      
         ReceiveData(pRequest, oGetResponse, phDataset).
            
         return oGetResponse.
@@ -461,10 +460,8 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
        if phDataset:error then
            ThrowDatasetError(phDataset).
         
-        
        return DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset).        
         
-       
     end method.
     
     method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):
@@ -643,8 +640,12 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method. 
     
     method protected IGetDataRequest CreateGetRequestForRefresh(poUpdateRequest as IUpdateDataRequest,phDataset as handle):
+        return CreateGetRequest(phDataset).
+    end method.    
+    
+    method protected IGetDataRequest CreateGetRequest(phDataset as handle):
         define variable i as integer no-undo.
-        define variable oGetTableRequests as Pmfo.Core.BusinessLogic.IGetDataTableRequest no-undo extent.
+        define variable oGetTableRequests as IGetDataTableRequest no-undo extent.
         extent(oGetTableRequests) = phDataset:num-buffers. 
         do i = 1 to phDataset:num-buffers:
             oGetTableRequests[i] = new GetDataTableRequest(phDataset:get-buffer-handle(i):table-handle:name).

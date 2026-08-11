@@ -436,15 +436,14 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         oClientGetRequest = CreateClientGetRequest(pcMethod,pcServiceURI,pURIQuery).
         hDataset = oBusinessEntity:GetRequestDataset(oClientGetRequest).  
         oGetDataRequest  = CreateQueryRequestBuilder():BuildGetDataRequest(oClientGetRequest,hDataset).
+        
         case pcMethod:
             // bad urls and query properties will have thrown errors so just return if HEAD 
             when "HEAD" then
-               return ?.
+                return ?.
             when "GET" then 
             do:
- 
               // if oBusinessEntity:CanRead = false then
-  
             end.
             otherwise    
                 undo, throw new IllegalArgumentError(subst("Method '&1'",pcMethod)).
@@ -456,16 +455,9 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         // reset frim response - requeste may change this 
         hRequestedBuffer = ?. 
         
-        
+        // wrap in respose node
         if valid-object(oGetDataResponse) then 
         do:      
-            if JsonResponse:has("prods:errors") then 
-            do: 
-                 ProcessBeforeImageErrors(jsonResponse,hdataset).
-            end.     
-            
-            JsonUtil:MergeDuplicateBeforeImageNodes(jsonResponse, hdataset).
-             
             oJson = jsonResponse.
             jsonResponse = new JsonObject().   
             jsonResponse:Add(ResponseNodeName, oJson).

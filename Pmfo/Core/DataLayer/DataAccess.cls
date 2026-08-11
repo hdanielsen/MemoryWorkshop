@@ -277,10 +277,11 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         // prepare may deactivate relation and add the buffer as top-buffer, so
         // keep track of the original top buffers to avoid preparing twice          
         extent(hTopBuffers) = phDataset:num-top-buffers.
+        
         do i = 1 to phDataset:num-top-buffers:
             hTopBuffers[i] = phDataset:get-top-buffer(i).
         end.
- 
+         
         do i = 1 to extent(hTopBuffers):
             StartDataSource(oDataSourceMap,hTopBuffers[i],poRequest,?).
         end.    
@@ -345,7 +346,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
                 lok = oDataSource:Prepare(phBuffer,oTableRequest,poParentTableRequest).
             else
                 lok = oDataSource:Prepare(phBuffer,oTableRequest).
-         
             if lok then  
             do iChild = 1 to phBuffer:num-child-relations:
                 hRelation = phBuffer:get-child-relation(iChild).
@@ -353,8 +353,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
                 // the repos table does not use the parent relation in fill
                 if hRelation:reposition = false and hRelation:recursive = false then
                     StartDataSource(oDataSourceMap,hRelation:child-buffer,poRequest,oTableRequest).
-                
-               
             end.
             else 
                 phBuffer:fill-mode = "no-fill".
@@ -362,7 +360,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end. 
         else  // allow skip of top table - there will be a check to see that we have at least one  
             phBuffer:fill-mode = "no-fill".
-            
+         
         return oDataSource.
     end method.
     
