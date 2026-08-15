@@ -11,6 +11,7 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Util.UpdateUtil from propath.
 
 class DataSource.SupplierDS inherits DataSource:
 
@@ -39,8 +40,9 @@ class DataSource.SupplierDS inherits DataSource:
     end method.
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
-        define variable iNewOrderNum as integer no-undo.
-        
-        ttSupplier.SupplierIDNum = next-value(NextSupplNum).
+        define variable iNewSupplierIDNum as integer no-undo.
+        iNewSupplierIDNum = next-value(NextSupplNum).
+           // propagate key change to all related tables and assign to self 
+        UpdateUtil:UpdateKey(buffer ttSupplier:handle, "SupplierIDNum",iNewSupplierIDNum). 
     end method. 
 end class.

@@ -14,6 +14,8 @@ using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 using Pmfo.Util.Array from propath.
 using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
+using Progress.Lang.Object from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 
 class Business.SupplierBE inherits BusinessEntity:
 
@@ -21,7 +23,7 @@ class Business.SupplierBE inherits BusinessEntity:
     {schema/supplierItemXRef.i}
     {schema/item.i}
     
-    define temp-table ttSupplierItem serialize-name "items" like ttItem
+    define temp-table ttSupplierItem serialize-name "items" like ttItem use-index zz_seq
         field SupplierIDNum as integer serialize-name "supplierIDNum"
         index supplier-item as primary unique SupplierIDNum itemNum.
         .
@@ -45,10 +47,38 @@ class Business.SupplierBE inherits BusinessEntity:
         define variable oResponse as IGetDataResponse no-undo.
         
         oResponse = DataAccess:FetchData(CreateGetRequest(dataset dsSupplierServer:handle), input-output dataset dsSupplierServer ).
-        CreateSupplierItems(dataset-handle phDataset , input dataset dsSupplierServer by-reference).
+         dataset dsSupplierServer:write-json("file","C:\MemoryWorkshop-test\Temp\get-supplierserver.json",yes,?,no,yes,yes).
+        CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
         
         return oResponse.
     end method.
+    
+    method protected override Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+         
+        CreateSupplierXrefs(dataset-handle phDataset by-reference, input dataset dsSupplierServer by-reference).
+          dataset dsSupplierServer:write-json("file","C:\MemoryWorkshop-test\Temp\post-supplierserver.json",yes,?,no,yes,yes).
+      
+        super:SubmitData(poUpdateDataRequest,  input-output dataset dsSupplierServer by-reference).    
+        if dataset dsSupplierServer:error then  
+            ThrowDatasetError(dataset dsSupplierServer:handle). 
+        dataset dsSupplierServer:write-json("file","C:\MemoryWorkshop-test\Temp\posted-supplierserver.json",yes,?,no,yes,yes).
+        empty temp-table ttSupplierItem.
+        CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
+        phDataset:write-json("file","C:\MemoryWorkshop-test\Temp\returned-supplier.json",yes,?,no,yes,yes).
+    
+    end method.
+    
+    method protected void CreateSupplierXrefs(input dataset dsSupplier, input dataset dsSupplierServer ):
+        temp-table ttSupplierItemXref:tracking-changes = true. 
+        for each ttSupplierItem:
+            create ttItem.
+            buffer-copy ttSupplierItem to ttItem.
+            create ttSupplierItemXRef.
+            assign ttSupplierItemXref.SupplierIDNum = ttSupplierItem.SupplierIDNum
+                   ttSupplierItemXref.ItemNum       = ttSupplierItem.ItemNum.
+        end.           
+             
+    end method. 
     
     
     method protected void CreateSupplierItems(input dataset dsSupplier, input dataset dsSupplierServer ):
