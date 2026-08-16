@@ -15,8 +15,10 @@ using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
 class Business.SalesRepBE inherits BusinessEntity:
 
     {schema/salesRep.i}
+    {schema/salesRepQuota.i}
 
-    define dataset dsSalesRep for ttSalesRep.
+    define dataset dsSalesRep for ttSalesRep, ttSalesRepQuota
+        data-relation for ttSalesRep, ttSalesRepQuota relation-fields(SalesRep,SalesRep) nested foreign-key-hidden.
 
     constructor SalesRepBE():
         super(dataset dsSalesRep:handle).
