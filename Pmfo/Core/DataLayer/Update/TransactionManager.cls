@@ -13,15 +13,16 @@
 block-level on error undo, throw.
 
 using Ccs.BusinessLogic.CommitScopeEnum from propath.
+using OpenEdge.Core.Collections.IMap from propath.
+using OpenEdge.Core.WidgetHandle from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.DataLayer.IUpdateTarget from propath.
 using Pmfo.Core.DataLayer.Update.ITransactionManager from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
+using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.TransactionError from propath.
 using Progress.Lang.ParameterList from propath.
 using Progress.Reflect.Method from propath.
-using Pmfo.Core.DataLayer.ValidationHookEventType from propath.
 
 class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManager: 
     /* Event published before update starts. 
@@ -31,7 +32,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
     define public event EndTableTransaction signature void (input dataset-handle phDataset). 
     
     define public property ShallowDelete as logical no-undo get. protected set.
-    define public property UpdateTargets as IHandleDataSourceMap no-undo get. set.
+    define public property UpdateTargets as IMap no-undo get. set.
     define public property CommitScope   as CommitScopeEnum      no-undo get. set.  
     
     define protected property UpdateTarget       as IUpdateTarget no-undo get. set.
@@ -46,7 +47,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
      Notes:
     ------------------------------------------------------------------------------*/
         
-    constructor public TransactionManager (pUpdateTargets as IHandleDataSourceMap,pUpdateRequest as IUpdateDataRequest):
+    constructor public TransactionManager (pUpdateTargets as IMap,pUpdateRequest as IUpdateDataRequest):
         UpdateTargets = pUpdateTargets.
         UpdateRequest = pUpdateRequest.
         CommitScope = pUpdateRequest:CommitScope.
@@ -294,8 +295,7 @@ class Pmfo.Core.DataLayer.Update.TransactionManager implements ITransactionManag
         
         if not valid-object(UpdateTarget) or UpdateTarget:DataBuffer <> phBuffer then    
         do:
-            
-            UpdateTarget = cast(UpdateTargets:Get(phBuffer),IUpdateTarget).
+            UpdateTarget = cast(UpdateTargets:Get(new WidgetHandle(phBuffer)),IUpdateTarget).
             if not valid-object(UpdateTarget) then 
                   undo, throw new IllegalOperationError(subst("Buffer '&1' does not have a corresponding UpdateTarget",
                                                             phBuffer:name,

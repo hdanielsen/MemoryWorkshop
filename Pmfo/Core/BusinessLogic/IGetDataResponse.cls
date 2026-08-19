@@ -10,6 +10,7 @@
 
 
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
+using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 
 interface Pmfo.Core.BusinessLogic.IGetDataResponse:
       
@@ -19,5 +20,6 @@ interface Pmfo.Core.BusinessLogic.IGetDataResponse:
     get.
     
     method public IGetDataTableResponse GetTableResponse(pName as character).
-    
+      
+    method public void SetRequestProperties(pRequest as IGetDataRequest).
 end interface.

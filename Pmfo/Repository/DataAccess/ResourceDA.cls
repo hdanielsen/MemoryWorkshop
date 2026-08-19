@@ -18,7 +18,6 @@ using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.DataLayer.DataAccess from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.NotImplementedError from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
@@ -30,6 +29,7 @@ using Pmfo.Util.FileUtil from propath.
 using Progress.Lang.Object from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using OpenEdge.Core.WidgetHandle from propath.
  
  
 
@@ -131,7 +131,6 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
         // ResourceBE GetData (output dataset) will add tables based on what is returned from NeedsRefresh 
         // if there are requested tables call the datasources to populate data from physical class files
         //phdataset:empty-dataset ().
-        
         if valid-object(poRequest:NamedQuery) then
         do:
             case poRequest:NamedQuery:Name:
@@ -162,11 +161,11 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
                 end.
             end.
             // no queries then read from sources and update json, but don't delete anything 
-            if not valid-object(oEntityRequest) then
+            if not valid-object(oEntityRequest) then do:
                 oResponse = RefreshData(poRequest, input-output dataset-handle phdataset by-reference,false).
+            end.    
             else do:
                 oResponse = FetchRequestedEntitiesFromJson(oEntityRequest,input-output dataset-handle phdataset by-reference).
-                
             end.        
         end.
         return oResponse.
@@ -224,7 +223,6 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
         define variable hTable      as handle no-undo.
         define variable hBuffer     as handle no-undo.
         define variable i           as integer no-undo.
-        define variable oDataSourceMap as IHandleDataSourceMap no-undo.
         define variable cDump as character no-undo.
         
         // workaround bug(?) 
@@ -247,12 +245,11 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
                 undo, throw new CorruptResourcesError(SerializeFullname,e). 
             end catch.
         end.
-        oDataSourceMap = GetDataSourceMap(phDataset).    
         if plSearchAndDelete then
         do i = 1 to phDataset:num-buffers:
             hBuffer = phDataset:get-buffer-handle(i).
             hTable = hBuffer:table-handle.
-            oResourceSource = cast(oDataSourceMap:Get(hBuffer),ResourceSource).
+            oResourceSource = cast(DataSourceMap:Get(new WidgetHandle(hBuffer)),ResourceSource).
             if valid-object(oResourceSource) then
                 oResourceSource:Cleanup(input table-handle hTable by-reference).
         end.    
@@ -276,16 +273,14 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
         define variable hTable      as handle no-undo.
         define variable hBuffer     as handle no-undo.
         define variable i           as integer no-undo.
-        define variable oDataSourceMap as IHandleDataSourceMap no-undo.
          
         oResponse = super:FetchData(poRequest, input-output dataset-handle phdataset by-reference).
          
-        oDataSourceMap = GetDataSourceMap(phDataset).    
         
         do i = 1 to phDataset:num-buffers:
             hBuffer = phDataset:get-buffer-handle(i).
             hTable = hBuffer:table-handle.
-            oResourceSource = cast(oDataSourceMap:Get(hBuffer),ResourceSource).
+            oResourceSource = cast(DataSourceMap:Get(new WidgetHandle(hBuffer)),ResourceSource).
             if valid-object(oResourceSource) then
                 oResourceSource:Cleanup(input table-handle hTable by-reference).
         end.    

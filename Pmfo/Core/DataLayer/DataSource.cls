@@ -122,9 +122,33 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     get.
     set. 
 
-    define public property NextRowKey as character no-undo 
-    get.
-    set. 
+    // This just be set to "" in prepare
+    // It is typically called after fill when npaging when DataSourcehandle:next-rowid has data
+    // But ut can also be assigned in cases where the paging has to be managed manually in before-fill  
+    define public property NextRowKey as character no-undo  
+        get():
+            define variable iSource         as integer   no-undo.
+            define variable hSource         as handle    no-undo.
+            define variable rRowid          as rowid     no-undo.
+            if NextRowKey = "" or NextRowKey = ? then 
+            do:
+                do iSource = 1 to extent(BufferHandles):
+                    if BufferHandle = BufferHandles[iSource] then 
+                        leave.
+                end.  
+                if not valid-handle(DataSourcehandle) then 
+                    return ?. // Added after removing create datasource from the setter since it caused memory leak on save (report execute)
+                             //  TODO can this ever happen    
+                hSource = DataSourcehandle:get-source-buffer (iSource).
+                rRowid = DataSourcehandle:next-rowid(iSource).
+               // assumed to be because we're not paging 
+                if rRowid = ? then 
+                    return ?.
+                NextRowKey =  GetNextRowKey(hSource, rRowid).     
+            end.
+            return NextRowKey.
+        end.     
+        private set.      
 
     define public property NumRecords as int64 no-undo 
     get.

@@ -35,8 +35,6 @@ using Pmfo.Core.DataLayer.IDataAccess from propath.
 using Pmfo.Core.DataLayer.IDataAccessResource from propath.
 using Pmfo.Core.DataLayer.IDataSource from propath.
 using Pmfo.Core.DataLayer.IUpdateTarget from propath.
-using Pmfo.Core.DataLayer.Util.HandleDataSourceMap from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Error.IHttpErrorStatus from propath.
 using Pmfo.Core.Error.NotFoundError from propath.
@@ -78,7 +76,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     /**
      @TODO 
     The temp-tables in resources-dataset are problematic as they are requested 
-    in various create or canfind methods duriong load of ResourceBE and can then
+    in various create or canfind methods during load of ResourceBE and can then
     cause an endless loop since these methods will call refreshResouces since the 
     data has not been loaded yet. 
     This is currently handled by checking for the problematic names in the known
@@ -88,7 +86,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     that is loaded directly before refreshResources is called so the data can 
     be found. The benefit of a .json is that it could be gnerated following the same 
     logic so that the subscribe* info is correct if we add hooks to them
-    The challenge to figure out when to call refreshReources and then merge the 
+    The challenge is to figure out when to call refreshReources and then merge the 
     data with and with the call to refreshresources.
     Another alternative is to make ResourceBE self contained so that it 
     does not call here. Possibly by having overrides of DatasetGetHandler 
@@ -135,15 +133,16 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             delete object ResourceBE.
     end method.
     
+
     /*------------------------------------------------------------------------------
      Purpose:
      Notes:
     ------------------------------------------------------------------------------*/
-        
+
     constructor public ServiceManager (  ):
         super ().
     end constructor.
-    
+
     // subclasses override if actions are needed on refresh
     // for example if a cached service has data that needs to be cleared if there 
     // are changes in BEs or similar 
@@ -555,30 +554,22 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             if plExistingOnly then   
                 return ?.
             
-            case poService:
-                when get-class(IHandleDataSourceMap) then
-                do:
-                    oService = new HandleDataSourceMap().
-                end.
-                                                     
-                otherwise
-                    undo, throw new NotImplementedError(subst("GetService (Class &1), ILifecycleScope",poService:TypeName)).
-            end case.
+             undo, throw new NotImplementedError(subst("GetService (Class &1), ILifecycleScope",poService:TypeName)).
             
-            if valid-object(oService) then
-            do:
-                create ttScopedService.
-                assign
-                    ttScopedService.scope   = hHandle
-                    ttScopedService.service = oService
-                    .
-              
-                if type-of(oService,ISupportInitialize) then
-                    cast(oService,ISupportInitialize):Initialize().
-                else if type-of(oService,IService) then
-                    cast(oService,IService):Initialize().    
-            end.
-            return oService.    
+/*            if valid-object(oService) then                         */
+/*            do:                                                    */
+/*                create ttScopedService.                            */
+/*                assign                                             */
+/*                    ttScopedService.scope   = hHandle              */
+/*                    ttScopedService.service = oService             */
+/*                    .                                              */
+/*                                                                   */
+/*                if type-of(oService,ISupportInitialize) then       */
+/*                    cast(oService,ISupportInitialize):Initialize().*/
+/*                else if type-of(oService,IService) then            */
+/*                    cast(oService,IService):Initialize().          */
+/*            end.                                                   */
+/*            return oService.                                       */
         end. 
         else
             undo, throw new UnsupportedOperationError(subst("GetService with Scope of type &1",poScope:getScope():GetClass():TypeName)). 
@@ -753,9 +744,8 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         // use CreateBusinessEntity method to allow subclass override  
         if valid-object(ResourceBE) then
             delete object ResourceBE. 
-            
         ResourceBE = cast(CreateBusinessEntity("resources"),ResourceBE).
-        if CheckForNewResources then 
+        if CheckForNewResources then   
             ResourceBE:GetData(output dataset dsResources by-reference).
         else do:
             undo, throw new NotImplementedError("REsourceBE Get Data  JSON").

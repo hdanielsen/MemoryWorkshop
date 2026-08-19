@@ -314,14 +314,15 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
         define variable oGetResponse         as IGetDataResponse no-undo.
         AssertInitialized().    
-        
         if ClientOnly = true then 
             oGetResponse = CreateDataResponse(pRequest). 
         else  
             oGetResponse = FetchData(pRequest, input-output dataset-handle phdataset by-reference).
       
         ReceiveData(pRequest, oGetResponse, phDataset).
-           
+        if valid-object(oGetResponse) then 
+            oGetResponse:SetRequestProperties(pRequest).   
+        
         return oGetResponse.
          
     end method.

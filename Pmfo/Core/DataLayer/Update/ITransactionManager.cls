@@ -9,12 +9,11 @@
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Pmfo.Core.DataLayer.IUpdateTarget from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
 using Ccs.BusinessLogic.CommitScopeEnum from propath.
+using OpenEdge.Core.Collections.IMap from propath.
 
 interface Pmfo.Core.DataLayer.Update.ITransactionManager :  
-    define public property UpdateTargets as IHandleDataSourceMap no-undo get. 
+    define public property UpdateTargets as IMap no-undo get. 
     define public property CommitScope   as CommitScopeEnum no-undo get.   
     define public property ShallowDelete as logical no-undo get. 
     

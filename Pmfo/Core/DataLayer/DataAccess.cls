@@ -16,7 +16,10 @@ using Ccs.Common.Application from propath.
 using OpenEdge.BusinessLogic.UpdateDataRequest from propath.
 using OpenEdge.Core.Assert from propath.
 using OpenEdge.Core.Collections.IIterator from propath.
+using OpenEdge.Core.Collections.IMap from propath.
+using OpenEdge.Core.Collections.Map from propath.
 using OpenEdge.Core.String from propath.
+using OpenEdge.Core.WidgetHandle from propath.
 using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.GetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.GetDataTableResponse from propath.
@@ -32,7 +35,6 @@ using Pmfo.Core.DataLayer.IDataSource from propath.
 using Pmfo.Core.DataLayer.IUpdateTarget from propath.
 using Pmfo.Core.DataLayer.Update.ITransactionManager from propath.
 using Pmfo.Core.DataLayer.Update.TransactionManager from propath.
-using Pmfo.Core.DataLayer.Util.IHandleDataSourceMap from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Error.ConflictError from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
@@ -56,7 +58,16 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
        DataSources may subscribe to this for example to change row-state  
     */
     define public event BeforeUpdate signature void (input dataset-handle phDataset). 
-
+    
+    define protected property DataSourceMap as IMap no-undo 
+        get():
+            if not valid-object(DataSourceMap) then 
+                DataSourceMap = new Map().
+            return DataSourceMap.    
+        end.     
+        set.
+    
+    
      /* Event published after update is done. 
        DataSources may subscribe to this for example check or change errors   
      */
@@ -80,17 +91,12 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
     end method.
     
-    method protected IHandleDataSourceMap GetDataSourceMap(phHandle as handle):
-        return cast(cast(Application:ServiceManager,IServiceManager):getService(get-class(IHandleDataSourceMap), new LifecycleScope(phHandle)),IHandleDataSourceMap). 
-    end.    
     
     method protected void DestroyDataSources(phHandle as handle):
         cast(Application:ServiceManager,IServiceManager):stopServices(new LifecycleScope(phHandle)). 
     end.    
     
     method public IGetDataResponse FetchData( input poRequest as IGetDataRequest, input-output dataset-handle phDataset ):
-        define variable oIter              as IIterator   no-undo.
-        define variable oDataSourceMap     as IHandleDataSourceMap no-undo.
         define variable oDataSources       as IDataSource extent no-undo.
         
         define variable oTableResponses    as GetDataTableResponse  extent no-undo.
@@ -99,10 +105,9 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
         DatasetHandle = phDataset. // setter and destructor avoid memory leak
         
-        oDataSourceMap = StartDataSources(poRequest,phDataset).
+        StartDataSources(poRequest,phDataset).
         
-        if type-of(poRequest,Pmfo.Core.BusinessLogic.IGetDataRequest) then 
-            iStopAfter = cast(poRequest,Pmfo.Core.BusinessLogic.IGetDataRequest):timeout no-error.
+        iStopAfter = poRequest:timeout no-error.
         
         if iStopAfter = 0 or iStopAfter = ?  then  
             iStopAfter = cast(Application:SessionManager,ISessionManager):QueryTimeout.
@@ -110,7 +115,9 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         do stop-after iStopAfter:
             this-object:Fill(phDataset).      
         end.
-        oDataSources = oDataSourceMap:Sources().
+        
+        oDataSources = cast(DataSourceMap:Values:ToArray(),IDataSource).
+        
         extent(oTableResponses) = extent(oDataSources).
         do i = 1 to extent(oDataSources).
             oTableResponses[i] = new GetDataTableResponse(oDataSources[i]:DataBuffer:table-handle:name).
@@ -122,8 +129,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
             do:
                 oTableResponses[i]:NumResults = oDataSources[i]:TotalCount.
             end.
-            
         end.   
+       
         return new GetDataResponse(oTableResponses).          
         
         catch eStopAfter as Progress.Lang.StopAfter:
@@ -139,10 +146,13 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end catch.
 
         finally:
-            DestroyDataSources(phDataset).
+           // DestroyDataSources(phDataset).
         end finally.     
     end method.
     
+    
+    
+        
     method protected void Fill(phDataset as handle):
         define variable StringKey as String no-undo.
         define variable oSource  as DataSource no-undo.
@@ -164,8 +174,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable cMsg           as character no-undo.    
         define variable i as integer no-undo.
            
-        oDataSources = GetDataSourceMap(phDataset):Sources().
-        
+        oDataSources = cast(DataSourceMap:Values:ToArray(),IDataSource).
+          
         cMsg = subst("Read of &1 failed",if phDataset:serialize-name > "" then quoter(phDataset:serialize-name) else "data").
         
         oManyError = new ApplicationError(cMsg).
@@ -191,15 +201,13 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
     end method.    
     
      
-    method protected IHandleDataSourceMap StartSaveSources(poRequest as IUpdateDataRequest,phDataset as handle):
+    method protected void StartSaveSources(poRequest as IUpdateDataRequest,phDataset as handle):
         define variable hBuffer         as handle      no-undo.
         define variable i               as integer     no-undo.
         define variable cNoTargetTables as character   no-undo.
         define variable oUpdateTarget   as IUpdateTarget no-undo.
         define variable oDataSource     as IDataSource no-undo.
-        define variable oDataSources    as IHandleDataSourceMap no-undo.
         
-        oDataSources = GetDataSourceMap(phDataset).
         if type-of(poRequest,Pmfo.Core.BusinessLogic.IUpdateDataRequest) then
             cNoTargetTables = poRequest:NoTargetTables.     
         
@@ -243,12 +251,9 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
                 
                 if not valid-object(oDataSource) then
                     oDataSource = CreateDataSource(hBuffer:table-handle:serialize-name).
-                
-                //DataSources:Put(new String(hBuffer:table-handle:name), oDataSource).
-                oDataSources:Put(hBuffer, oDataSource).
+                DataSourceMap:Put(new WidgetHandle(hBuffer), oDataSource).
             end. // has data and not in NOTargetTab;es 
         end.   
-        return oDataSources. 
     end method.     
     
     method protected IUpdateTarget CreateSaveSource(pcName as character):
@@ -260,7 +265,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
     end method.
         
     // override to handle named query
-    method protected IHandleDataSourceMap StartDataSources(poRequest as IGetDataRequest, phDataset as handle):
+    method protected void StartDataSources(poRequest as IGetDataRequest, phDataset as handle):
         define variable i              as integer   no-undo.
         define variable hBuffer        as handle    no-undo.
        
@@ -269,10 +274,9 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable lClientOnly    as logical no-undo.
         define variable lOk            as logical no-undo.
         define variable hTopBuffers    as handle extent no-undo.
-        define variable oDataSourceMap as IHandleDataSourceMap no-undo.
         define variable oDataSource    as IDataSource no-undo.
         
-        oDataSourceMap = GetDataSourceMap(phDataset).
+       // oDataSourceMap = GetDataSourceMap(phDataset).
          
         // prepare may deactivate relation and add the buffer as top-buffer, so
         // keep track of the original top buffers to avoid preparing twice          
@@ -283,51 +287,49 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end.
          
         do i = 1 to extent(hTopBuffers):
-            StartDataSource(oDataSourceMap,hTopBuffers[i],poRequest,?).
+            StartDataSource(hTopBuffers[i],poRequest,?).
         end.    
        
         // check that at least one top table have a datasource   
         // we don't enforce requests for all top tables.
         // this will catch an unlikely case of no TableRequests sonce the size will be zerp and the extent ?
-        if oDataSourceMap:Size <> extent(poRequest:TableRequests) then 
+        if DataSourceMap:Size <> extent(poRequest:TableRequests) then
         do:
             do iBuffer = 1 to phDataset:num-top-buffers:
-                if oDataSourceMap:ContainsKey(phDataset:get-top-buffer(iBuffer)) then
+                if DataSourceMap:ContainsKey(new WidgetHandle(phDataset:get-top-buffer(iBuffer))) then
                 do:
-                   lok = true.
-                   lClientOnly = false.
-                   leave. 
+                    lok = true.
+                    lClientOnly = false.
+                    leave.
                 end.
                 else do:
-                    cErrorTables = cErrorTables 
+                    cErrorTables = cErrorTables
                                  + (if cErrorTables = "" then "" else ",")
-                                + phDataset:get-top-buffer(iBuffer):table-handle:name. 
-                end.    
-            end. 
+                                + phDataset:get-top-buffer(iBuffer):table-handle:name.
+                end.
+            end.
             if not lok then
-            do: 
-                if lClientOnly then 
+            do:
+                if lClientOnly then
                     undo, throw new IllegalOperationError("The GetDataRequest top table requests(s) are all Client Only requests").
-                else    
+                else
                     undo, throw new IllegalOperationError(subst("The GetDataRequest is missing request&1 for &2 top table&1 &3 in the dataset",
                                                             if num-entries(cErrorTables) = 1 then "" else "s",
                                                             if num-entries(cErrorTables) = 1 then "the" else "all",
                                                             StringUtil:GetMessageFromEntries(cErrorTables))).
-            end.                                                         
-        end. 
-        return oDataSourceMap. 
+            end.
+        end.
     end method.    
     
-    method protected IDataSource StartDataSource(oDataSourceMap as IHandleDataSourceMap, phBuffer as handle,poRequest as IGetDataRequest,poParentTableRequest as IGetDataTableRequest):
+    
+    method protected IDataSource StartDataSource( phBuffer as handle,poRequest as IGetDataRequest,poParentTableRequest as IGetDataTableRequest):
+    
         define variable oDataSource    as IDataSource no-undo.
         define variable oTableRequest  as IGetDataTableRequest  no-undo.
         define variable iChild         as integer no-undo. 
-        define variable iCount         as integer no-undo.
         define variable iBuffer        as integer no-undo.
-        define variable cErrorTables   as character no-undo.
         define variable hRelation      as handle no-undo.
         define variable lok            as logical no-undo.
-        define variable hCountFld      as handle no-undo.
         
         oTableRequest = GetDataTableRequest(poRequest,phBuffer).
         
@@ -338,7 +340,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
             if not valid-object(oDatasource) then 
                 undo, throw new NotFoundError(subst("DataSource '&1'",phBuffer:serialize-name)).
                 
-            oDataSourceMap:Put(phBuffer, oDataSource).
+            DataSourceMap:put(new WidgetHandle(phBuffer),oDataSource). 
             
            // DataSources:Put(new String(phBuffer:table-handle:name), oDataSource).
          
@@ -352,7 +354,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
                 // reposition is also a top-buffer so skip it here
                 // the repos table does not use the parent relation in fill
                 if hRelation:reposition = false and hRelation:recursive = false then
-                    StartDataSource(oDataSourceMap,hRelation:child-buffer,poRequest,oTableRequest).
+                    StartDataSource(hRelation:child-buffer,poRequest,oTableRequest).
             end.
             else 
                 phBuffer:fill-mode = "no-fill".
@@ -405,11 +407,10 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
     method public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
         define variable hBuffer              as handle no-undo.
         define variable oRequestKey          as String no-undo.
-        define variable oDataSources         as IHandleDataSourceMap no-undo.
         define variable lOk                  as logical no-undo.
         define variable oUpdateRe            as character no-undo.
         define variable oTransactionManager  as ITransactionManager no-undo.
-      
+
         define variable lCanExecuteAsTransaction as logical no-undo.
         // error - failed validation that has not beem caught on client  
         //         so make sure they are thrown and shown to user 
@@ -422,15 +423,16 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
         if not valid-object(poRequest:CommitScope) then 
             assign cast(poRequest,UpdateDataRequest):CommitScope = CommitScopeEnum:All.
-                   
-        oDataSources = StartSaveSources(poRequest,phDataset). 
         
+        
+        StartSaveSources(poRequest,phDataset). 
+                   
         BeforeUpdate:publish(input dataset-handle  phdataset by-reference).
         
         if CommitScopeEnum:Nested:Equals(poRequest:CommitScope) then
-           undo, throw new NotImplementedError("Support for Commit Scope Nested").
+             undo, throw new NotImplementedError("Support for Commit Scope Nested").
         else   
-           oTransactionManager = new TransactionManager(oDataSources,poRequest).
+             oTransactionManager = new TransactionManager(DataSourceMap,poRequest).
         
         if valid-object(oTransactionManager) then
         do:
@@ -475,7 +477,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end catch.
         
         finally:
-            DestroyDataSources(phDataset).
+            //   DestroyDataSources(phDataset).
         end finally.
     end method.
     
@@ -497,13 +499,10 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable lok            as logical no-undo.
         define variable oRequest       as IGetDataTableRequest no-undo.
         define variable cJoin          as character no-undo.     
-        define variable oDataSourceMap as IHandleDataSourceMap no-undo.
         
-        oDataSourceMap = GetDataSourceMap(phDataset).
-       
         if phBuffer:table-handle:has-records then 
         do:
-            oDataSource = oDataSourceMap:Get(phBuffer).
+            oDataSource = cast(DataSourceMap:Get(new WidgetHandle(phBuffer)),IDataSource).
             if valid-object(oDataSource) then
             do:   
             

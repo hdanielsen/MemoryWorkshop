@@ -61,10 +61,8 @@ class Business.SupplierBE inherits BusinessEntity:
         super:SubmitData(poUpdateDataRequest,  input-output dataset dsSupplierServer by-reference).    
         if dataset dsSupplierServer:error then  
             ThrowDatasetError(dataset dsSupplierServer:handle). 
-        dataset dsSupplierServer:write-json("file","C:\MemoryWorkshop-test\Temp\posted-supplierserver.json",yes,?,no,yes,yes).
         empty temp-table ttSupplierItem.
         CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
-        phDataset:write-json("file","C:\MemoryWorkshop-test\Temp\returned-supplier.json",yes,?,no,yes,yes).
     
     end method.
     

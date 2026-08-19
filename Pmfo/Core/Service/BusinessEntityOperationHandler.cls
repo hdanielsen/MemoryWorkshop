@@ -22,6 +22,7 @@ using OpenEdge.Net.HTTP.HttpHeader from propath.
 using OpenEdge.Net.HTTP.HttpHeaderBuilder from propath.
 using OpenEdge.Net.HTTP.IHttpResponse from propath.
 using OpenEdge.Net.HTTP.StatusCodeEnum from propath.
+using OpenEdge.Net.URI from propath.
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.BusinessLogic.IEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
@@ -56,6 +57,7 @@ using Progress.Json.ObjectModel.JsonArray from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
  
  
 class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler implements IBusinessEntityOperationHandler,ISupportLogging: 
@@ -71,7 +73,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
      
     define protected property ServiceManager as IServiceManager no-undo 
         get():
-           return cast(Application:ServiceManager,IServiceManager).
+            return cast(Application:ServiceManager,IServiceManager).
         end.
          
     constructor public BusinessEntityOperationHandler (  ):
@@ -416,17 +418,17 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                                            pcServiceURI as character,
                                            pURIQuery as IStringStringMap,
                                            pEntity as IEntity):
-        define variable jsonResponse                   as JsonObject                no-undo.
-        define variable oClientGetRequest              as IClientGetRequest         no-undo.
-        define variable oGetDataTableResponse          as IGetDataTableResponse     no-undo.
-        define variable hDataset                       as handle                    no-undo.
-        define variable oQueryRequestBuilder           as QueryRequestBuilder       no-undo.
-        define variable oGetDataResponse               as IGetDataResponse          no-undo.
-        define variable oGetDataRequest                as IGetDataRequest           no-undo.
-        define variable hRequestedBuffer               as handle                    no-undo.
-        define variable oBusinessEntity                as IBusinessEntity           no-undo.
-        define variable cInternalServiceURI            as character                 no-undo.
-        define variable oJson                          as JsonObject                no-undo.     
+        define variable jsonResponse                   as JsonObject              no-undo.
+        define variable oClientGetRequest              as IClientGetRequest       no-undo.
+        define variable oGetDataTableResponse          as IGetDataTableResponse   no-undo.
+        define variable hDataset                       as handle                  no-undo.
+        define variable oQueryRequestBuilder           as QueryRequestBuilder     no-undo.
+        define variable oGetDataResponse               as IGetDataResponse        no-undo.
+        define variable oGetDataRequest                as IGetDataRequest         no-undo.
+        define variable hRequestedBuffer               as handle                  no-undo.
+        define variable oBusinessEntity                as IBusinessEntity         no-undo.
+        define variable cInternalServiceURI            as character               no-undo.
+        define variable oJson                          as JsonObject              no-undo.     
         
         if type-of(pEntity,IBusinessEntity) then 
              oBusinessEntity = cast(pEntity,IBusinessEntity).
@@ -454,18 +456,86 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         hDataset:write-json("JsonObject",jsonResponse,yes,?,no,yes).  
         // reset frim response - requeste may change this 
         hRequestedBuffer = ?. 
-        
+        message valid-object(oGetDataResponse)
+        view-as alert-box.
         // wrap in respose node
         if valid-object(oGetDataResponse) then 
         do:      
             oJson = jsonResponse.
             jsonResponse = new JsonObject().   
             jsonResponse:Add(ResponseNodeName, oJson).
+            if oGetDataResponse:MainRequestedBuffer > "" then
+            do:
+                 hRequestedBuffer = hdataset:get-buffer-handle (oGetDataResponse:MainRequestedBuffer).
+                 // this is an internal error not a notfounderror
+                 if not valid-handle(hRequestedBuffer) then
+                     undo, throw new ApplicationError(subst("Requested buffer '&1' not found in returned dataset",oGetDataResponse:MainRequestedBuffer)). 
+              
+                 AddNextLinkToResponse(jsonResponse,oGetDataResponse,oClientGetRequest,pcBaseAppTransportServiceURI,pcServiceURI,hRequestedBuffer).
+            end.
         end.
-         
+        
         return jsonResponse.
              
     end method.    
+   
+    method protected void AddNextLinkToResponse(
+       pJsonResponse                as JsonObject,
+       pResponse                    as IGetDataResponse, 
+       pClientRequest               as IClientGetRequest,
+       pcBaseAppTransportServiceURI as character,
+       pcServiceURI                 as character,
+       pRequestedBuffer             as handle 
+    ):
+            
+        define variable iTable         as integer               no-undo.
+        define variable oTableResponse as IGetDataTableResponse no-undo.
+        define variable cNextId        as character             no-undo.
+        define variable cQuery         as character             no-undo.
+        define variable cNextLinkName  as character             no-undo.
+        define variable iTotalCount    as integer               no-undo.
+        message "extent(pResponse:TableResponses)" extent(pResponse:TableResponses)
+        view-as alert-box.
+        tablerequestloop:
+        do iTable = 1 to extent(pResponse:TableResponses):
+            oTableResponse = pResponse:TableResponses[iTable].
+            message "itable" itable
+              "bvuffer table name" pRequestedBuffer:table-handle:name "tabvle response namnwe"  oTableResponse:TableName
+            view-as alert-box.
+            if valid-handle(pRequestedBuffer)
+       //   and RequestTypeEnum:SingleRow:Equals(oGetDataResponse:RequestType) = false
+            and pRequestedBuffer:table-handle:name = oTableResponse:TableName then 
+            do:
+                cNextId = oTableResponse:NextPagingContext.
+                if cNextId > "" then
+                do:
+                    cQuery = BuildUrlQuery(pClientRequest:URIQuery,pClientRequest:ContextProperties).
+                        // use of skip means useNextPageLink
+                    if pClientRequest:Skip > 0 
+                    // count and no context means use useNextPageLink 
+                    or (pClientRequest:Count = true and pClientRequest:PagingContext = ?)
+                    // UserNextPageLink true means force use of NextPageLink when NextPagingContext is set  
+                    or oTableResponse:UseNextPageLink then 
+                    do:
+                        cNextLinkName = subst(NextPageLinkTemplate,pRequestedBuffer:serialize-name).
+                        cQuery = cQuery + (if cQuery = "" then "?" else "&")
+                               + subst("&1=&2",pClientRequest:SkipProp,(if pClientRequest:Skip > 0 then pClientRequest:Skip else 0) + pClientRequest:NumRecords).
+                    end.
+                    else do:
+                        cNextLinkName = subst(NextBatchLinkTemplate,pRequestedBuffer:serialize-name).        
+                        cQuery = cQuery + (if cQuery = "" then "?" else "&") + subst("&1=&2",pClientRequest:PagingContextProp,URI:EncodeQuery(cNextId)).
+                    end.
+                    pJsonResponse:Add(cNextLinkName,subst("&1&2&3",pcBaseAppTransportServiceURI,pcServiceURI,cQuery)).
+                end.
+                if pClientRequest:Count = true then
+                do:
+                    iTotalCount = oTableResponse:NumResults.
+                    pjsonResponse:Add(subst(TotalCountTemplate,pRequestedBuffer:serialize-name),iTotalCount).
+                end.
+                leave tablerequestloop.
+            end.
+        end. 
+    end method.     
    
     method protected void ProcessBeforeImageErrors(pjson as JsonObject, phDataset as handle) :
         define variable oJson          as JsonObject        no-undo.
@@ -570,14 +640,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
             end.
         end.    
         return hRelations.
-    end method.
-    
-    method protected void HideForeignKeysAgain(phRelations as handle extent):
-        define variable i as integer no-undo.    
-        do i = 1 to extent(phRelations):
-            if valid-handle(phRelations[i]) then 
-               phRelations[i]:foreign-key-hidden = true.
-        end.    
     end method.
 
     // allow subclass override
