@@ -21,5 +21,7 @@ class Business.OrderLineBE inherits BusinessEntity:
     constructor OrderLineBE():
         super(dataset dsOrderLine:handle).
     end constructor.
+    
+    
 
 end class.

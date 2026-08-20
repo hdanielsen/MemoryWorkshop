@@ -91,11 +91,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
     end method.
     
-    
-    method protected void DestroyDataSources(phHandle as handle):
-        cast(Application:ServiceManager,IServiceManager):stopServices(new LifecycleScope(phHandle)). 
-    end.    
-    
     method public IGetDataResponse FetchData( input poRequest as IGetDataRequest, input-output dataset-handle phDataset ):
         define variable oDataSources       as IDataSource extent no-undo.
         
@@ -104,6 +99,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable iStopAfter         as integer no-undo.
         
         DatasetHandle = phDataset. // setter and destructor avoid memory leak
+        
         
         StartDataSources(poRequest,phDataset).
         
@@ -117,7 +113,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end.
         
         oDataSources = cast(DataSourceMap:Values:ToArray(),IDataSource).
-        
         extent(oTableResponses) = extent(oDataSources).
         do i = 1 to extent(oDataSources).
             oTableResponses[i] = new GetDataTableResponse(oDataSources[i]:DataBuffer:table-handle:name).
@@ -146,13 +141,11 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end catch.
 
         finally:
-           // DestroyDataSources(phDataset).
+            DataSourceMap:Clear().
         end finally.     
     end method.
     
     
-    
-        
     method protected void Fill(phDataset as handle):
         define variable StringKey as String no-undo.
         define variable oSource  as DataSource no-undo.
@@ -477,8 +470,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end catch.
         
         finally:
-            //   DestroyDataSources(phDataset).
-        end finally.
+            DataSourceMap:Clear().
+        end finally.   
     end method.
     
             

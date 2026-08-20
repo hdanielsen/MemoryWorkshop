@@ -456,8 +456,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         hDataset:write-json("JsonObject",jsonResponse,yes,?,no,yes).  
         // reset frim response - requeste may change this 
         hRequestedBuffer = ?. 
-        message valid-object(oGetDataResponse)
-        view-as alert-box.
+      
         // wrap in respose node
         if valid-object(oGetDataResponse) then 
         do:      

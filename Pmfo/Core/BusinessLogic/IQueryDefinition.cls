@@ -24,5 +24,9 @@ interface Pmfo.Core.BusinessLogic.IQueryDefinition:
     ------------------------------------------------------------------------------*/
     define public property QuerySort as Ccs.BusinessLogic.IQuerySortEntry extent no-undo
     get.
-
+    
+    method public logical AddEntries(pQueryEntries as IQueryEntry extent).
+    
+    method public logical AddEntry(pQueryEntry as IQueryEntry).
+    
 end interface .

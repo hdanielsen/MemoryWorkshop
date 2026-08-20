@@ -137,6 +137,15 @@ class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableReques
     end constructor.
     
     
+    method public logical AddQueryEntry(pQueryEntry as IQueryEntry):
+        if not valid-object(QueryDefinition) then
+        do: 
+            QueryDefinition = new QueryDefinition().
+        end.  
+        return QueryDefinition:AddEntry(pQueryEntry).
+    end method.
+    
+    
     method override public character ToString():
         return substitute('&1: query:&2; numrec:&3; skip:&4 cntxt:&5 count:&6',
                 this-object:TableName,

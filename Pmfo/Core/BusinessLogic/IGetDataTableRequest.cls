@@ -81,5 +81,9 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
     
     define public property IsPaging            as logical      no-undo get. 
     define public property PagingContextEntry  as IQueryEntry no-undo get. set.  
+    
+    
+    method public logical AddQueryEntry(pQueryEntry as IQueryEntry).
+  
      
 end interface.

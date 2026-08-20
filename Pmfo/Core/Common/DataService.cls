@@ -22,7 +22,10 @@ class Pmfo.Core.Common.DataService abstract implements IDataService :
             StartupManager:Instance. /* sets Application:StartupManager in contructor */
             // an error here is rather confusing, so clarifiy a little
             catch e as Progress.Lang.Error :
+                message e:GetMessage(1) skip e:CallStack
+                view-as alert-box.
                 undo, throw new ApplicationError(subst("DataService static constructor error from StartupManager:Instance - &1",e:GetMessage(1)),e).    
+                
             end catch.
         end.        
         

@@ -14,6 +14,7 @@ block-level on error undo, throw.
 using Ccs.BusinessLogic.CommitScopeEnum from propath.
 using Ccs.Common.Application from propath.
 using OpenEdge.Core.Assert from propath.
+using OpenEdge.Core.String from propath.
 using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.GetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.GetDataTableRequest from propath.
@@ -24,26 +25,27 @@ using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
+using Pmfo.Core.BusinessLogic.IUpdateDataResponse from propath.
 using Pmfo.Core.BusinessLogic.UpdateDataRequest from propath.
 using Pmfo.Core.Common.DataService from propath.
 using Pmfo.Core.DataLayer.IDataAccess from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
 using Pmfo.Core.Error.IllegalArgumentError from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.IllegalStateError from propath.
 using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Error.ValidationError from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
+using Pmfo.Core.Manager.ISessionManager from propath.
 using Pmfo.Core.Service.IClientRequest from propath.
+using Pmfo.Core.Service.JsonDatasetErrorProcessor from propath.
 using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.DatasetUtil from propath.
-using Progress.Lang.Object from propath.
-using Pmfo.Core.BusinessLogic.IUpdateDataResponse from propath.
-using Progress.Lang.Error from propath.
-using Pmfo.Core.Error.ValidationError from propath.
-using OpenEdge.Core.String from propath.
-using Pmfo.Core.BusinessLogic.IClientEntity from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
-using Pmfo.Core.Service.JsonDatasetErrorProcessor from propath.
-using Pmfo.Core.Error.ApplicationError from propath.
+using Progress.Lang.Error from propath.
+using Progress.Lang.Object from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.Error.UnsupportedOperationError from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
  //   define public property Public         as logical   no-undo get. protected set.
@@ -54,6 +56,16 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
  //   define public property CanDelete      as logical       no-undo get.
     define public property Datasets       as handle extent no-undo get. protected set.
     
+    define protected property SessionManager as ISessionManager no-undo 
+       get():
+            return cast(Application:SessionManager,ISessionManager).
+       end.
+  
+   define protected property ServiceManager as IServiceManager no-undo 
+       get():
+            return cast(Application:ServiceManager,IServiceManager).
+       end.
+  
     define protected property DefaultDataset as handle no-undo 
         get():
             if extent(Datasets) <> ? then
@@ -245,6 +257,9 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         end.
     end method.    
     
+    method protected void ValidateData(poUpdateDataRequest as IUpdateDataRequest, input dataset-handle phDataset):
+    end method.
+    
     method protected void ReceiveBuffer( pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
     end method.
      
@@ -285,7 +300,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         GetData(output dataset-handle hdataset by-reference).
     end method.    
     
-    method public IGetDataResponse GetData(  output dataset-handle phDataset ):
+    method public IGetDataResponse GetData( output dataset-handle phDataset ):
         define variable oRequest as Pmfo.Core.BusinessLogic.IGetDataRequest no-undo.
         define variable oResponse as Pmfo.Core.BusinessLogic.IGetDataResponse no-undo. 
          
@@ -327,6 +342,42 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
          
     end method.
     
+    // for requests for just the table - does not support by-reference
+    method public logical GetData( input pQueryEntry as IQueryEntry, output table-handle phTable): 
+        define variable oTableRequest as Pmfo.Core.BusinessLogic.IGetDataTableRequest no-undo.
+        define variable oRequest as Pmfo.Core.BusinessLogic.IGetDataRequest  no-undo.
+        oTableRequest = new GetDataTableRequest(Datasets[1]:get-buffer-handle(1):table-handle:name).
+        oTableRequest:AddQueryEntry(pQueryEntry).
+        oRequest = new GetDataRequest(oTableRequest).
+        return GetData(oTableRequest, output table-handle phTable by-reference).
+        
+    end method.
+    
+    
+    // for requests for just the table - does not support by-reference
+    method public logical GetData( input pTableRequest as IGetDataTableRequest, output table-handle phTable):
+        define variable oRequest as IGetDataRequest  no-undo.
+        if valid-handle(phTable) then 
+            // The BE is dataset oriented - Use one of the GetData with Dataset output  if by-reference is needed  
+            undo, throw new UnsupportedOperationError("GetData with IGetTableRequest parameter and valid handle in output table by-reference parameter. Use one of the GetData methods with Dataset output if by-reference is needed.").  
+        if pTableRequest:TableName <> Datasets[1]:get-buffer-handle(1):table-handle:name then 
+            undo, throw new IllegalArgumentError(subst("TableRequest for table '&1' passed to Business Entity for table '&2'",pTableRequest:TableName,Datasets[1]:get-buffer-handle(1):table-handle:name)).
+        oRequest = new GetDataRequest(pTableRequest).
+        
+        this-object:Clear(). // clear for request for table 
+        GetData(oRequest). 
+        
+        phTable = Datasets[1]:get-buffer-handle(1):table-handle.
+        return phTable:has-records.     
+    end method.
+    
+    method public logical GetData( input poRequest as IGetDataRequest):
+        define variable hDataset as handle no-undo.
+        hdataset = DefaultDataset.
+        GetData(poRequest,output dataset-handle hdataset by-reference).
+      
+        return hDataset:get-buffer-handle(poRequest:TableRequests[1]:tablename):table-handle:has-records.
+    end method.
     
     method public IGetDataResponse CreateDataResponse(poRequest as IGetDataRequest):
         define variable iTable as integer no-undo.
@@ -340,11 +391,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.  
     
         
-    method public final Object GetData( input poRequest as IGetDataRequest, input dataset-handle phDataset ):
-        undo, throw new NotImplementedError().  
-    end method.    
-   
-    
     method public logical GetData(  output table-handle phTable):
         define variable hNewDataset     as handle no-undo.
            
@@ -380,8 +426,13 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.     
     
     method public int64 Count().
-        AssertInitialized().    
+       // AssertInitialized().    
+        undo, throw new NotImplementedError().
     end method.    
+    
+    method public Object UpdateData( input-output dataset-handle phDataset):
+        return UpdateData(input-output dataset-handle phDataset by-reference,CreateUpdateDataRequest(phDataset)).
+    end method. 
     
     method public Object UpdateData (input-output dataset-handle phDataset,poUpdateDataRequest as IUpdateDataRequest).     
         AssertInitialized().    
@@ -400,7 +451,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             
             // standard crud call before uopdate (actions are handled in ValidateAction to ensure they are called also from other BEs
             do on error undo, throw: 
-            //   BeforeUpdateDataset( poUpdateDataRequest, phDataset).
+                ValidateData( poUpdateDataRequest, input dataset-handle phDataset by-reference).
                 if phDataset:error then
                     lError = true.
                 catch eval as ValidationError:
@@ -412,7 +463,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
 .       
                 end catch.                  
             end.
-        
             if not phDataset:error then
             do: 
                 oResponse = SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset by-reference).
@@ -469,12 +519,11 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         return DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
     end method.
     
-    method public Object UpdateData(input-output dataset-handle phDataset).
-        AssertInitialized().    
-    end method.    
-     
     method public void Clear().
-        AssertInitialized().    
+        define variable i as integer no-undo.
+        do i = 1 to extent(Datasets):
+            Datasets[i]:empty-dataset ().
+        end.   
     end method.    
     
     method public override void Initialize():

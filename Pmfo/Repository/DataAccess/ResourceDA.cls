@@ -211,10 +211,10 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
     end method.
     
     // see comment in RefreshData where PostponeDestroy is assigned
-    method protected override void DestroyDataSources(phHandle as handle):
-        if PostponeDestroy = false then 
-            super:DestroyDataSources(phHandle).
-    end method. 
+/*    method protected override void DestroyDataSources(phHandle as handle):*/
+/*        if PostponeDestroy = false then                                   */
+/*            super:DestroyDataSources(phHandle).                           */
+/*    end method.                                                           */
      
     method protected IGetDataResponse RefreshData(input poRequest as  IGetDataRequest,input-output dataset-handle phDataset, plSearchAndDelete as logical): 
         define variable oResponse   as IGetDataResponse no-undo.
@@ -261,7 +261,7 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
             if PostponeDestroy then 
             do:
                 PostponeDestroy = false.
-                DestroyDataSources(phDataset) .
+              //  DestroyDataSources(phDataset) .
             end.      
         end.                               
     end method.                                                     

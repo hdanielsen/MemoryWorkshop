@@ -15,22 +15,40 @@ using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Progress.Lang.Object from propath.
 using Pmfo.Core.Service.IClientRequest from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
  
 interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.  
     define public property Datasets       as handle extent no-undo get. 
-  
+   
     method public void getDataset (output dataset-handle phDataset).
     
+    // fill all data
     method public void GetData():    
+    
+    // fill requested data
+    method public logical GetData( input poRequest as IGetDataRequest).
+        
+    // get all data 
     method public IGetDataResponse GetData( output dataset-handle phDataset ).
+   
     
+    // get requested dataset  
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
+   
+    // get requested main table - implementation should not support by-reference. The GetsData that outputs dataset should be used for that
+    method public logical GetData( input pTableRequest as IGetDataTableRequest, output table-handle phTable).
     
-    method public logical GetData(  output table-handle phTable).
+    // get requested main table - implementation should not support by-reference. The GetsData that outputs dataset should be used for that
+    method public logical GetData( input pQueryEntry as IQueryEntry, output table-handle phTable). 
+   
+    method public logical GetData( output table-handle phTable).
+    
     method public int64 Count().
     
+    method public Object UpdateData( input-output dataset-handle phDataset).
+    
     method public Object UpdateData (input-output dataset-handle phDataset,poUpdateDataRequest as IUpdateDataRequest).     
-    method public Object UpdateData(input-output dataset-handle phDataset).
    
     method public handle GetRequestDataset(pClientRequest as IClientRequest).
     method public handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
