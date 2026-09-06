@@ -39,6 +39,8 @@ class DataSource.InventoryTransactionDS inherits DataSource:
     end method.
     
     method public override void AfterRow(input dataset-handle phDataset):
+          
+ 
        ttInventoryTransaction.TransactionTime = 
            datetime(substitute("&1 &2",string(InventoryTrans.TransDate,"99-99-9999"),InventoryTrans.TransTime)).
            /**
@@ -51,5 +53,5 @@ class DataSource.InventoryTransactionDS inherits DataSource:
                     **/
         super:AfterRow(input dataset-handle phDataset by-reference).
     end method.
-     
+ 
 end class.

@@ -8,7 +8,7 @@
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Ccs.BusinessLogic.INamedQuery from propath.
+using Ccs.BusinessLogic.IQuerySortEntry from propath.
 using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 
@@ -36,7 +36,7 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
                  is requested.
     ------------------------------------------------------------------------------*/
     define public property NumRecords as int64 no-undo
-    get.
+    get. set.
 
     /*------------------------------------------------------------------------------
         Purpose: Returns the abstract query defintion for this request
@@ -64,7 +64,7 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
                  passed in when requesting a certain page of result records
     ------------------------------------------------------------------------------*/
     define public property Skip as int64 no-undo
-    get.
+    get. set.
 
     /*------------------------------------------------------------------------------
         Purpose: Returns the name of the ProDataset Table
@@ -84,6 +84,7 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
     
     
     method public logical AddQueryEntry(pQueryEntry as IQueryEntry).
-  
-     
+    method public logical SetQuerySort(pSort as IQuerySortEntry).
+    method public logical SetQuerySort(pSort as IQuerySortEntry extent).
+         
 end interface.

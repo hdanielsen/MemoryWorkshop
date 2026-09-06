@@ -51,9 +51,13 @@ using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.StringUtil from propath.
 using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
+using OpenEdge.Core.Collections.ICollection from propath.
+using Pmfo.Core.Common.IWarning from propath.
  
 
 class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements IDataAccess: 
+    {Pmfo/Core/schema/warning.i}
+     
     /* Event published before update starts. 
        DataSources may subscribe to this for example to change row-state  
     */
@@ -386,22 +390,11 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         return oTableRequest.
     end.  
       
-    /**
-    method public Object SubmitData( input poRequest as Ccs.BusinessLogic.IUpdateDataRequest, input-output dataset-handle phDataset, output table-handle phWarning ):
-        define variable oRequest as IUpdateDataRequest no-undo.
-        if type-of(poRequest,Ccs.BusinessLogic.IUpdateDataRequest) then
-            oRequest = cast(Adapt(poRequest,phDataset),IUpdateDataRequest).
-        else   
-            oRequest = cast(poRequest,IUpdateDataRequest).  
-        return SubmitData(oRequest,input-output dataset-handle phDataset by-reference, output table-handle phWarning by-reference).    
-    end method.
-    **/
-     
-    method public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+    
+    method public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset, output table-handle phWarning ):
         define variable hBuffer              as handle no-undo.
         define variable oRequestKey          as String no-undo.
         define variable lOk                  as logical no-undo.
-        define variable oUpdateRe            as character no-undo.
         define variable oTransactionManager  as ITransactionManager no-undo.
 
         define variable lCanExecuteAsTransaction as logical no-undo.
@@ -416,7 +409,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
         if not valid-object(poRequest:CommitScope) then 
             assign cast(poRequest,UpdateDataRequest):CommitScope = CommitScopeEnum:All.
-        
         
         StartSaveSources(poRequest,phDataset). 
                    
@@ -443,8 +435,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end. 
         AfterUpdate:publish(input dataset-handle phdataset by-reference).
         
-       // CollectWarnings(oDataSources:Sources()).
-      //  GetWarnings(output table-handle phWarning by-reference).
+        CollectWarnings(cast(DataSourceMap:Values:ToArray(),IDataSource)).
+        phWarning  = temp-table ttWarning:handle. 
         
          // bug workarond dataet:error is not detected on client when by-reference is used
         if phDataset:error then
@@ -482,6 +474,41 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         end.
         
     end method.     
+    
+    method protected void CollectWarnings (pDataSources as IDataSource  extent ):
+        define variable oDataSources as IDataSource no-undo.
+        define variable i as integer no-undo.
+        do i = 1 to extent(pDataSources):
+            if valid-object(pDataSources[i]:Warnings) then 
+                CollectWarnings(pDataSources[i]:Warnings, pDataSources[i]:EntityName).
+        end.
+    end method.    
+    
+    method protected void CollectWarnings (pWarnings as ICollection, pcEntity as character):
+        define variable iWarning     as integer no-undo.
+        define variable oIterator    as IIterator no-undo.
+        define variable oMsgIterator as IIterator no-undo.
+        define variable oWarning     as IWarning no-undo.
+        
+        for each ttWarning by ttWarning.Seq descending.
+            iWarning = ttWarning.seq.
+            leave.
+        end.
+       
+        oMsgIterator = pWarnings:Iterator().
+        do while oMsgIterator:HasNext():
+            create ttWArning.
+            assign 
+                oWarning = cast(oMsgIterator:Next(),IWarning)
+                iWarning = iWarning + 1 
+                ttWarning.entity    =pcEntity
+                ttWarning.seq       = iWarning
+                ttWarning.msg       = oWarning:Message
+                ttWarning.fieldName = oWarning:FieldName
+                .
+        end.
+        
+    end method.    
     
     method public void RefreshBuffer(phDataset as handle,phBuffer as handle, poParentRequest as IGetDataTableRequest):
         define variable hQuery         as handle no-undo.

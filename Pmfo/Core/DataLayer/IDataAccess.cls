@@ -17,6 +17,5 @@ using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 
 interface Pmfo.Core.DataLayer.IDataAccess inherits IResource:  
     method public IGetDataResponse FetchData ( input poRequest as IGetDataRequest, input-output dataset-handle phDataset ).
-    method public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset).
-    
+    method public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset, output table-handle phWarning ).
 end interface.

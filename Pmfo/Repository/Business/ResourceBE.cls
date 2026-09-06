@@ -330,7 +330,12 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         define variable hWarning as handle no-undo.
         define variable hDummy as handle no-undo.
         define variable oDummy   as IUpdateDataRequest no-undo.  // pick the right overload (this has been fixed in ResourceDA, but keep )
-        return this-object:DataAccess:SubmitData(oDummy, input-output dataset-handle phDataset).
+        return this-object:DataAccess:SubmitData(oDummy, input-output dataset-handle phDataset, output table-handle hWarning).
+        
+        // TODO - support warnings for REsource? 
+        finally:
+            delete object hWarning.
+        end.
     end method.
     
     // this is specialized to build the request from time stamp info in the DataAccess

@@ -17,12 +17,15 @@ using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
 using Ccs.BusinessLogic.QueryOperatorEnum from propath.
 using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
 using Pmfo.Core.Error.BadRequestError from propath.
+using Pmfo.Core.BusinessLogic.IBusinessEntityFinder from propath.
+using Pmfo.Core.BusinessLogic.BusinessEntityFinder from propath.
 
 class Business.OrderBE inherits BusinessEntity:
 
     {schema/order.i}
     {schema/orderline.i}
-    {schema/item.i}
+    
+    {schema/item.i reference-only}
     
     define dataset dsOrder for ttOrder, ttOrderLine
        data-relation order-lines for ttOrder, ttOrderLine relation-fields(orderNum,orderNum) nested foreign-key-hidden
@@ -35,23 +38,37 @@ class Business.OrderBE inherits BusinessEntity:
     method protected override void ValidateData(pRequest as IUpdateDataRequest, input dataset-handle phDataset ): 
         ValidateStaticData(dataset-handle phDataset by-reference ). 
     end method.    
-    
-    
-    method protected void ValidateStaticData(input dataset dsOrder ): 
-        define variable oItemBe as IBusinessEntity no-undo.
-        oItemBe = ServiceManager:CreateBusinessEntity("items").        
-        define variable oQueryPredicate as IQueryPredicate no-undo.
-        for each ttOrderline:
-           find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
-           if not avail ttItem then do: 
-                oQueryPredicate = new QueryPredicate("ItemNum",QueryOperatorEnum:Eq,ttOrderLine.ItemNum).
-                oItemBe:GetData(oQueryPredicate,output table ttItem append).
+   
+    method protected void ValidateStaticData(input dataset dsOrder ):
+        define variable oItemFinder as IBusinessEntityFinder no-undo.
+        
+        /* The finder wraps calls to another BusinessEntity to allow append of ttItem records for only the records we need. 
+           This also ensures the that the underlying business entity is decoupled so that we do not depend on keeping 
+           the BE alive to work on its data.  
+           The BE is kept alive under the covers, but is cleared for each request and subsequently need to go to the data access
+           It could be better to have this capability directly in the BE, but this would require optional append 
+           when calling the Data Access. As of current the BE Fetch to DataAccess is a complete replace and deep copy of data.                     
+        */
+             
+        oItemFinder = new BusinessEntityFinder('items').
+        oItemFinder:Bind(output table ttItem bind).
+         
+        for each ttOrderline where row-state(ttOrderLine) > 0:
+            
+            // thw use of append requires that we only call if we do not alreay have it
+            find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
+            if not avail item then do: 
+                oItemFinder:Find(ttOrderLine.ItemNum, output table ttItem append). 
                 find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
-            end.    
+            end.
             if not avail ttItem then 
-                undo, throw new BadRequestError(substitute("Item &1 does not exits",ttOrderLine.ItemNum)).
-                
-         end.    
+                undo, throw new BadRequestError(substitute("Item &1 does not exist",ttOrderLine.ItemNum)).
+            
+            // this is pretend business logic ... 
+            if ttItem.OnHand + ttItem.OnOrder - ttOrderline.Qty <= 0 then
+                undo, throw new BadRequestError(substitute("There is only &1 items available for ordering (on hand &2 and on order is &3. You cannot order &3 &4 items",
+                                                           ttItem.OnHand + ttItem.OnHand, ttItem.OnHand,ttItem.OnHand, ttOrderline.qty, ttItem.ItemName)).                  
+        end.    
     end method.    
     
 

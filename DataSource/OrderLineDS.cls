@@ -38,4 +38,13 @@ class DataSource.OrderLineDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
+        find item where Item.ItemNum = ttOrderLine.ItemNum.
+        Item.OnOrder = Item.OnOrder + ttOrderLine.Qty.
+              
+        AddWarning("Item on hand is less than min qty","qty"). 
+         
+    end method.
+    
+    
 end class.

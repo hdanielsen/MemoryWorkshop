@@ -43,6 +43,11 @@ using Pmfo.Util.ServiceInfo from propath.
 using Pmfo.Util.StringUtil from propath.
 using Progress.Lang.AppError from propath.
 using Progress.Lang.Error from propath.
+using Pmfo.Core.Common.Warning from propath.
+using Pmfo.Core.Common.IWarning from propath.
+using OpenEdge.Core.Collections.IList from propath.
+using OpenEdge.Core.Collections.List from propath.
+using Progress.Lang.Object from propath.
 
 class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IUpdateTarget abstract: 
     
@@ -150,6 +155,13 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         end.     
         private set.      
 
+    define public    property Warnings        as IList   no-undo 
+        get. 
+        protected set(pWarns as IList):
+            Warnings = pWarns.
+          //  HasWarning = true.
+        end. 
+    
     define public property NumRecords as int64 no-undo 
     get.
     set. 
@@ -169,7 +181,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     constructor protected DataSource ( ):
         super ().
     end constructor.
-    
     
      /* override to attach after row event and/or bind the buffer to static def */ 
     method protected void PrepareBuffer ( input pBuffer as handle):
@@ -1019,6 +1030,37 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             return QueryUtil:InsertQueryExpression(BufferName, pcQuery, cNewWhere).
     end method.
     
+    method protected void AddWarning(pcMsg as character):
+        AddWarning(new Warning(pcmsg)). 
+    end method.
+    
+    method protected void AddWarning(pcMsg as character, pcField as character):
+        AddWarning(new Warning(pcmsg,pcField)). 
+    end method.
+    
+    method protected void AddWarning(pWarning as IWarning):
+        if not valid-object(Warnings) then
+        do:
+            Warnings = new List().
+        end.    
+        Warnings:Add(pWarning).
+    end method.
+    
+    method protected void AddWarnings(pWarnings as ICollection):
+        define variable oIter as IIterator no-undo.
+        define variable oObject as Object no-undo.
+        if not valid-object(Warnings) then
+        do:
+            Warnings = new List().
+        end.    
+        oIter = pWarnings:Iterator().
+        do while oIter:HasNext():
+            oObject = oIter:Next().
+            if type-of(oObject,IWarning) = false then
+                undo, throw new IllegalArgumentError(subst("Collection with &1 objects",oObject:GetClass():TypeName)). 
+        end.     
+        Warnings:AddAll(pWarnings).
+    end method.
     
     method public override logical Prepare(  ):
         

@@ -291,7 +291,7 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
                               
     end method.    
     
-    method override public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+    method override public Object SubmitData( input poRequest as IUpdateDataRequest, input-output dataset-handle phDataset, output table-handle ttWarning):
         phDataset:accept-changes ().
         phDataset:write-json ("file",SerializeFullName,true). 
         return new Object().

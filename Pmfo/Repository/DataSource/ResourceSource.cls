@@ -64,7 +64,7 @@ class Pmfo.Repository.DataSource.ResourceSource abstract inherits DataSource  :
         define variable oParamList   as ParameterList no-undo.
         define variable oConstructor as Constructor no-undo.
         define variable lStopped     as logical no-undo.
-        file-Info:file-name = GetFileDirectory().
+        file-info:file-name = GetFileDirectory().
         if file-info:full-pathname <> ? then
         do:
             fileio:getFiles(file-info:full-pathname, output table fileData).
@@ -97,9 +97,7 @@ class Pmfo.Repository.DataSource.ResourceSource abstract inherits DataSource  :
             undo, throw new IllegalOperationError(subst("Source code directory '&1' not in propath",GetFileDirectory())). 
             
         catch e as Progress.Lang.Error :
-            message "throwing fill error" e:GetMessage(1) skip 
-             e:CallStack
-            view-as alert-box.
+           
             ThrowFillError(e).    
         end catch.                  
     end method.

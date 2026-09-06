@@ -7,6 +7,7 @@
   ----------------------------------------------------------------------*/
 
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Ccs.BusinessLogic.IQuerySortEntry from propath.
 
 interface Pmfo.Core.BusinessLogic.IQueryDefinition:
 
@@ -26,7 +27,8 @@ interface Pmfo.Core.BusinessLogic.IQueryDefinition:
     get.
     
     method public logical AddEntries(pQueryEntries as IQueryEntry extent).
-    
     method public logical AddEntry(pQueryEntry as IQueryEntry).
+    method public logical SetSort(pSort as IQuerySortEntry):
+    method public logical SetSort(pSort as IQuerySortEntry extent):
     
 end interface .

@@ -493,14 +493,9 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable cQuery         as character             no-undo.
         define variable cNextLinkName  as character             no-undo.
         define variable iTotalCount    as integer               no-undo.
-        message "extent(pResponse:TableResponses)" extent(pResponse:TableResponses)
-        view-as alert-box.
         tablerequestloop:
         do iTable = 1 to extent(pResponse:TableResponses):
             oTableResponse = pResponse:TableResponses[iTable].
-            message "itable" itable
-              "bvuffer table name" pRequestedBuffer:table-handle:name "tabvle response namnwe"  oTableResponse:TableName
-            view-as alert-box.
             if valid-handle(pRequestedBuffer)
        //   and RequestTypeEnum:SingleRow:Equals(oGetDataResponse:RequestType) = false
             and pRequestedBuffer:table-handle:name = oTableResponse:TableName then 

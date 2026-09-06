@@ -11,18 +11,13 @@
 
 block-level on error undo, throw.
 
+using Ccs.BusinessLogic.IQuerySortEntry from propath.
 using OpenEdge.Core.Assert from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
-using Pmfo.Core.BusinessLogic.QueryDefinition from propath.
-using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
-using Pmfo.Core.Error.IllegalArgumentError from propath.
-using Pmfo.Core.Error.UnsupportedOperationError from propath.
-using Pmfo.Util.StringUtil from propath.
-using Ccs.Common.Support.IPrimitiveHolder from propath.
-using Pmfo.Util.Array from propath.
-using Ccs.Common.Support.IPrimitiveArrayHolder from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.QueryDefinition from propath.
+using Pmfo.Core.Error.IllegalArgumentError from propath.
 
 class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableRequest: 
     /* Returns the number of records requested by the caller of the Business Entity getData method */
@@ -144,6 +139,26 @@ class Pmfo.Core.BusinessLogic.GetDataTableRequest implements IGetDataTableReques
         end.  
         return QueryDefinition:AddEntry(pQueryEntry).
     end method.
+    
+    
+    method public logical SetQuerySort(pSort as IQuerySortEntry):
+        if valid-object(QueryDefinition) then
+            QueryDefinition:SetSort(pSort).
+        else 
+           QueryDefinition = new QueryDefinition(pSort).
+        
+        return true.    
+    end method.
+    
+    method public logical SetQuerySort(pSort as IQuerySortEntry extent):
+        if valid-object(QueryDefinition) then
+            QueryDefinition:SetSort(pSort).
+        else 
+           QueryDefinition = new QueryDefinition(pSort).
+        
+        return true.    
+    end method.
+    
     
     
     method override public character ToString():

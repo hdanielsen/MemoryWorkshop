@@ -47,4 +47,5 @@ class DataSource.CustomerDS inherits DataSource:
         if can-find(first Order where Order.CustNum = biCustomer.Custnum) then 
             BufferError(buffer biCustomer:handle,substitute("Cannot delete customer &1 that has orders",biCustomer.Custnum)).
     end method.
+    
 end class.

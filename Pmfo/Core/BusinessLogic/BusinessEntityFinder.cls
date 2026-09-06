@@ -111,7 +111,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntityFinder implements IBusinessEntityFin
         
     end constructor.
     
-    method public void  Bind(output table-handle phTable bind ):
+    method public void Bind(output table-handle phTable bind ):
         TableHandle(output table-handle phTable).
     end method.
 

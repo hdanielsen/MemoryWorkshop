@@ -243,7 +243,7 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
              
        
         oEntity = dynamic-new ttEntity.ClassName ().
-        // dynamic must be called from CreateDynamicBusinessEntity and will call initalize after create of table
+        
         if plSkipInitForTableRead = false  then
         do:
             if type-of(oEntity,ISupportInitialize) then 

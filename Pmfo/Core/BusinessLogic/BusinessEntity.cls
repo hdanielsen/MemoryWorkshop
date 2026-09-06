@@ -46,6 +46,9 @@ using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.Error.UnsupportedOperationError from propath.
+using Pmfo.Core.Common.WarningMessages from propath.
+using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
+using Pmfo.Core.Common.IWarningMessages from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
  //   define public property Public         as logical   no-undo get. protected set.
@@ -144,6 +147,14 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         end.    
     
     define public property ClientOnly     as logical        no-undo get. protected set.
+    
+    define public property WarningMessages as IWarningMessages no-undo 
+        get. 
+        set(pWarningMessages as IWarningMessages):
+           if valid-object(WarningMessages) and WarningMessages:HasData then 
+               undo, throw new IllegalOperationError("Cannot set WarningMessages when the existing WarningMessages has data").
+           WarningMessages = pWarningMessages.         
+        end. 
     
     define protected property Initialized as logical no-undo get. set. 
     
@@ -329,6 +340,11 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
         define variable oGetResponse         as IGetDataResponse no-undo.
         AssertInitialized().    
+        if not valid-handle(phDataset) then
+        do:
+            phdataset = DefaultDataset.
+        end.    
+        
         if ClientOnly = true then 
             oGetResponse = CreateDataResponse(pRequest). 
         else  
@@ -504,15 +520,21 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.    
     
     method protected Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
-         
+        define variable hWarning  as handle no-undo.
+        define variable oResponse as Object no-undo. 
         // Use of BufferError outside managed hooks may end here if not managed  
         // (this is considered part of the framework, as it allows BufferError to be used also outside of 
         // the validate hooks
-       if phDataset:error then
-           ThrowDatasetError(phDataset).
+        if phDataset:error then
+            ThrowDatasetError(phDataset).
         
-       return DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset).        
+        if valid-object (WarningMessages) then 
+            hWarning = cast(WarningMessages,IWarningMessageTableHolder):tableHandle.
         
+        oResponse = DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset, output table-handle hWarning append).        
+       
+        
+        return oResponse. 
     end method.
     
     method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):

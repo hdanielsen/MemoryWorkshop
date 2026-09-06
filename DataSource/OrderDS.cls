@@ -48,6 +48,7 @@ class DataSource.OrderDS inherits DataSource:
         UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
     end method.
     
+    // override to use static delete due to schema validation
     method public override logical SaveRow(phBeforeBuffer as handle):       
         if phBeforeBuffer:row-state = row-deleted then
         do: 

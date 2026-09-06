@@ -14,6 +14,7 @@ using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.Common.IDataService from propath.
 using Pmfo.Core.DataLayer.IDataSourceMap from propath.
 using Pmfo.Core.DataLayer.IDbQuery from propath.
+using OpenEdge.Core.Collections.IList from propath.
 
 interface Pmfo.Core.DataLayer.IDataSource inherits IDbQuery, IDataService,  IDataSourceMap,ISupportInitialize:  
     /* Public name used to start the Source in the ServiceNanager
@@ -34,7 +35,8 @@ interface Pmfo.Core.DataLayer.IDataSource inherits IDbQuery, IDataService,  IDat
     define public property TotalCount  as int64        no-undo get. 
     define public property NextRowKey  as character    no-undo get.  
     define public property FillErrors  as ICollection  no-undo get.  
-           
+    define public property Warnings    as IList        no-undo get.  
+            
     method public logical Prepare(phBuffer as handle, pRequest as IGetDataTableRequest, pParentRequest as IGetDataTableRequest).
     method public IGetDataTableRequest PrepareCurrent(phBuffer as handle, pParentRequest as IGetDataTableRequest).
     method public logical Prepare(phBuffer as handle, pRequest as IGetDataTableRequest).

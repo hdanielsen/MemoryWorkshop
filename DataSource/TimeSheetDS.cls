@@ -12,6 +12,7 @@ block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
 using Pmfo.Util.DateUtil from propath.
+using Pmfo.Util.TimeZoneUtil from propath.
 
 class DataSource.TimeSheetDS inherits DataSource:
 
@@ -38,7 +39,7 @@ class DataSource.TimeSheetDS inherits DataSource:
             cString = string(integer(cString) + 1200).
         if integer(cString) ge 1300 then do:    
             cString = string(integer(cString) - 1200).
-          pTimeIsPm = true.   
+            pTimeIsPm = true.   
         end.
         else if integer(cString) ge 1200 then  
             pTimeIsPm = true.   
@@ -54,14 +55,14 @@ class DataSource.TimeSheetDS inherits DataSource:
         define variable hTable as handle no-undo.
         pBuffer:set-callback("After-Row-fill","AfterRow").
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        this-object:Bind (table-handle hTable bind).        
     end method.
     
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         
         hTable = pBuffer:table-handle.
-        Bind (table-handle hTable bind).        
+        this-object:Bind (table-handle hTable bind).        
     end method.
     
     method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
@@ -71,6 +72,11 @@ class DataSource.TimeSheetDS inherits DataSource:
         define variable lpmout as logical no-undo.   
         
         findSource(exclusive-lock).
+        
+        // convert to GSM time 
+        ttTimeSheet.TimeIn = TimeZoneUtil:GetSysTimeFromLocalTime(ttTimeSheet.TimeIn).
+        ttTimeSheet.TimeOut = TimeZoneUtil:GetSysTimeFromLocalTime(ttTimeSheet.TimeOut).
+        
         assign 
             cStringIn  = GetStringTime(ttTimeSheet.TimeIn, output lpmin)
             cStringOut = GetStringTime(ttTimeSheet.TimeOut, output lpmout) 
@@ -134,10 +140,14 @@ class DataSource.TimeSheetDS inherits DataSource:
       
         ttTimeSheet.TimeIn = 
            datetime(substitute("&1 &2",string(TimeSheet.DayRecorded,"99-99-9999"),cTimein)).
-       ttTimeSheet.TimeOut = 
+        ttTimeSheet.TimeOut = 
            datetime(substitute("&1 &2",string(dDateout,"99-99-9999"),cTimeout)).
-       
-        super:AfterRow(input dataset-handle phDataset by-reference).
+        
+        // convert from GSM time in db to time zone in TimeZoneUtil
+        ttTimeSheet.TimeIn  = TimeZoneUtil:GetLocalTimeFromSysTime(ttTimeSheet.TimeIn).
+        ttTimeSheet.TimeOut = TimeZoneUtil:GetLocalTimeFromSysTime(ttTimeSheet.TimeOut).
+                
+        super:AfterRow(input dataset-handle phDataset).
     end method.
     
 end class.
