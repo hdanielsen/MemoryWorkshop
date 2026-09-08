@@ -155,7 +155,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         end.     
         protected set.      
 
-    define public    property Warnings        as IList   no-undo 
+    define public  property Warnings  as IList   no-undo 
         get. 
         protected set(pWarns as IList):
             Warnings = pWarns.
