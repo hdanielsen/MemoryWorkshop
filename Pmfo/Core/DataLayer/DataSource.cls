@@ -79,7 +79,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         end.     
         set.
    
-    define public    property DataBuffer     as handle    no-undo 
+    define public property DataBuffer     as handle    no-undo 
         get. 
         set(pBuffer as handle):
             // static SeqFieldName  
@@ -153,7 +153,7 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             end.
             return NextRowKey.
         end.     
-        private set.      
+        protected set.      
 
     define public    property Warnings        as IList   no-undo 
         get. 
@@ -622,13 +622,9 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             
         extent(BufferHandles) = ?.
         // if valid-object(oRequest) is used in subsequen logic
-        if(type-of(pRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest)) then
-        do:
-            oRequest = cast(pRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest). 
-            BufferHandles = GetBufferHandles(oRequest, cast(pParentRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest)).
-        end.
-        else // wasted too much time debugging cases where the Ccs version was used by accident - there is no point supporting that 
-            undo, throw new UnsupportedOperationError(subst("Unsupported TableRequest Type &1",pRequest:GetCLass():TypeName)).
+        oRequest = pRequest. 
+        
+        BufferHandles = GetBufferHandles(oRequest, pParentRequest).
         
         if extent(BufferHandles) = ? then
             undo, throw new IllegalStateError(subst("&1.GetBufferHandles() does not return any handles",getClass():TypeName)).

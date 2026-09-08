@@ -101,7 +101,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable oTableResponses    as GetDataTableResponse  extent no-undo.
         define variable i                  as integer no-undo. 
         define variable iStopAfter         as integer no-undo.
-        
+        message 1
+        view-as alert-box.
         DatasetHandle = phDataset. // setter and destructor avoid memory leak
         
         
@@ -113,6 +114,9 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
             iStopAfter = cast(Application:SessionManager,ISessionManager):QueryTimeout.
         
         do stop-after iStopAfter:
+        message 2 phDataset
+        view-as alert-box.
+        
             this-object:Fill(phDataset).      
         end.
         
@@ -120,6 +124,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         extent(oTableResponses) = extent(oDataSources).
         do i = 1 to extent(oDataSources).
             oTableResponses[i] = new GetDataTableResponse(oDataSources[i]:DataBuffer:table-handle:name).
+            message "creating response" oDataSources[i] "numrecs" oDataSources[i]:NumRecords
+            view-as alert-box.
             if oDataSources[i]:NumRecords > 0 then 
             do:
                 oTableResponses[i]:NextPagingContext = oDataSources[i]:NextRowKey.
@@ -154,11 +160,19 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable StringKey as String no-undo.
         define variable oSource  as DataSource no-undo.
         define variable lOk as logical no-undo.
+        message "before fill" phDatASET:NAME
+        view-as alert-box.
         lok = phdataset:fill().
+        message lok
+        view-as alert-box.
         if not lok then do:
            phDataset:empty-dataset.
            ThrowFillErrors(phDataset).
         end. 
+        catch e as Progress.Lang.Error :
+           message e:GetMessage(1) e:Callstack
+           view-as alert-box.     
+        end catch.
     end method.  
     
     method protected void ThrowFillErrors (phDataset as handle):

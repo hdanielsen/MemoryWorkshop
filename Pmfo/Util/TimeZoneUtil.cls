@@ -96,34 +96,22 @@ class Pmfo.Util.TimeZoneUtil:
              output iResult).
         
         return GetDateTime(mLocaltime).
-         
+        finally:
+            set-size(mSystime) = 0.
+            set-size(mLocaltime) = 0.
+        end finally. 
     end method.     
     
     // Get local time with time zone offset 
     // since this class xan override the opsys timezone converting the timezone offset 
     // must also come from here 
     method public static datetime-tz GetLocalTimeTZFromSysTime(pdate as datetime): 
-        define variable mSystime   as memptr no-undo.
-       
-        define variable mLocaltime as memptr no-undo. 
-        define variable iResult as integer no-undo.
         define variable dLocalDateTime as datetime no-undo.
-        msystime = GetSysTime(pdate).
-        set-size(mLocaltime) = 16. 
-        
-        run SystemTimeToTzSpecificLocalTimeEx in windowsAPI
-            (TimeZoneDynamicTimeInformation,
-             mSysTime,
-             mLocaltime,
-             output iResult).
-        
-        dLocalDateTime = GetDateTime(mLocaltime).
+        dLocalDateTime = GetLocalTimeFromSysTime(pdate).
          
         return datetime-tz(dLocalDateTime,interval(dLocalDateTime,pdate,"minutes")).
-         
     end method.     
     
-     
      
     /**     
     NOTE: 

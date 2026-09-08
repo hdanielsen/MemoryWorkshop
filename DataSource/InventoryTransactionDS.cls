@@ -11,6 +11,7 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Util.TimeZoneUtil from propath.
 
 class DataSource.InventoryTransactionDS inherits DataSource:
 
@@ -38,19 +39,34 @@ class DataSource.InventoryTransactionDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    // override to manage the timein and timeput date tiem fields not mapped 
+    // database fields directly
+    method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
+        define variable cStringIn  as character no-undo.
+        define variable cStringOut as character no-undo.
+        define variable lpmin as logical no-undo. 
+        define variable lpmout as logical no-undo.   
+        
+        // convert to GSM time 
+        ttInventoryTransaction.TransactionTime = TimeZoneUtil:GetSysTimeFromLocalTime(ttInventoryTransaction.TransactionTime).
+        
+        findSource(exclusive-lock).
+        
+        // store as date and time string
+        assign
+            InventoryTrans.TransDate = date(ttInventoryTransaction.TransactionTime).
+            InventoryTrans.TransTime = string(integer(mtime(ttInventoryTransaction.TransactionTime) / 1000),"HH:MM").
+        
+    end method.
+    
+    
     method public override void AfterRow(input dataset-handle phDataset):
+        //convert to datetime from date and time
+        ttInventoryTransaction.TransactionTime = 
+            datetime(substitute("&1 &2",string(InventoryTrans.TransDate,"99-99-9999"),InventoryTrans.TransTime)).
           
- 
-       ttInventoryTransaction.TransactionTime = 
-           datetime(substitute("&1 &2",string(InventoryTrans.TransDate,"99-99-9999"),InventoryTrans.TransTime)).
-           /**
-           datetime(InventoryTrans.TransDate,
-                       (integer(substr(InventoryTrans.TransTime,1,2)) * 60 *  60 * 1000) 
-                       + 
-                       (integer(substr(InventoryTrans.TransTime,4,2)) * 60 * 1000)  
-                        
-                    ).
-                    **/
+        // convert from GMT in dastabse to local time as defined by TimeZoneUtil:TimeZoneName 
+        ttInventoryTransaction.TransactionTime = TimeZoneUtil:GetLocalTimeFromSysTime(ttInventoryTransaction.TransactionTime).
         super:AfterRow(input dataset-handle phDataset by-reference).
     end method.
  

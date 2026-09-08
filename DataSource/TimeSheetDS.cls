@@ -65,6 +65,8 @@ class DataSource.TimeSheetDS inherits DataSource:
         this-object:Bind (table-handle hTable bind).        
     end method.
     
+    // override to manage the timein and timeput date tiem fields not mapped 
+    // database fields directly
     method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
         define variable cStringIn  as character no-undo.
         define variable cStringOut as character no-undo.
