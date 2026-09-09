@@ -224,17 +224,16 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
         define variable hBuffer     as handle no-undo.
         define variable i           as integer no-undo.
         define variable cDump as character no-undo.
-        
+       
         // workaround bug(?) 
         // if the datasources are destroyed in the super:FetchData the dataset becomes corrupt
-        // and loses ttEntity serialize-name and all ttDataSource  and ttDataAcfees are lost.
+        // and looses ttEntity serialize-name and all ttDataSource  and ttDataAccess are lost.
         // This always happens in v12. In v11 it sometimes wrote a lon bad string in the Json 
         // The CorruptResourcesError was thrown to workaround the v11 problem (The RespourceBE would then 
         // generate from scratch. This seemed to be too late for V12  - only tested once and got already exists errors) 
         PostponeDestroy = true. 
         oResponse = super:FetchData(poRequest, input-output dataset-handle phdataset by-reference).
      
-        
         if search(SerializeFullName) <> ? then
         do on error undo, throw:
             phdataset:read-json ("file",SerializeFullName,"merge"). // merge - don't overwrite data from fetchData
@@ -276,7 +275,6 @@ class Pmfo.Repository.DataAccess.ResourceDA inherits DataAccess:
          
         oResponse = super:FetchData(poRequest, input-output dataset-handle phdataset by-reference).
          
-        
         do i = 1 to phDataset:num-buffers:
             hBuffer = phDataset:get-buffer-handle(i).
             hTable = hBuffer:table-handle.

@@ -146,6 +146,8 @@ class Pmfo.Repository.DataSource.EntityDS inherits ResourceSource:
                 ttEntity.TypeName = get-class(IEntity):TypeName.
             
             catch e1 as ApplicationError:
+                message "error in entityDS" e1:GetMessage(1)
+                view-as alert-box.
                 undo, throw e1.
             end catch.        
             catch e2 as Progress.Lang.Error :

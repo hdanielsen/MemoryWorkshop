@@ -48,6 +48,7 @@ using Pmfo.Core.Common.IWarning from propath.
 using OpenEdge.Core.Collections.IList from propath.
 using OpenEdge.Core.Collections.List from propath.
 using Progress.Lang.Object from propath.
+using OpenEdge.Core.Collections.Collection from propath.
 
 class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IUpdateTarget abstract: 
     
@@ -124,12 +125,16 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     
 
     define public property FillErrors as ICollection no-undo 
-    get.
+    get():
+        if not valid-object(FillErrors) then 
+            FillErrors = new Collection().
+        return FillErrors.    
+    end.
     set. 
 
     // This just be set to "" in prepare
     // It is typically called after fill when npaging when DataSourcehandle:next-rowid has data
-    // But ut can also be assigned in cases where the paging has to be managed manually in before-fill  
+    // But can also be assigned in cases where the paging has to be managed manually in before-fill  
     define public property NextRowKey as character no-undo  
         get():
             define variable iSource         as integer   no-undo.
@@ -690,7 +695,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
             QueryHandle:forward-only = true.
         end.
         
-        // only Psi request 
         if valid-object(oRequest) then 
         do:
             lUniqueFind = oRequest:FindUnique.
@@ -698,7 +702,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
            
         if lUniqueFind = false and plSkipQueryPrepare = false then
         do:
-            // only Psi request supports count
             if valid-object(oRequest) and cast(pRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest):Count  then 
                 cQuery = PrepareOrExecuteCount(cast(pRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest), input cQuery, valid-object(pParentRequest)).
             
@@ -770,7 +773,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         end.
         oRequest = cast(pRequest,Pmfo.Core.BusinessLogic.IGetDataTableRequest).
             
-            // only Psi request supports paging context 
         if valid-object(oRequest) then
         do:
             // external paging is an option to use serialize-name for fields in context
@@ -782,7 +784,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
                 // but this is not implemented yet   
               //  if UseBeforeFillWithPaging then 
                 //    undo, throw new NotImplementedError(subst("Batching on many to one query in &1",Entityname)).
-            
                 RestartIds = GetPagingRowids(oRequest,pQueryBuilder).
                 // no need to do this if the fill is done in BeforeFillWithPaging
                // if UseBeforeFillWithPaging = false then

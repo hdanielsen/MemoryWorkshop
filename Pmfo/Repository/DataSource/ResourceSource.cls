@@ -86,8 +86,12 @@ class Pmfo.Repository.DataSource.ResourceSource abstract inherits DataSource  :
                         do:
                             FillFromObject(oObject).
                         end.
-                        catch e as Progress.Lang.Error :
-                            undo, throw new ApplicationError(subst("Start of &1 failed with error - &2",cClass,e:GetMessage(1)),e).
+                        catch e as Progress.Lang.Error:
+                            // needs clean up see catch below
+                            if FillErrors:Size > 0 then 
+                                undo, throw e.
+                            else 
+                                undo, throw new ApplicationError(subst("Start of &1 for resource generation failed with error - &2",cClass,e:GetMessage(1)),e).
                         end catch. 
                     end.
                 end.       
@@ -97,14 +101,16 @@ class Pmfo.Repository.DataSource.ResourceSource abstract inherits DataSource  :
             undo, throw new IllegalOperationError(subst("Source code directory '&1' not in propath",GetFileDirectory())). 
             
         catch e as Progress.Lang.Error :
-           
-            ThrowFillError(e).    
+            // needs clean up - aome subclasses adds to fillerror and calling throwerrro duplicates messages.
+            if FillErrors:Size > 0 then 
+                undo, throw e.
+            else     
+                ThrowFillError(e).    
         end catch.                  
     end method.
    
     method protected character GetCodeCreateErrorMessage(pShortType as char,pcExplain as char,pcClassName as char,pError as Error):
-        return subst("Could not add &1 &2 to catalog. " + 
-                     "The class &3 will not be reachable as a Service from the ServiceManager &4", 
+        return subst("Could not add &1 &2 to resources. The class &3 will not be reachable from the ServiceManager &4", 
                      pShortType,
                      pcExplain,
                      pcClassName,

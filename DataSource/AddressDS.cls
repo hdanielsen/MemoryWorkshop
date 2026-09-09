@@ -21,7 +21,9 @@ using Pmfo.Util.Array from propath.
 class DataSource.AddressDS inherits DataSource:
 
     {schema/Address.i reference-only}
-
+   
+    define public override property EntityName as character init "addresses" no-undo get.
+     
     define protected variable GetRequest as IGetDataTableRequest no-undo.
     
     constructor AddressDS():
@@ -32,7 +34,7 @@ class DataSource.AddressDS inherits DataSource:
 
     method protected void Bind( input table ttAddress bind):
     end method.
-
+ 
     method override protected void PrepareBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         pBuffer:set-callback("before-fill","BeforeFill").
@@ -66,49 +68,55 @@ class DataSource.AddressDS inherits DataSource:
             cSort = GetRequest:SortExpression.
             iNumRecords = GetRequest:NumRecords. 
         end. 
-       
-        create query hQuery.
-        hQuery:add-buffer(DataBuffer).
-        hQuery:query-prepare(trim(substitute("for each &1 &2",
-                                      DataBuffer:name,
-                                          if cSort > "" then cSort else "")
-                                  )
-                              ).
-       
-        hQuery:query-open().
-        hQuery:get-first.
-        do while DataBuffer:avail:
-            iCount = iCount + 1.
-            hQuery:get-next.
-            if lDelete = false and iNumRecords > 0 and iCount > iNumRecords then do:
-               lDelete = true. 
-               NextRowKey = DataBuffer::AddressId.
-               NumRecords = iCount - 1.
-               message NumRecords iCount
-               view-as alert-box.
-          
-            end.    
-            if lDelete then DataBuffer:buffer-delete.
-            else DataBuffer::zz_seq = iCount. // sorting for json
-             
+         
+        if cSort > "" or iNumRecords > 0 then 
+        do:
+            create query hQuery.
+            hQuery:add-buffer(DataBuffer).
+            hQuery:query-prepare(trim(substitute("for each &1 &2",
+                                          DataBuffer:name,
+                                              if cSort > "" then cSort else "")
+                                      )
+                                  ).
+           
+            hQuery:query-open().
+            hQuery:get-first.
+            do while DataBuffer:avail:
+                iCount = iCount + 1.
+                hQuery:get-next.
+                if lDelete = false and iNumRecords > 0 and iCount > iNumRecords then do:
+                   lDelete = true. 
+                   NextRowKey = DataBuffer::AddressId.
+                   NumRecords = iCount - 1.
+                end.    
+                if lDelete then DataBuffer:buffer-delete.
+                else DataBuffer::zz_seq = iCount. // sorting for json
+            end.
         end.
         
         return no-apply. // prevent auto fill that still happens     
-    
+        finally:
+            if valid-handle(hQuery) then 
+                delete object hQuery.         
+        end finally.
     end method.
     
+    // fill ttaddres with data from database tables with address info
     method protected void FillFromSource(input table ttAddress, phBuffer as handle, piKeyNumber as integer):
         define variable hQuery        as handle no-undo.
         define variable lFound        as logical no-undo.
         define variable hCountfield   as handle no-undo.  
         define variable hCountryfield as handle no-undo.  
+        
         create query hQuery.
+        
         hQuery:add-buffer (phBuffer).
         hQuery:query-prepare (substitute("for each &1 no-lock",phBuffer:name)).
         hQuery:query-open().
         hQuery:get-first().
         
         hCountField   = buffer ttAddress:buffer-field(substitute("&1Count",phBuffer:name)). 
+        // track country field since some tables do not have country 
         hCountryfield = phBuffer:buffer-field("country") no-error.   
          
         do while phBuffer:avail:
@@ -146,10 +154,7 @@ class DataSource.AddressDS inherits DataSource:
             hQuery:get-next.
              
         end. // do while phBuffer:avail
-        finally:
-            if valid-handle(hQuery) then
-                delete object hQuery.
-        end.    
+        
     end method.
     
     method protected character GetBufferKey(phSourceBuffer as handle,pRowid as rowid):

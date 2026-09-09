@@ -70,7 +70,7 @@ class Pmfo.Repository.DataSource.DataSourceDS inherits ResourceSource:
             catch e as Progress.Lang.Error :
                 if avail ttDataSource then
                     delete ttDataSource.
-                FillErrors:Add(e1).
+                FillErrors:Add(e).
                 undo, throw new ApplicationError(GetCodeCreateErrorMessage("DataSource",oSource:EntityName,oSource:getClass():TypeName,e)). 
             end catch.
         end.

@@ -17,15 +17,19 @@ using Pmfo.Util.AssertUtil from propath.
 class Pmfo.Core.Common.DataService abstract implements IDataService : 
     
 	constructor static DataService (  ):
+	    define variable i as integer no-undo.
+	    define variable cMessage as character no-undo.
+	             
         if not valid-object(Ccs.Common.Application:StartupManager) then 
         do on error undo, throw:
             StartupManager:Instance. /* sets Application:StartupManager in contructor */
             // an error here is rather confusing, so clarifiy a little
             catch e as Progress.Lang.Error :
-                message e:GetMessage(1) skip e:CallStack
-                view-as alert-box.
-                undo, throw new ApplicationError(subst("DataService static constructor error from StartupManager:Instance - &1",e:GetMessage(1)),e).    
-                
+                // don't use line feed. this can end up in log or abl unit 
+                do i = 1 to e:NumMessages:
+                    cMessage = substitute("&1&2. ",cMessage,right-trim(e:GetMessage(i),".")).
+                end.
+                undo, throw new ApplicationError(subst("DataService static constructor error from StartupManager:Instance - &1",right-trim(cMessage))).    
             end catch.
         end.        
         

@@ -101,10 +101,8 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable oTableResponses    as GetDataTableResponse  extent no-undo.
         define variable i                  as integer no-undo. 
         define variable iStopAfter         as integer no-undo.
-        message 1
-        view-as alert-box.
-        DatasetHandle = phDataset. // setter and destructor avoid memory leak
         
+        DatasetHandle = phDataset. // setter and destructor avoid memory leak
         
         StartDataSources(poRequest,phDataset).
         
@@ -114,9 +112,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
             iStopAfter = cast(Application:SessionManager,ISessionManager):QueryTimeout.
         
         do stop-after iStopAfter:
-        message 2 phDataset
-        view-as alert-box.
-        
             this-object:Fill(phDataset).      
         end.
         
@@ -124,8 +119,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         extent(oTableResponses) = extent(oDataSources).
         do i = 1 to extent(oDataSources).
             oTableResponses[i] = new GetDataTableResponse(oDataSources[i]:DataBuffer:table-handle:name).
-            message "creating response" oDataSources[i] "numrecs" oDataSources[i]:NumRecords
-            view-as alert-box.
             if oDataSources[i]:NumRecords > 0 then 
             do:
                 oTableResponses[i]:NextPagingContext = oDataSources[i]:NextRowKey.
@@ -160,19 +153,11 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable StringKey as String no-undo.
         define variable oSource  as DataSource no-undo.
         define variable lOk as logical no-undo.
-        message "before fill" phDatASET:NAME
-        view-as alert-box.
-        lok = phdataset:fill().
-        message lok
-        view-as alert-box.
+        lok = phdataset:fill(). // no way to suppress error
         if not lok then do:
            phDataset:empty-dataset.
            ThrowFillErrors(phDataset).
         end. 
-        catch e as Progress.Lang.Error :
-           message e:GetMessage(1) e:Callstack
-           view-as alert-box.     
-        end catch.
     end method.  
     
     method protected void ThrowFillErrors (phDataset as handle):
@@ -190,12 +175,16 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         cMsg = subst("Read of &1 failed",if phDataset:serialize-name > "" then quoter(phDataset:serialize-name) else "data").
         
         oManyError = new ApplicationError(cMsg).
+        
         do i = 1 to extent(oDataSources):
-            oErrorIterator = oDataSources[i]:FillErrors:Iterator().
-            do while oErrorIterator:HasNext():
-               oError = cast(oErrorIterator:Next(),Error).
-               iCount = iCount + 1.
-               oManyError:AddMessage(oError:GetMessage(1),oError:GetMessageNum(1)).
+            if valid-object(oDataSources[i]:FillErrors) then 
+            do:
+                oErrorIterator = oDataSources[i]:FillErrors:Iterator().
+                do while oErrorIterator:HasNext():
+                   oError = cast(oErrorIterator:Next(),Error).
+                   iCount = iCount + 1.
+                   oManyError:AddMessage(oError:GetMessage(1),oError:GetMessageNum(1)).
+                end.
             end.
         end.
         if iCount = 1 then
@@ -289,18 +278,18 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         
        // oDataSourceMap = GetDataSourceMap(phDataset).
          
-        // prepare may deactivate relation and add the buffer as top-buffer, so
-        // keep track of the original top buffers to avoid preparing twice          
         extent(hTopBuffers) = phDataset:num-top-buffers.
         
+        // prepare may deactivate relation and add the buffer as top-buffer, so
+        // keep track of the original top buffers to avoid preparing twice          
         do i = 1 to phDataset:num-top-buffers:
             hTopBuffers[i] = phDataset:get-top-buffer(i).
         end.
-         
+       
         do i = 1 to extent(hTopBuffers):
             StartDataSource(hTopBuffers[i],poRequest,?).
         end.    
-       
+        
         // check that at least one top table have a datasource   
         // we don't enforce requests for all top tables.
         // this will catch an unlikely case of no TableRequests sonce the size will be zerp and the extent ?
@@ -343,7 +332,6 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         define variable lok            as logical no-undo.
         
         oTableRequest = GetDataTableRequest(poRequest,phBuffer).
-        
         if valid-object(oTableRequest) then 
         do:    
             oDataSource = CreateDataSource(phBuffer:table-handle:serialize-name).

@@ -84,7 +84,6 @@ class Pmfo.Core.Service.OperationHandler abstract implements IOperationHandler,I
         // poResponse:SetHeader(HttpHeaderBuilder:Build('Allow':u):Value("HEAD, OPTIONS, GET"):Header).
         oHeaders = GetOptionsHeaders(pEntity).
         if extent(oHeaders) > 0 then 
-            //  oHeaders[2] = HttpHeaderBuilder:Build('Access-Control-Allow-Headers':u):Value("X-PSI-Authorization"):Header.
             poResponse:SetHeaders(oHeaders).
         return ReturnStatusNoBody(poResponse,pStatusCodeEnum).
     end method.  
