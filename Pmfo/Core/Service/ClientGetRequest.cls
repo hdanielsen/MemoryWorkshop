@@ -139,6 +139,13 @@ class Pmfo.Core.Service.ClientGetRequest inherits ClientRequest implements IClie
             end catch.
         end.  
         
+     define public property Expand       as character   no-undo  
+         get():
+             return string(UriQuery:Get(ExpandProp)).
+             catch e as Progress.Lang.Error :
+                  undo, throw new BadRequestError(subst("&1=&2",ExpandProp,string(UriQuery:Get(ExpandProp))),e).    
+             end catch.
+         end.  
     
     define public property ExpandedRelations as ICollection no-undo get. set. 
     

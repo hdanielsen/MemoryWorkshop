@@ -1,11 +1,40 @@
  
  /*------------------------------------------------------------------------
     File        : BusinessEntity
-    Purpose     : 
+    Purpose     : Abstract class for business logic for a table - exposed as resource   
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Notes       : 
+    Notes       : This is a stripped down demo version based on a fully
+                  functioning framework.
+                - Application implement concrete subclasses for each entity/table
+                  that is exposed by application. The table is implemented as a 
+                  temp-table witha corresponding dataset. The table is typically 
+                  mapped to a database table, but can be a virtual temp-table filled
+                  from any type of source exposed by IDataAcess 
+                  The dataset should default to have this table as the only top 
+                  table. The dataset defaults to have the same serialize-name as 
+                  the top table.   
+                - There is support to have more than one dataset and every dataset 
+                  can have more than one table, but customization will be needed 
+                  to manage these. For more complex datasrt suypport there would 
+                  likely be more constructors    
+                - This can be the basis for a better version of a full framwork 
+                  but if would be further stripped down firs and then important 
+                  features from the full framwork culd be addded
+                  - public methods in the form of Actions or Functions 
+                    This is an odata concept. It is a basic underlying requirement 
+                    that is poorly handled in the shipped business entity, but    
+                    that is addressed in CCS.  
+                     - INamedQuery can be used to implement functions
+                     - IUpdataDataRequest:CustomRequest can be used to implement 
+                       a function 
+                    Warning: 
+                      The two CCS concepts have more similiraties than the 
+                      is iplemented and these concepts would likely be deprecated
+                      even if some of the behavior makes sense.
+                      - The INamedParameter that is used by NamedQuery is  
+                        useful, but is should also be also for actions.     
   ----------------------------------------------------------------------*/
 
  
@@ -51,13 +80,9 @@ using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
 using Pmfo.Core.Common.IWarningMessages from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
- //   define public property Public         as logical   no-undo get. protected set.
-    define public property Resource       as character no-undo get. protected set.
+    define public property Resource as character no-undo get. protected set.
     
- //   define public property ReadOnly       as logical       no-undo get.  
- //   define public property CanCreate      as logical       no-undo get.
- //   define public property CanDelete      as logical       no-undo get.
-    define public property Datasets       as handle extent no-undo get. protected set.
+    define public property Datasets as handle extent no-undo get. protected set.
     
     define protected property SessionManager as ISessionManager no-undo 
        get():
@@ -158,7 +183,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     define protected property Initialized as logical no-undo get. set. 
     
-    // avoid memory leak by keeping only one requested dynamic dataset (set in GetRequestDataset) 
+    // avoid memory leak by keeping only one requested dynamic dataset (set in GetRequestDataset or GetUpdateRequestDataset) 
     // and deleting previous and providing a handle for the destructor to delete when done   
     define protected property RequestDatasetHandle as handle get. 
         set(ph as handle):
@@ -532,7 +557,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             hWarning = cast(WarningMessages,IWarningMessageTableHolder):tableHandle.
         
         oResponse = DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset, output table-handle hWarning append).        
-       
         
         return oResponse. 
     end method.
@@ -559,29 +583,43 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method public override void Destroy().  
     end method.    
     
-    method public handle GetRequestDataset(pClientRequest as IClientRequest):
-        RequestDatasetHandle = Datasets[1].
+    // final to make sure we set RequestDatasetHandle - needed if a dynamic dataset is used
+    method public final handle GetRequestDataset(pClientRequest as IClientRequest):
+        RequestDatasetHandle = PrepareRequestDataset(pClientRequest).
         return RequestDatasetHandle.
     end method.
     
-    method public handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
+    // separated from GetRequestDataset to allow override of dataset for the request  
+    method protected handle PrepareRequestDataset(pClientRequest as IClientRequest):
+        return Datasets[1].
+    end method.
+    
+    // final to make sure we set RequestDatasetHandle 
+    method public final handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
+        RequestDatasetHandle = PrepareUpdateRequestDataset(pClientRequest, output plBeforeImageRequired, output pUpdateRequest).
+        return RequestDatasetHandle.
+    end method.    
+    
+    // separated from GetUpdateRequestdataset to allow override of dataset for the request  
+    method protected handle PrepareUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
         define variable hDataset     as handle no-undo.
         define variable hMainBuffer  as handle no-undo.
+       
         plBeforeImageRequired = (pClientRequest:Method = "PUT").
         
-        hDataset = GetRequestDataset(pClientRequest). 
+        hDataset = PrepareRequestDataset(pClientRequest). 
+        
         if valid-object(hDataset) then
         do:
             // get the last buffer in the collections (extracged from rest path)
             hMainBuffer = DatasetUtil:GetRequestedBuffer(hDataset, pClientRequest:Collections).
-        
             pUpdateRequest = new UpdateDataRequest(hMainBuffer:name). 
             pUpdateRequest:CommitScope = GetCommitScope(pClientRequest).    
         end.  
-       
         return hDataset.
     
     end method.    
+    
     
     method protected IDataAccess CreateDataAccess():
         return cast(Application:ServiceManager,IServiceManager):CreateDataAccess(Resource).
@@ -724,6 +762,28 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         end.    
         return new GetDataRequest(oGetTableRequests).
     end method.    
+    
+    method public character GetJoinPairs(pParentBE as IBusinessEntity).
+        define variable i as integer no-undo.
+        define variable cParentFields as character no-undo.
+        define variable cChildFields as character no-undo.
+        define variable cJoinPairs    as character no-undo.
+        
+        cParentFields = pParentBE:GetKeys().
+        cChildFields = GetJoinFields(pParentBE).
+        
+        do i = 1 to num-entries(cParentFields):
+            cJoinPairs = left-trim(substitute ("&1,&2,&3",cJoinPairs,entry(i,cParentFields),entry(i,cChildFields)),",").
+        end.     
+        return cJoinPairs.   
+    end method.    
+    
+    method protected character GetJoinFields(pParentBE as IBusinessEntity).
+        //defaulkt to same named join
+        
+        return pParentBE:GetKeys().
+    end method.    
+    
     
     method protected void AssertInitialized():
         if not Initialized then 

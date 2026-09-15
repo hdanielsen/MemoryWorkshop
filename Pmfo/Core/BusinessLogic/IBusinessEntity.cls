@@ -17,6 +17,7 @@ using Progress.Lang.Object from propath.
 using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
  
 interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.  
     define public property Datasets       as handle extent no-undo get. 
@@ -58,6 +59,6 @@ interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.
     method public character GetKeys().
     method public character GetPublicKeys().
     method public character GetPublicTextField().
-    
+    method public character GetJoinPairs(parentBe as IBusinessEntity).
     
 end interface.

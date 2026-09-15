@@ -40,19 +40,14 @@ interface Pmfo.Core.Service.IClientGetRequest inherits IClientRequest:
     define public property Levels        as integer   no-undo get. 
     define public property Timeout       as integer   no-undo get. 
     define public property Wildcards     as logical   no-undo get. 
+    define public property Expand        as character no-undo get. 
     // optinally allow check for aggregate without creating aggregate collection  
-         
      
-//    define public property Expand        as character no-undo get. 
- 
- 
-    
     define public property ExpandedRelations as ICollection no-undo get. set.
     define public property ContextProperties as char extent no-undo get. 
     define public property CollectionProperties as char extent no-undo get. 
     define public property KeyProperties as char extent no-undo get. 
-    
-        
+            
     method public character GetExpandSelect (pcPathEntity as character).
     method public character GetChildFilter  (pcPathEntity as character).
     method public character GetChildSort    (pcPathEntity as character).   

@@ -532,7 +532,8 @@ class Pmfo.Util.DatasetUtil:
         delete object phDataset. 
     end method.    
     
-    method public static void CopyDataset(phToDataset as handle,phFromDataset as handle, pcCopyMode as character):
+    // copies tables to one dataset form another
+    method public static void CopyDatasetTables(phToDataset as handle,phFromDataset as handle, pcCopyMode as character):
         define variable hToBuffer as handle no-undo.
         define variable hFromBuffer as handle no-undo.
         define variable i as integer no-undo.
@@ -578,6 +579,34 @@ class Pmfo.Util.DatasetUtil:
             TableUtil:CopyTable(hToBuffer, hFromBuffer, pcCopyMode).
         end.          
     end method.    
+    
+    // create a new dataset tree from an existing dataset (tree = one top single table)
+    // - if requested entity is a child then only the parents above are created
+    // - if requested entity is a top buffer then other top buffers will be ignored 
+    method public static handle CopyDatasetTree(phDataset as handle, pcRequestedTableSerializeName as character, output phbuffer as handle):
+        define variable hOriginalBuffer as handle no-undo.
+       
+        define variable hNewDataset     as handle no-undo.
+        create dataset hNewDataset.
+        hNewDataset:serialize-name = phDataset:serialize-name.
+        hOriginalBuffer = GetBufferByTableSerializeName(phDataset,pcRequestedTableSerializeName).  
+       
+         /* top buffer from this dataset */
+        //create buffer phbuffer for table hOriginalBuffer buffer-name hOriginalBuffer:table-handle:name.
+        phBuffer = TableUtil:CreateTableLike(hOriginalBuffer):default-buffer-handle.   
+        phbuffer:serialize-name =  hOriginalBuffer:serialize-name.
+        hNewDataset:add-buffer(phbuffer).
+        CloneParentRelation(hNewDataset, phbuffer, hOriginalBuffer).
+        
+        CloneChildRelations(hNewdataset, phbuffer, hOriginalBuffer).
+        
+        return hNewDataset. 
+        catch e as Progress.Lang.Error :
+           if valid-object(hNewDataset) then 
+               delete object hNewDataset.
+           undo, throw e.      
+        end catch.
+    end method.
     
     // find the requested buffer using  an extent of collections (i.e. from rest) to find buffer 
     // - the serialize-name may not be unique in the dataset so we need to use path 

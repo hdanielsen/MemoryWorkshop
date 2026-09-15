@@ -5,7 +5,8 @@
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Notes       : 
+    Notes       : This is a stripped down demo version based on a fully
+                  functioning framework.
   ----------------------------------------------------------------------*/
 
 

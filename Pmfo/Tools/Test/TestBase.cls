@@ -229,7 +229,7 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
         define variable oMap as StringStringMap no-undo.
         oMap = new StringStringMap().
         oBe = GetBE("memoryObjects").
-        oResponse = OperationHandler:ExecuteRead("GET",  "http://localhost/minster/web/genesis", "/memoryObjects", oMap, oBe).
+        oResponse = OperationHandler:ExecuteRead("GET",  "http://localhost/main/web/api", "/memoryObjects", oMap, oBe).
         oResponse:writefile(pcfile,yes).
         catch e as Progress.Lang.Error :
             handleError(e). 

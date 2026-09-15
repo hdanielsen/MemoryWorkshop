@@ -1,47 +1,57 @@
  
- /*------------------------------------------------------------------------
-    File        : TimeZoneUtil
-    Purpose     : Convert dates to and from GSM based on TimeZoneName
-    Syntax      : 
-    Description : 
-    Author(s)   : hdaniels
-    Created     : Sun Sep 06 13:53:58 EDT 2026
-    Notes       : Highly experimantal. 
-                  All time zone related functions in ABL uses the session:time-source
-                  This may have different timezone and dates from here may conflict 
-                  with datetime-tz from regfular ABL   
-  ----------------------------------------------------------------------*/
+/*------------------------------------------------------------------------
+   File        : TimeZoneUtil
+   Purpose     : Convert dates to and from GSM based on TimeZoneName
+   Syntax      : 
+   Description : 
+   Author(s)   : hdaniels
+   Created     : Sun Sep 06 13:53:58 EDT 2026
+   Notes       : Highly experimantal. 
+                 All time zone related functions in ABL uses the session:time-source
+                 This may have different timezone and dates from here may conflict 
+                 with datetime-tz from regfular ABL   
+ ----------------------------------------------------------------------*/
 
 
-using Pmfo.Core.Error.IllegalOperationError from propath.
-using Pmfo.Core.Error.BadRequestError from propath.
 
 block-level on error undo, throw.
 
-class Pmfo.Util.TimeZoneUtil:
-    
-    define public static property TimeZoneDynamicTimeInformation as memptr no-undo 
-        get():
-            if get-size(TimeZoneDynamicTimeInformation) = 0 then
-            do:
-                PopulateDynamicTimeInformation().
-            end.
-            return TimeZoneDynamicTimeInformation.
-        end.
+using Pmfo.Core.Error.BadRequestError from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
 
-        private set. 
-        
-    define public static property TimeZoneName as character no-undo init "Eastern Standard Time"  
-        get. 
+class Pmfo.Util.TimeZoneUtil:
+    define public property cachemempr as memptr get. set.
+     
+    define public static property TimeZoneName as character no-undo  
+        get():
+            return TimeZoneName.     
+        end. 
         set(pcName as character).
-            if pcName <> TimeZoneName then do: 
-               TimeZoneName = PopulateDynamicTimeInformation(pcName).
+            if TimeZoneName <> pcName then do: 
+                TimeZoneName = PopulateDynamicTimeInformation(pcName).
+                message "here after populate"  
+                                              
+                view-as alert-box.
             end.    
         end.
+   
+    // NOTE - caches a 420 byte memptr 
+    define private static property DynamicTimeZoneInformation as memptr no-undo 
+        get.
+        private set(pTimezone as memptr):
+            set-size(DynamicTimeZoneInformation) = 0.
+            DynamicTimeZoneInformation = pTimeZone.
+        end. 
+        
     
-    // current time zone can be used to set session:timezone temporarily
-    // CAUTION: make sure to track what it was and set it back 
-    // (probably also check and reset session:time-source)  
+    /* time zone offset - readonly.
+       Can be used to set session:timezone temporarily during a request that 
+       processes dates so that all ABL udatye processing uses this time zone
+       NOTE: Keep in mind that session:timezone will not reflect daylight time 
+             switch. w 
+       CAUTION: If you do, make sure to track what it was and set it back 
+              (probably also check and reset session:time-source)
+    */            
     define public static property TimeZone as integer no-undo 
         get():  
             define variable dNow   as datetime no-undo.
@@ -54,29 +64,31 @@ class Pmfo.Util.TimeZoneUtil:
     define private static property windowsAPI as handle 
         get():
             if not valid-handle(windowsAPI) then 
-               run Core/Windows/windowsAPi.p persistent set windowsAPI.
+                run Core/Windows/windowsAPi.p persistent set windowsAPI.
             return windowsAPI.
         end.
         
         private set. 
 	 
-	constructor static TimeZoneUtil (  ):
-		if opsys <> "win32" then 
-		    undo, throw new IllegalOperationError("TimeZoneUtil can only be used on windoes").
-	end constructor.
+    constructor static TimeZoneUtil (  ):
+        if opsys <> "win32" then 
+            undo, throw new NotImplementedError(substitute("TimeZoneUtil is not implemented on &1",opsys)).
+        TimeZoneName = "Eastern Standard Time".    
+    end constructor.
     
+    // get abl datetime from SYSTYPE memptr 
     method public static datetime GetDateTime 
-       (pSysType as memptr  ):
+        ( pSysType as memptr ):
      
-       return datetime(
-           get-short(pSysType, 3), //month
-           get-short(pSysType, 7), //day
-           get-short(pSysType, 1), //year
-           get-short(pSysType, 9), //hour
-           get-short(pSysType, 11), //minute
-           get-short(pSysType, 13), //second
-           get-short(pSysType, 15)  // millisecond
-           ).
+        return datetime(
+            get-short(pSysType, 3), //month
+            get-short(pSysType, 7), //day
+            get-short(pSysType, 1), //year
+            get-short(pSysType, 9), //hour
+            get-short(pSysType, 11), //minute
+            get-short(pSysType, 13), //second
+            get-short(pSysType, 15)  // millisecond
+            ).
           
     end method.            
     
@@ -90,10 +102,10 @@ class Pmfo.Util.TimeZoneUtil:
         set-size(mLocaltime) = 16. 
         
         run SystemTimeToTzSpecificLocalTimeEx in windowsAPI
-            (TimeZoneDynamicTimeInformation,
-             mSysTime,
-             mLocaltime,
-             output iResult).
+            (DynamicTimeZoneInformation,
+            mSysTime,
+            mLocaltime,
+            output iResult).
         
         return GetDateTime(mLocaltime).
         finally:
@@ -133,15 +145,16 @@ class Pmfo.Util.TimeZoneUtil:
         set-size(mSysTime) = 16. 
         
         run TzSpecificLocalTimeToSystemTimeEx in windowsAPI
-            (TimeZoneDynamicTimeInformation,
-             mLocaltime,
-             mSysTime,
-             output iResult).
+            (DynamicTimeZoneInformation,
+            mLocaltime,
+            mSysTime,
+            output iResult).
         
         return GetDateTime(mSystime).
          
     end method.     
     
+    // get a SYSTIME memptr from ABL datetime
     method public static memptr GetSysTime 
         (pdateTime as datetime  ):
        
@@ -188,69 +201,71 @@ class Pmfo.Util.TimeZoneUtil:
         
         do while true:
             /* Clear structure memory before each iteration pass */
-            set-size(mDynamicStruct) = 0.
-            set-size(mDynamicStruct) = 432.
+            set-size(mDynamicStruct) = 0.    
+            set-size(mDynamicStruct) = 432. 
              
             /* Call the Enumerator */
             run EnumDynamicTimeZoneInformation in windowsAPI 
-              (
-               input ICurrentIndex, 
-               input mDynamicStruct,
-               output iResult).
+                (
+                input ICurrentIndex, 
+                input mDynamicStruct,
+                output iResult).
    
             /* Break when Windows runs out of time zones */
             if iResult = ERROR_NO_MORE_ITEMS then leave.
             if iResult = ERROR_SUCCESS then do:
-                    /* Extract the Registry Key name (Offset 173, Unicode/Wide String) */
+                /* Extract the Registry Key name (Offset 173, Unicode/Wide String) */
                 set-size(mUtf16Struct) = 64.
                 set-pointer-value(mUtf16Struct) = get-pointer-value(mDynamicStruct) + 4. 
           
-         
                 cStandardname = ConvertToAnsii(mutf16Struct).
-           
-            /* Check if this matches the remote time zone you are looking for */
+                /* Check if this matches the remote time zone you are looking for */
                 if cStandardname = pcName then do: 
-                   TimeZoneDynamicTimeInformation = mDynamicStruct.
-/*                                                                                          */
-/*                    message                                                               */
-/*                                                                                          */
-/*                        "Found Target Name"  cStandardname skip                           */
-/*                        "Index Position: " icurrentIndex skip                             */
-/*                        "Remote Base Bias (Minutes): " get-long(mDynamicStruct, 1) skip   */
-/*                        "Dynamic DST Disabled here? " (get-byte(mDynamicStruct, 429) <> 0)*/
-/*                        view-as alert-box information title "Remote Time Zone Lookup".    */
-                        
+                    DynamicTimeZoneInformation = mDynamicStruct.
+                    /*                                                                                          */
+                    /*                    message                                                               */
+                    /*                                                                                          */
+                    /*                        "Found Target Name"  cStandardname skip                           */
+                    /*                        "Index Position: " icurrentIndex skip                             */
+                    /*                        "Remote Base Bias (Minutes): " get-long(mDynamicStruct, 1) skip   */
+                    /*                        "Dynamic DST Disabled here? " (get-byte(mDynamicStruct, 429) <> 0)*/
+                    /*                        view-as alert-box information title "Remote Time Zone Lookup".    */
+                    // return the requested name (called from TimeZoneName setter)     
+                    message "returning" pcname
+                    view-as alert-box.        
                     return pcname.
-                end.     
+                end. 
             end.
             iCurrentindex = iCurrentIndex + 1.    
         end.
         undo, throw new BadRequestError(substitute("TimeZone not found with name &1 in registry",pcname)).
+        finally:
+             set-size(mDynamicStruct) = 0.
+             // I have no idea why this is necessary...
+             set-pointer-value(mUtf16Struct) = get-pointer-value(mDynamicStruct).
+             set-size(mUtf16Struct) = 0.
+        end finally.    
     end method.    
     
-    
-    method private static void PopulateDynamicTimeInformation(): 
-        PopulateDynamicTimeInformation(TimeZoneName).
-    end method.    
     
     method private static character ConvertToAnsii(putf16String as memptr):
-        define variable mTargetAnsi    as memptr    no-undo.
-        define variable iTargetSize    as integer   no-undo.
-        define variable iFinalBytes    as integer no-undo.
-      
+        define variable mTargetAnsi as memptr   no-undo.
+        define variable iTargetSize as integer  no-undo.
+        define variable iFinalBytes as integer  no-undo.
+        define variable cLongchar   as longchar no-undo.
         set-size(mTargetAnsi) = 1. // should really be 0, but Progress does not allow this
     
         // 1 first call to get the target size   
         // Never allocate wide buffers based purely on the get-size() or length of the input memptr. 
-        // Multi-byte strings vary in length per character (UTF-8 strings use 1–4 bytes), whereas wide strings always take 
+        // Multi-byte strings vary in length per character (UTF-8 strings use 1ï¿½4 bytes), whereas wide strings always take 
         // 2 bytes (wchar_t) per character element.
         run WideCharToMultiByte in windowsAPI
-           (input  0,             /* CodePage (CP_ACP) */
+            (input  0,             /* CodePage (CP_ACP) */
             input  0,             /* dwFlags */
             input  putf16String,  /* lpWideCharStr (Your source pointer) */
             input  -1,            /* cchWideChar (Read until null terminator) */
             input  mTargetAnsi,   /* PASS UNALLOCATED MEMPTR - not possible for progress memptr
-                                     (we cheat and se it to 1 above / NULL) */
+                                     (we cheat and set it to 1 above / NULL) */
             input  0,             /* cbMultiByte (Pass 0 to request size calculation) */
             input  0,             /* lpDefaultChar */
             input  0,             /* lpUsedDefaultChar */
@@ -266,7 +281,7 @@ class Pmfo.Util.TimeZoneUtil:
             /* 2. EXECUTE THE ACTUAL TRANSCODING CONVERSION
                Now we pass the actual allocated 'mTargetAnsi' pointer and the verified size ceiling. */
             run WideCharToMultiByte in windowsAPI
-               (input  0,
+                (input  0,
                 input  0,
                 input  putf16String,
                 input  -1,
@@ -275,12 +290,14 @@ class Pmfo.Util.TimeZoneUtil:
                 input  0,
                 input  0,
                 output iFinalBytes
-            ).
+                ).
             if iFinalBytes > 0 then 
             do: 
+               // return codepage-convert(get-string(mTargetAnsi, 1),session:cpinternal,"windows-1252").
                 return get-string(mTargetAnsi, 1).
             end.
         end.
+         
     end method.    
         
     

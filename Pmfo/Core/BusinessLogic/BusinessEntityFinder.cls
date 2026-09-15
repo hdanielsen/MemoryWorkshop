@@ -81,7 +81,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntityFinder implements IBusinessEntityFin
         if pcKeyNames = "" then
             KeyNames = ServiceInfo:GetKeys(hBuffer).
          
-        do on error undo, throw:
+        else do on error undo, throw:
             do i = 1 to num-entries(pcKeynames) on error undo, throw:
                 hBuffer:buffer-field(entry(i,pcKeyNames)).  
                 catch e as Progress.Lang.Error :
@@ -152,7 +152,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntityFinder implements IBusinessEntityFin
     
     method protected void Execute(output table-handle phTable):
         define variable hDataset as handle no-undo.
-        define variable hObsolete as handle no-undo.
         define variable hBuffer as handle no-undo.
         BusinessEntity:Clear().
         BusinessEntity:GetData(Request, output dataset-handle hDataset by-reference).
