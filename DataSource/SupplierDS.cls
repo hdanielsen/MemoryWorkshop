@@ -42,7 +42,12 @@ class DataSource.SupplierDS inherits DataSource:
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         define variable iNewSupplierIDNum as integer no-undo.
         iNewSupplierIDNum = next-value(NextSupplNum).
-           // propagate key change to all related tables and assign to self 
+        // propagate key change to all related tables in dataset and assign to self 
         UpdateUtil:UpdateKey(buffer ttSupplier:handle, "SupplierIDNum",iNewSupplierIDNum). 
-    end method. 
+    end method.
+    
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        if can-find(first purchaseorder where PurchaseOrder.SupplierIDNum = biSupplier.SupplierIDNum) then 
+            ThrowBufferError(substitute ("PurchaseOrders orders exist for Supplier &1. Cannot delete.",biSupplier.SupplierIDNum)).  
+    end method.
 end class.

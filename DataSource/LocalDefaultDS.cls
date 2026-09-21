@@ -41,7 +41,7 @@ class DataSource.LocalDefaultDS inherits DataSource:
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         assign ttLocalDefault.LocalDefNum = next-value(NextLocalDefnum).
     end method.
-    
+       
     method public override logical SaveRow(phBeforeBuffer as handle):       
         if phBeforeBuffer:row-state = row-deleted then
         do: 

@@ -41,7 +41,7 @@ class Business.OrderBE inherits BusinessEntity:
    
     method protected void ValidateStaticData(input dataset dsOrder ):
         define variable oItemFinder as IBusinessEntityFinder no-undo.
-        
+        define variable dExtendedPrice as decimal no-undo.
         /* The finder wraps calls to another BusinessEntity to allow append of ttItem records for only the records we need. 
            This also ensures the that the underlying business entity is decoupled so that we do not depend on keeping 
            the BE alive to work on its data.  
@@ -52,23 +52,40 @@ class Business.OrderBE inherits BusinessEntity:
              
         oItemFinder = new BusinessEntityFinder('items').
         oItemFinder:Bind(output table ttItem bind).
-         
-        for each ttOrderline where row-state(ttOrderLine) > 0:
-            
-            // thw use of append requires that we only call if we do not alreay have it
-            find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
-            if not avail item then do: 
-                oItemFinder:Find(ttOrderLine.ItemNum, output table ttItem append). 
+        
+        for each ttOrder where row-state(ttOrder) > 0:
+            if ttOrder.shipDate = ? then 
+                BufferError(buffer ttOrder:handle,substitute ("Order &1 does not have Shipdate",ttOrder.OrderNum),"shipdate").
+                
+            for each ttOrderline where ttOrderLine.Ordernum = ttOrder.OrderNum and row-state(ttOrderLine) > 0:
+                
+                // thw use of append requires that we only call if we do not alreay have it
                 find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
+                if not avail item then do: 
+                    oItemFinder:Find(ttOrderLine.ItemNum, output table ttItem append). 
+                    find ttItem where ttItem.itemNum = ttOrderLine.ItemNum no-error.
+                end.
+                if not avail ttItem then 
+                    undo, throw new BadRequestError(substitute("Item &1 does not exist",ttOrderLine.ItemNum)).
+                
+                // this is pretend business logic ... 
+                if ttItem.OnHand + ttItem.OnOrder - ttOrderline.Qty <= 0 then
+                    undo, throw new BadRequestError(substitute("There is only &1 items available for ordering (on hand &2 and on order is &3. You cannot order &3 &4 items",
+                                                               ttItem.OnHand + ttItem.OnHand, ttItem.OnHand,ttItem.OnHand, ttOrderline.qty, ttItem.ItemName)).                  
+                
+                dExtendedPrice = ttOrderline.Price * ttOrderLine.Qty * (1 - (ttOrderLine.Discount / 100)).
+                
+                if ttOrderline.ExtendedPrice > 0 and ttOrderline.ExtendedPrice <> dExtendedPrice then 
+                    ThrowBufferError(buffer ttOrderLine:handle,
+                                     substitute("Order &1 Line &2 Extended Price &3 is not valid. The Extended Price will be calculated if submitted as 0 or empty",
+                                                 ttOrderLine.OrderNum,
+                                                 ttOrderLine.LineNum,
+                                                 ttOrderline.ExtendedPrice
+                                     ),
+                                    "extendedPrice").
+                assign ttOrderline.ExtendedPrice = dExtendedPrice.          
             end.
-            if not avail ttItem then 
-                undo, throw new BadRequestError(substitute("Item &1 does not exist",ttOrderLine.ItemNum)).
-            
-            // this is pretend business logic ... 
-            if ttItem.OnHand + ttItem.OnOrder - ttOrderline.Qty <= 0 then
-                undo, throw new BadRequestError(substitute("There is only &1 items available for ordering (on hand &2 and on order is &3. You cannot order &3 &4 items",
-                                                           ttItem.OnHand + ttItem.OnHand, ttItem.OnHand,ttItem.OnHand, ttOrderline.qty, ttItem.ItemName)).                  
-        end.    
+        end.        
     end method.    
     
 

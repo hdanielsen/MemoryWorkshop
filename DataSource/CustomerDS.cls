@@ -43,9 +43,29 @@ class DataSource.CustomerDS inherits DataSource:
         assign ttCustomer.CustNum = next-value (NextCustnum).
     end method.
     
-    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
-        if can-find(first Order where Order.CustNum = biCustomer.Custnum) then 
-            BufferError(buffer biCustomer:handle,substitute("Cannot delete customer &1 that has orders",biCustomer.Custnum)).
+    method override protected void WriteBeginTransValidate( input dataset-handle  phDataset):
+        if row-state(ttCustomer) = row-modified and ttCustomer.custNum <> biCustomer.custNum then 
+            ThrowBufferError(substitute ("CustNum is readonly. Cannot change Customer Cust Num &1 to &2",biCustomer.CustNum,ttCustomer.custNum),"CustNUm"). 
+        
     end method.
+    
+    
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        /* Customer record cannot be deleted if outstanding invoices are found */
+        find first invoice no-lock where Invoice.CustNum = biCustomer.CustNum no-error.
+        find first order no-lock of customer no-error.
+        if available invoice and invoice.amount <= invoice.totalpaid + invoice.adjustment then do:
+            if not available order then 
+                return.
+           // else throw error at end of this method     
+        end.
+        else if available Invoice then 
+            ThrowBufferError(substitute("Outstanding Unpaid Invoice Exists, cannot delete Customer &1",biCustomer.custnum)).  
+        
+        if available Order then
+            ThrowBufferError(substitute ("Open orders exist for Customer &1. Cannot delete.",biCustomer.custnum)).  
+    end method.
+     
+    
     
 end class.

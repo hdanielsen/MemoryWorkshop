@@ -17,6 +17,8 @@ using Pmfo.Core.Error.ApplicationError from propath.
 using OpenEdge.Core.StringConstant from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Util.Array from propath.
+using Pmfo.Util.QueryUtil from propath.
+ 
 
 class DataSource.AddressDS inherits DataSource:
 
@@ -52,12 +54,13 @@ class DataSource.AddressDS inherits DataSource:
     end method.                                                                                                                        
                                                                                                                                        
     method public void BeforeFill( input dataset-handle phDataset ):
-        define variable hQuery      as handle no-undo.
+        define variable hQuery      as handle    no-undo.
         define variable cSort       as character no-undo.
-        define variable iCount      as integer no-undo.
-        define variable iNumRecords as integer no-undo.
-        define variable lDelete     as logical no-undo.
-        define variable iBuffer     as integer no-undo.
+        define variable iCount      as integer   no-undo.
+        define variable iNumRecords as integer   no-undo.
+        define variable lDelete     as logical   no-undo.
+        define variable iBuffer     as integer   no-undo.
+        define variable cFilter     as character no-undo.
         
         do iBuffer = 1 to extent(BufferHandles):
             FillFromSource(input table ttAddress by-reference, BufferHandles[iBuffer],iBuffer).
@@ -66,18 +69,26 @@ class DataSource.AddressDS inherits DataSource:
         if valid-object(GetRequest) then 
         do:
             cSort = GetRequest:SortExpression.
+            cFilter = GetRequest:QueryString.
             iNumRecords = GetRequest:NumRecords. 
+            message GetRequest:QueryDefinition:QuerySelection:ToString() skip
+                    GetRequest:QueryDefinition:GetPredicateFieldReferences() skip
+                  "has"  GetRequest:QueryDefinition:HasPredicate("country")
+                    
+                    
+            view-as alert-box.
         end. 
-         
+        message cFilter
+            view-as alert-box.
         if cSort > "" or iNumRecords > 0 then 
         do:
             create query hQuery.
             hQuery:add-buffer(DataBuffer).
             hQuery:query-prepare(trim(substitute("for each &1 &2",
-                                          DataBuffer:name,
-                                              if cSort > "" then cSort else "")
-                                      )
-                                  ).
+                DataBuffer:name,
+                if cSort > "" then cSort else "")
+                )
+                ).
            
             hQuery:query-open().
             hQuery:get-first.
@@ -85,9 +96,9 @@ class DataSource.AddressDS inherits DataSource:
                 iCount = iCount + 1.
                 hQuery:get-next.
                 if lDelete = false and iNumRecords > 0 and iCount > iNumRecords then do:
-                   lDelete = true. 
-                   NextRowKey = DataBuffer::AddressId.
-                   NumRecords = iCount - 1.
+                    lDelete = true. 
+                    NextRowKey = DataBuffer::AddressId.
+                    NumRecords = iCount - 1.
                 end.    
                 if lDelete then DataBuffer:buffer-delete.
                 else DataBuffer::zz_seq = iCount. // sorting for json
@@ -123,16 +134,16 @@ class DataSource.AddressDS inherits DataSource:
             
             lFound =  buffer ttAddress:find-unique(
                 substitute(
-                    "where address = '&1' and address2 = '&2' and City = '&3' and Country = '&4' and postalCode = '&5' and state = '&6'",
-                     phBuffer::address,
-                     phBuffer::address2,
-                     phBuffer::city,
-                     if valid-handle(hCountryField) then hCountryField:buffer-value else "USA",
-                     phBuffer::postalCode,
-                     phBuffer::state
+                "where address = '&1' and address2 = '&2' and City = '&3' and Country = '&4' and postalCode = '&5' and state = '&6'",
+                phBuffer::address,
+                phBuffer::address2,
+                phBuffer::city,
+                if valid-handle(hCountryField) then hCountryField:buffer-value else "USA",
+                phBuffer::postalCode,
+                phBuffer::state
                      
                 )
-            ) no-error.
+                ) no-error.
            
             if not lFound then do: 
                 create ttAddress.
@@ -144,12 +155,12 @@ class DataSource.AddressDS inherits DataSource:
                     ttAddress.Country    = if valid-handle(hCountryField) then hCountryField:buffer-value else "USA"                   
                     ttAddress.PostalCode = phBuffer::PostalCode                    
                     ttAddress.State      = phBuffer::State                    
-                .
+                    .
              
             end.
             assign
                 hCountField:buffer-value = hCountField:buffer-value + 1.
-                entry(piKeyNumber,ttAddress.AddressId,"|") = GetBufferKey(phbuffer,phBuffer:rowid).
+            entry(piKeyNumber,ttAddress.AddressId,"|") = GetBufferKey(phbuffer,phBuffer:rowid).
             
             hQuery:get-next.
              
@@ -191,10 +202,10 @@ class DataSource.AddressDS inherits DataSource:
                 else
                     cValue = hFld:buffer-value.
                
-                    /* if hasspaceorplus use field name in expression so we can safely decode bad encoders like certain REST testing tools...
-                       some REST tools will encode space as +, but not if there already is a + 
-                       this is indeterministic since a value with + and no space could origin from both space and +
-                    */     
+                /* if hasspaceorplus use field name in expression so we can safely decode bad encoders like certain REST testing tools...
+                   some REST tools will encode space as +, but not if there already is a + 
+                   this is indeterministic since a value with + and no space could origin from both space and +
+                */     
                 if num-entries(cKeys) = 1 and not lHasSpaceOrPlus then 
                 do:
                     cRowKey = cValue.

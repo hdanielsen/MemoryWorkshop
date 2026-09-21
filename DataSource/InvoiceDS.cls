@@ -42,4 +42,13 @@ class DataSource.InvoiceDS inherits DataSource:
         ttInvoice.invoicenum = next-value(NEXTINVNUM).
     end method.
     
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        if biInvoice.Amount > biInvoice.TotalPaid + biInvoice.Adjustment then
+           ThrowBufferError(
+              substitute("Cannot delete Invoice &1. The Amount is greater than TotalPaid + Adjustment",biInvoice.Invoicenum) 
+           ). 
+           
+    end method.
+    
+    
 end class.

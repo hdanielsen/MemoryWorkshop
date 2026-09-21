@@ -38,11 +38,64 @@ class DataSource.OrderLineDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method override protected void WriteBeginTransValidate( input dataset-handle  phDataset):
+        if row-state(ttOrderLine) = row-modified 
+                                   and (ttOrderLine.OrderNum <> biOrderLine.orderNum 
+                                        or 
+                                        ttOrderLine.LineNum <> biOrderLine.LineNum) then 
+            ThrowBufferError(substitute ("Order Num and Line num are readonly. Cannot change keys of OrderLine &1 &2",  biOrderLine.orderNum, biOrderLine.LineNUm)). 
+        
+    end method.    
+    
+    
     method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
         find item where Item.ItemNum = ttOrderLine.ItemNum.
         Item.OnOrder = Item.OnOrder + ttOrderLine.Qty.
               
         AddWarning("Item on hand is less than min qty","qty"). 
+         /*** from item trigger 
+         IF Item.MinQty >
+   ((Item.OnHand - Item.Allocated) + item.onorder) THEN DO:
+  
+   FIND FIRST supplieritemxref where supplieritemxref.itemnum =
+   item.itemnum NO-LOCK NO-ERROR.
+   
+   IF AVAIL supplieritemxref THEN DO:
+        
+        FIND supplier WHERE supplier.supplieridnum =
+            supplieritemxref.supplieridnum NO-LOCK NO-ERROR.       
+       
+        IF AVAIL supplier THEN DO:
+             CREATE purchaseorder.
+             ASSIGN 
+                purchaseorder.DateEntered = today
+                purchaseorder.POStatus = "Ordered"
+                purchaseorder.SupplierIDNum = supplieritemxref.supplieridnum.
+              
+             CREATE poline.
+             ASSIGN
+             poline.ponum = purchaseorder.ponum
+             poline.linenum = 1
+             poline.Discount = supplier.discount
+             poline.Itemnum = item.itemnum
+             poline.Price = item.price
+             poline.qty = item.reorder
+             poline.ExtendedPrice = (item.price * poline.qty) * (1 - supplier.discount).
+             item.onorder = item.onorder + item.reorder.
+  
+     /******
+             MESSAGE "Purchase Order: " purchaseorder.ponum " for " Item.ItemName
+             ", Item Number: " Item.ItemNum " has been generated."
+             VIEW-AS ALERT-BOX INFORMATION BUTTONS OK.
+     *******/
+        END. /* If avail suplier*/
+     
+  END. /*if avail supplieritemxref*/
+END.
+  ***/
+         
+         
+         
          
     end method.
     

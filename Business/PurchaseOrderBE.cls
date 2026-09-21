@@ -37,7 +37,6 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
         ValidateStaticData(dataset-handle phDataset by-reference ). 
     end method.    
     
-    
     method protected void ValidateStaticData(input dataset dsPurchaseOrder ):
         define variable oItemFinder as IBusinessEntityFinder no-undo.
         oItemFinder = new BusinessEntityFinder('items').
@@ -53,7 +52,7 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
                 undo, throw new BadRequestError(substitute("Item &1 does not exits",ttPurchaseOrderLine.ItemNum)).
            
             if ttItem.OnHand + ttItem.OnOrder + ttPurchaseOrderLine.Qty >= MAX_STOCK then
-                undo, throw new BadRequestError(substitute("There are &1 items on hand and &2 itmms on order. You cannot purchase &3 &4 items as it will exceed max allowed stock of &5",
+                undo, throw new BadRequestError(substitute("There are &1 items on hand and &2 items on order. You cannot purchase &3 &4 items as it will exceed max allowed stock of &5",
                                                            ttItem.OnHand,ttItem.OnOrder, ttPurchaseOrderLine.qty, ttItem.ItemName,MAX_STOCK)). 
                  
         end.    

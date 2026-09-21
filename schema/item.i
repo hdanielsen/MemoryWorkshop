@@ -8,6 +8,7 @@
  Notes       : Mapped to database sports2020 table Item  
 ------------------------------------------------------------------------------*/
 define temp-table ttItem no-undo serialize-name "items" {1}  before-table biItem
+   // Allocated - inventory reserved for customers
    field Allocated                        as integer     serialize-name "allocated"
    field CatDescription                   as character   serialize-name "catDescription"
    field Category1                        as character   serialize-name "category1"
@@ -16,10 +17,14 @@ define temp-table ttItem no-undo serialize-name "items" {1}  before-table biItem
    field ItemImage                        as blob        serialize-name "itemImage"
    field ItemName                         as character   serialize-name "itemName"
    field ItemNum                          as integer     serialize-name "itemNum"
+   // MinQty - Replenishment threshold.
    field MinQty                           as integer     serialize-name "minQuantity"
+   // OnHand - inventory physically present
    field OnHand                           as integer     serialize-name "onHand"
+   // OnOrder - inventory expected from suppliers
    field OnOrder                          as integer     serialize-name "onOrder"
    field Price                            as decimal     serialize-name "price"
+   // ReOrder = Fixed replenishment quantity.
    field ReOrder                          as integer     serialize-name "reOrder"
    field Special                          as character   serialize-name "special"
    field Weight                           as decimal     serialize-name "weight"
@@ -29,3 +34,4 @@ define temp-table ttItem no-undo serialize-name "items" {1}  before-table biItem
    index ItemNum as unique ItemNum
    index zz_seq as primary zz_seq
    .
+   

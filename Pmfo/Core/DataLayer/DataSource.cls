@@ -1622,7 +1622,15 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     method protected void ThrowConflictError(phBeforebuffer as handle,pcchanges as character):
         undo, throw new ConflictError(phBeforeBuffer,pcChanges). 
     end method. 
-      
+    
+    method protected void BufferError(pcMsg as character):
+        BufferError(GetAndAssertErrorBuffer(),pcMsg). 
+    end method.    
+    
+    method protected void BufferError(pcMsg as character, pcField as character):
+        BufferError(GetAndAssertErrorBuffer(),pcMsg,pcField).
+    end method.    
+          
     method protected void BufferError(hBuffer as handle,pcMsg as character):
         ErrorStringUtil:AddError(hBuffer, pcMsg).
     end method.    
@@ -1630,6 +1638,14 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     method protected void BufferError(hBuffer as handle,pcMsg as character, pcField as character):
         ErrorStringUtil:AddError(hBuffer, pcMsg, pcField).
     end method.    
+    
+    method protected void ThrowBufferError(pcMsg as character):
+        ThrowBufferError(GetAndAssertErrorBuffer(),pcMsg). 
+    end method. 
+    
+    method protected void ThrowBufferError(pcMsg as character, pcField as character):
+        ThrowBufferError(GetAndAssertErrorBuffer(),pcMsg,pcField).
+    end method. 
     
     method protected void ThrowBufferError(hBuffer as handle,pcMsg as character):
         ErrorStringUtil:AddError(hBuffer, pcMsg).

@@ -13,17 +13,17 @@
 block-level on error undo, throw.
  
 using Ccs.BusinessLogic.JoinEnum from propath.
-using OpenEdge.Core.Assert from propath.
-using Pmfo.Core.BusinessLogic.IQueryGroup from propath.
-using Pmfo.Util.QueryUtil from propath.
-using Pmfo.Core.BusinessLogic.QueryGroup from propath.
 using Ccs.BusinessLogic.QueryOperatorEnum from propath.
-using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
-using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
-using Ccs.Common.Support.IPrimitiveHolder from propath.
 using Ccs.Common.Support.IPrimitiveArrayHolder from propath.
-using Pmfo.Core.Error.IllegalArgumentError from propath.
+using Ccs.Common.Support.IPrimitiveHolder from propath.
+using OpenEdge.Core.Assert from propath.
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.IQueryGroup from propath.
+using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
+using Pmfo.Core.BusinessLogic.QueryGroup from propath.
+using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
+using Pmfo.Core.Error.IllegalArgumentError from propath.
+using Pmfo.Util.QueryUtil from propath.
 
 class Pmfo.Core.BusinessLogic.QueryGroup inherits Pmfo.Core.BusinessLogic.QueryEntry implements IQueryGroup: 
 
@@ -119,7 +119,7 @@ class Pmfo.Core.BusinessLogic.QueryGroup inherits Pmfo.Core.BusinessLogic.QueryE
             extent(oEntries) = extent(Entries) + 1.
             do i = 1 to extent(Entries):
                oEntries[i] = Entries[i].
-               if type-of(oEntries[i],Ccs.BusinessLogic.IQueryGroup) then 
+               if type-of(oEntries[i],IQueryGroup) then 
                   lAnyGroup = true. 
             end.
             extent(Entries) = ?.
@@ -394,7 +394,7 @@ class Pmfo.Core.BusinessLogic.QueryGroup inherits Pmfo.Core.BusinessLogic.QueryE
             do:    
                 cExpression = cExpression 
                             + cJoin
-                            + cast(Entries[i],Pmfo.Core.BusinessLogic.IQueryEntry):ToString(phbuffer,plUseSerializername).
+                            + Entries[i]:ToString(phbuffer,plUseSerializername).
             end.
             else do:
                 cExpression = cExpression 

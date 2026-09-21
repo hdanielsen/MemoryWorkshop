@@ -42,13 +42,39 @@ class DataSource.OrderDS inherits DataSource:
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         define variable iNewOrderNum as integer no-undo.
-        
         iNewOrderNum = next-value (NextOrdnum).
+        
         // propagate key change to all related tables and assign to self 
-        UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum). 
+        UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum).
+        
+        if ttOrder.orderDate <> today then 
+        do: 
+            AddWarning("Order Date was set to today").
+            assign ttOrder.orderDate = today.
+        end.    
+        if ttOrder.promiseDate = ? or ttOrder.promiseDate le ttOrder.OrderDate then
+        do: 
+            AddWarning("Promise Data was set to two weeks from now").
+            assign ttOrder.promiseDate = today + 14.
+        end. 
+         
     end method.
     
-    // override to use static delete due to schema validation
+    method override protected void WriteBeginTransValidate( input dataset-handle  phDataset):
+        if row-state(ttOrder) = row-modified and ttOrder.OrderNum <> biOrder.orderNum then 
+            ThrowBufferError(substitute ("Ordernum is readonly. Cannot change Order&1 to &2", biOrder.orderNum,ttOrder.orderNum),"OrderNUm"). 
+        
+    end method.    
+    
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        // deleted orderlines is expected to be submitted from UI or bL 
+        // Children are deleted first so they will be deeted at this point 
+        if can-find(first OrderLine where OrderLine.OrderNum = biOrder.OrderNum) then
+            ThrowBufferError(substitute ("Orderlines exist for Order &1. Cannot delete.",biOrder.Ordernum)).  
+  
+    end method.    
+    
+     // override to use static delete due to schema validation
     method public override logical SaveRow(phBeforeBuffer as handle):       
         if phBeforeBuffer:row-state = row-deleted then
         do: 

@@ -78,6 +78,8 @@ using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Core.Common.WarningMessages from propath.
 using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
 using Pmfo.Core.Common.IWarningMessages from propath.
+using Pmfo.Core.Error.BadRequestError from propath.
+using Pmfo.Util.ErrorStringUtil from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Resource as character no-undo get. protected set.
@@ -488,6 +490,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         Assert:NotNull(phdataset,"Dataset passed to UpdateData").
         Assert:NotNull(poUpdateDataRequest,"UpdateDataRequest passed to UpdateData").
         
+        
         do on error undo, throw :
             
             // standard crud call before uopdate (actions are handled in ValidateAction to ensure they are called also from other BEs
@@ -788,5 +791,46 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     method protected void AssertInitialized():
         if not Initialized then 
             undo, throw new IllegalStateError(substitute("Resource '&1' Class &2 is not initialized. Cannot execute data operation. Make sure Initialize override calls super",Resource,this-object:GetClass():TypeName)). 
+    end method.  
+    
+     method protected void BufferError(phBuffer as handle,pcMsg as character):
+        // the ErrorStringUtil only works  with changed records that has error attributes
+        // TODO - add error object and collection that can provide the same capabilities 
+        // - cellect many errors and return table, key and field info   
+        if phBuffer:row-state = 0 then 
+            undo, throw new BadRequestError(pcMsg).
+        if not valid-handle(phBuffer:dataset) then 
+            undo, throw new BadRequestError(pcMsg).
+               
+        ErrorStringUtil:AddError(phBuffer, pcMsg).
     end method.    
+    
+    method protected void BufferError(phBuffer as handle,pcMsg as character, pcField as character):
+        // the ErrorStringUtil only works  with changed records that has error attributes 
+        if phBuffer:row-state = 0 then 
+            undo, throw new BadRequestError(pcMsg).
+        if not valid-handle(phBuffer:dataset) then 
+            undo, throw new BadRequestError(pcMsg).
+        ErrorStringUtil:AddError(phBuffer, pcMsg, pcField).
+    end method.    
+    
+    method protected void ThrowBufferError(phBuffer as handle,pcMsg as character):
+        // the ErrorStringUtil only works  with changed records that has error attributes 
+        if phBuffer:row-state = 0 then 
+            undo, throw new BadRequestError(pcMsg).
+        if not valid-handle(phBuffer:dataset) then 
+            undo, throw new BadRequestError(pcMsg).
+        ErrorStringUtil:AddError(phBuffer, pcMsg).
+        undo, throw new ValidationError().
+    end method. 
+    
+    method protected void ThrowBufferError(phBuffer as handle,pcMsg as character, pcField as character):
+        // the ErrorStringUtil only works  with changed records that has error attributes 
+        if phBuffer:row-state = 0 then 
+            undo, throw new BadRequestError(pcMsg).
+        if not valid-handle(phBuffer:dataset) then 
+            undo, throw new BadRequestError(pcMsg).
+        ErrorStringUtil:AddError(phBuffer, pcMsg, pcField).
+        undo, throw new ValidationError().
+    end method.   
 end class.

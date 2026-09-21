@@ -42,11 +42,21 @@ class DataSource.ItemDS inherits DataSource:
         assign ttitem.ItemNum = next-value (NextItemnum).
     end method.
     
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        if can-find(first OrderLine where OrderLine.ItemNum = biItem.itemNum) then
+            ThrowBufferError(substitute ("Orderlines exist for Item &1. Cannot delete.",biItem.itemnum)).  
+            
+        if can-find(first Bin where Bin.ItemNum = biItem.itemNum) then
+            ThrowBufferError(substitute ("Bins exist for Item &1. Cannot delete.",biItem.itemnum)).  
+           
+    end method.   
+    
+     // override to use static delete due to schema validation
     method public override logical SaveRow(phBeforeBuffer as handle):       
         if phBeforeBuffer:row-state = row-deleted then
         do: 
             FindAndCompareSource(phBeforeBuffer).
-            delete item. //static due to schema delete validation
+            delete order. //static due to schema delete validation
             return true.      
         end.
         else 

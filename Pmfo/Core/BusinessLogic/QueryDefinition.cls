@@ -11,19 +11,24 @@
  
 block-level on error undo, throw.
 
+using Ccs.BusinessLogic.IQuerySortEntry from propath.
 using Ccs.BusinessLogic.JoinEnum from propath.
 using Ccs.BusinessLogic.QueryOperatorEnum from propath.
-using OpenEdge.BusinessLogic.QueryDefinition from propath.
 using OpenEdge.Core.Assert from propath.
 using OpenEdge.Core.Collections.ICollection from propath.
 using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.IQueryGroup from propath.
+using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchFields from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchPredicateFields from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchPredicates from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchQualifiedPredicates from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchSort from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QuerySearchSortFields from propath.
 using Pmfo.Core.BusinessLogic.QueryGroup from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Util.Array from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
-using Ccs.BusinessLogic.IQuerySortEntry from propath.
-using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
 
 class Pmfo.Core.BusinessLogic.QueryDefinition  implements IQueryDefinition: 
     
@@ -76,7 +81,160 @@ class Pmfo.Core.BusinessLogic.QueryDefinition  implements IQueryDefinition:
         return cExpression.    
     end.    
     
+    method public character GetFieldReferences().
+        define variable oQuerySearch as QuerySearchFields no-undo.
+        oQuerySearch  = new QuerySearchFields().
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:FieldNames.  
+    end method.
     
+    method public character GetSortFieldReferences().
+        define variable oQuerySearch as QuerySearchSortFields no-undo.
+        oQuerySearch  = new QuerySearchSortFields().
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:FieldNames.  
+    end method.
+    
+    method public character GetPredicateFieldReferences().
+        define variable oQuerySearch as QuerySearchPredicateFields no-undo.
+        oQuerySearch  = new QuerySearchPredicateFields().
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:FieldNames.  
+    end method.
+    
+    method public character GetPredicateFieldReferences(pOperator as QueryOperatorEnum).  
+        define variable oQuerySearch as QuerySearchPredicateFields no-undo.
+        oQuerySearch  = new QuerySearchPredicateFields(pOperator).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:FieldNames.  
+    end method.
+    
+    method public character GetPredicateFieldReferences(pOperators as QueryOperatorEnum extent).
+        define variable oQuerySearch as QuerySearchPredicateFields no-undo.
+        oQuerySearch  = new QuerySearchPredicateFields(pOperators).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:FieldNames.  
+    end method.
+    
+    method public IQueryEntry extent GetEntries(pcField as character):
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcField). 
+        return cast(oColl:ToArray(),IQueryEntry).
+    end method.
+    
+    method public IQueryEntry extent GetEntries(pcFields as character extent):
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcFields). 
+        return cast(oColl:ToArray(),IQueryEntry).
+    end method.
+    
+    method public IQueryEntry extent GetEntries(pcField as character, pOperator as QueryOperatorEnum):
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcField,pOperator). 
+        return cast(oColl:ToArray(),IQueryEntry).
+    end method.
+    
+    method public IQueryEntry extent GetEntries(pcFields as character extent, pOperator as QueryOperatorEnum):
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcFields,pOperator). 
+        return cast(oColl:ToArray(),IQueryEntry).
+    end method.
+    
+    method public IQueryEntry extent GetQualifiedEntries(pcQualifier as character):
+        define variable oColl as ICollection no-undo.
+        oColl = SearchQualifiedEntries(pcQualifier). 
+        return cast(oColl:ToArray(),IQueryEntry).
+    end method.
+    
+    method public logical HasPredicate(pcField as character).
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcField). 
+        return oColl:size > 0.
+    end method.
+    
+    method public logical HasPredicate(pcFields as character extent).
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcFields). 
+        return oColl:size > 0.
+    end method.
+    
+    method public logical HasPredicate(pcField as character, pOperator as QueryOperatorEnum).
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcField,pOperator). 
+        return oColl:size > 0.
+    end method.
+    
+    method public logical HasPredicate(pcFields as character extent, pOperator as QueryOperatorEnum).
+        define variable oColl as ICollection no-undo.
+        oColl = SearchEntries(pcFields,pOperator). 
+        return oColl:size > 0.
+    end method.
+    
+    method protected ICollection SearchEntries(pcFields as character extent, pOperator as QueryOperatorEnum):
+        define variable oQuerySearch as QuerySearchPredicates no-undo.
+        oQuerySearch  = new QuerySearchPredicates(pcFields,pOperator).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:QueryEntryCollection.
+    end method.
+    
+    method protected ICollection SearchEntries(pcFields as character extent):
+        define variable oQuerySearch as QuerySearchPredicates no-undo.
+        oQuerySearch  = new QuerySearchPredicates(pcFields).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:QueryEntryCollection.
+    end method.
+    
+    method protected ICollection SearchEntries(pcField as character, pOperator as QueryOperatorEnum):
+        define variable oQuerySearch as QuerySearchPredicates no-undo.
+        oQuerySearch  = new QuerySearchPredicates(pcField,pOperator).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:QueryEntryCollection.
+    end method.
+    
+    method protected ICollection SearchEntries(pcField as character):
+        define variable oQuerySearch as QuerySearchPredicates no-undo.
+        oQuerySearch  = new QuerySearchPredicates(pcField).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:QueryEntryCollection.
+    end method.   
+    
+    method protected ICollection SearchQualifiedEntries(pcQualifier as character):
+        define variable oQuerySearch as QuerySearchQualifiedPredicates no-undo.
+        oQuerySearch  = new QuerySearchQualifiedPredicates(pcQualifier).
+        oQuerySearch:Traverse(this-object).
+        return oQuerySearch:QueryEntryCollection.
+    end method.
+    
+    method public IQuerySortEntry extent GetSortEntries(pcField as character):
+        define variable cOneField as character extent 1 no-undo.
+        cOneField[1] = pcField.
+        return GetSortEntries(cOneField).
+    end method.
+    
+    method public IQuerySortEntry extent GetSortEntries(pcFields as character extent):
+        define variable oQuerySearch as QuerySearchSort no-undo.
+        oQuerySearch  = new QuerySearchSort(pcFields).
+        oQuerySearch:Traverse(this-object).
+        return cast(oQuerySearch:SortEntries:ToArray(),IQuerySortEntry).
+    end method.
+    
+    method public IQueryPredicate GetPredicate(pcField as character, pOperator as QueryOperatorEnum):
+        define variable oEntries as IQueryEntry extent no-undo.
+        oEntries = GetEntries(pcField,pOperator).
+        if extent(oEntries) = 1 and type-of(oEntries[1],IQueryPredicate) then
+            return cast(oEntries[1],IQueryPredicate).
+        else 
+            return ?.
+    end method.   
+    
+    method public IQueryPredicate GetPredicate(pcField as character):
+        define variable oEntries as IQueryEntry extent no-undo.
+        oEntries = GetEntries(pcField).
+        if extent(oEntries) = 1 and type-of(oEntries[1],IQueryPredicate) then
+            return cast(oEntries[1],IQueryPredicate).
+        else 
+            return ?.
+    end method. 
     
     method public logical RemoveEntries(pQueryEntries as IQueryEntry extent):
         define variable i   as integer no-undo.
