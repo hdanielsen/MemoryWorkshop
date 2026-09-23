@@ -65,16 +65,23 @@ class Pmfo.Core.BusinessLogic.DatasetBuilder:
          define variable hNewBuffer      as handle no-undo.
          define variable hOriginalBuffer as handle no-undo.
         
-        
          oBe = ServiceManager:CreateBusinessEntity(pcEntities[piEntity]).
          
          hOriginalBuffer = DatasetUtil:GetTopBuffer(oBe:datasets[1], 1).
-         // It is probably more efficient to create a buffer, but there may currently 
-         // be code that relaies on default-buffer-handle to get the satset and relations
+         /* It is probably more efficient to create a buffer, but there may currently 
+            be code that relies on implied default-buffer-handle when passing table 
+            by-reference to get the dataset and relations */
          hNewBuffer = TableUtil:CreateTableLike(hOriginalBuffer):default-buffer-handle.   
          hNewBuffer:serialize-name =  hOriginalBuffer:serialize-name.
          phNewDataset:add-buffer(hNewBuffer).
-         phNewDataset:add-relation(phNewParentBuffer, hNewBuffer,oBe:GetJoinPairs(pParentBE),false,true,true,false,true).
+         phNewDataset:add-relation(phNewParentBuffer, 
+                                   hNewBuffer,
+                                   oBe:GetJoinPairs(pParentBE),
+                                   false, // reposition
+                                   true,  // nested
+                                   true,  // active - documentation is wrong (says not active)
+                                   false, // recursive
+                                   true). // foreign keys hidden
          
          if extent(pcEntities) >= piEntity + 1 then
          do:

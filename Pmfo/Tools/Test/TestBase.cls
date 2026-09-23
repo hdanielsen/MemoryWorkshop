@@ -13,34 +13,28 @@
 
 block-level on error undo, throw.
 
-using Ccs.Common.Application from propath.
- 
-using OpenEdge.Core.Assert from propath.
 using OpenEdge.Core.Collections.IStringStringMap from propath.
 using OpenEdge.Core.Collections.StringStringMap from propath.
-using OpenEdge.Core.StringConstant from propath.
-using OpenEdge.Web.SendExceptionError from propath.
+using Pmfo.Core.BusinessLogic.DatasetErrorProcessor from propath.
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
+using Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder from propath.
 using Pmfo.Core.Common.DataService from propath.
-using Pmfo.Core.Error.ApplicationError from propath.
-using Pmfo.Core.Service.IClientGetRequest from propath.
-using Progress.Json.ObjectModel.JsonArray from propath.
-using Progress.Json.ObjectModel.JsonConstruct from propath.
-using Progress.Json.ObjectModel.JsonObject from propath.
-using Progress.Lang.AppError from propath.
-using Progress.Lang.Error from propath.
-using Pmfo.Core.BusinessLogic.DatasetErrorProcessor from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
 using Pmfo.Core.Manager.ISessionManager from propath.
 using Pmfo.Core.Service.BusinessEntityOperationHandler from propath.
 using Pmfo.Core.Service.ClientGetRequest from propath.
-using Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder from propath.
-using OpenEdge.Core.JsonDataTypeEnum from propath.
-using Progress.Json.ObjectModel.JsonDataType from propath.
 using Pmfo.Core.Service.IBusinessEntityOperationHandler from propath.
+using Pmfo.Core.Service.IClientGetRequest from propath.
 using Pmfo.Tools.Test.ErrorHandler from propath.
+using Progress.Json.ObjectModel.JsonArray from propath.
+using Progress.Json.ObjectModel.JsonConstruct from propath.
+using Progress.Json.ObjectModel.JsonDataType from propath.
+using Progress.Json.ObjectModel.JsonObject from propath.
+using Progress.Lang.Error from propath.
+using Pmfo.Util.JsonUtil from propath.
+using Pmfo.Core.Error.ApplicationError from propath.
  
 
 class Pmfo.Tools.Test.TestBase abstract inherits DataService:
@@ -220,8 +214,52 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
        
         undo, throw pError.
     end method.
- 
-
+    
+    method protected JsonObject LoadJson(pcFilename as character):
+        define variable oJson as JsonObject no-undo. 
+        file-info:file-name = pcfilename. 
+        if file-info:full-pathname > "" then 
+            oJson = JsonUtil:ReadJsonFile(file-info:full-pathname).
+        if not valid-object(oJson) then 
+        do: 
+            undo, throw new ApplicationError(subst("Json file '&1' was not found",pcFilename)).
+        end.   
+        return oJson.
+    end method.    
+    
+    
+    method protected logical IsJsonArraySortedByProperty ( input poArray as JsonArray, input pcProperty as character, input plAscending as logical ): 
+        define variable i         as integer no-undo. 
+        define variable cPrevious as character no-undo. 
+        define variable cCurrent  as character no-undo. 
+        define variable oObject   as JsonObject no-undo. 
+        
+        if poArray:Length <= 1 then 
+            return true. 
+            
+        oObject = poArray:GetJsonObject(1). 
+        if not valid-object(oObject) then 
+            return false. 
+        cPrevious = oObject:GetCharacter(pcProperty). 
+        do i = 2 to poArray:Length: 
+            oObject = poArray:GetJsonObject(i). 
+            if not valid-object(oObject) then 
+                return false. 
+            cCurrent = oObject:GetCharacter(pcProperty). 
+            if plAscending then do: 
+                 if cCurrent < cPrevious then 
+                     return false. 
+            end. 
+            else do: 
+                if cCurrent > cPrevious then 
+                    return false. 
+            end. 
+            cPrevious = cCurrent. 
+        end. 
+        return true. 
+    end method. 
+    
+    
     method public void WriteMemory(pcfile as character  ):  
         define variable oBe as IBusinessEntity no-undo.
         define variable ojson as JsonObject no-undo.

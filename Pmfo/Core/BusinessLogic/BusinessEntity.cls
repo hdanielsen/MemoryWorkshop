@@ -652,43 +652,64 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
        end.
        return ?.    
    end.     
-    
-    method public character GetPublicTextField():
-        define variable hFld as handle no-undo.
-        define variable i as integer no-undo.
-        define variable cTextFieldIdx as character extent no-undo.
-        define variable hbuffer as handle no-undo.
-        
+   
+   method public character GetTextField():
+       define variable hFld as handle no-undo.
+       hFld = GetTextFieldHandle().
+       if valid-handle(hFld) then  
+            return hFld:name.
+       return "".          
+  
+   end method.
+  
+   method public character GetPublicTextField():
+       define variable hFld as handle no-undo.
+       hFld = GetTextFieldHandle().
+       if valid-handle(hFld) then  
+            return hFld:serialize-name.
+       return "".          
+    end.     
+     
+    method protected handle GetTextFieldHandle():
+        define variable hBuffer as handle no-undo.
+        define variable hFld    as handle no-undo.
+        define variable i       as integer no-undo.
+        define variable cname as character no-undo.
         if extent(Datasets) <> ? and DatasetUtil:GetNumTopBuffers(Datasets[1]) = 1 then 
         do:
             hBuffer = Datasets[1]:get-buffer-handle(1).      
             hFld = hBuffer:buffer-field("name") no-error.
+            
             if valid-handle(hFld) then
-                return hFld:serialize-name.
+                return hFld.
+            
             hFld = hBuffer:buffer-field("description") no-error.
             if valid-handle(hFld) then
-                return hFld:serialize-name.
+                return hFld.
+            
             hFld = hBuffer:buffer-field("descr") no-error.
             if valid-handle(hFld) then
-            do:
-                if hFld:serialize-name = "description" or hFld:serialize-name = "name" then
-                    return hFld:serialize-name.
-                else do i = 1 to hBuffer:num-fields:
-                    hFld = hBuffer:buffer-field(i).
-                    if hFld:serialize-name = "description" then
-                        return hFld:serialize-name.
-                end.       
+                return hFld.
             
-            end. 
-        // check if there is an index defined with name textfield
-        // (convention - the assumtion is that it is ok to have an index of such a field) 
-            cTextFieldIdx = BufferUtil:GetFieldsInIndex(hBuffer,"TextField",false).
-            if extent(cTextFieldIdx) = 1 then 
-                return cTextFieldIdx[1].
-        end.        
-        return "".          
-    end.     
-    
+            cName = substitute("&1&2",hBuffer:name,"name").
+            
+            hFld = hBuffer:buffer-field(cName) no-error.
+            if valid-handle(hFld) then
+                return hFld.
+            
+            cName = substitute("&1&2",substr(hBuffer:name,3),"name").
+            if valid-handle(hFld) then
+                return hFld.
+            
+                
+            do i = 1 to hBuffer:num-fields:
+                hFld = hBuffer:buffer-field(i).
+                if hFld:serialize-name = "description" or hFld:serialize-name = "name" then
+                    return hFld. 
+            end.
+        end.       
+           
+    end method.       
     
     // default update request for dataset 
     method protected IUpdateDataRequest CreateUpdateDataRequest(phDataset as handle):
@@ -782,9 +803,27 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.    
     
     method protected character GetJoinFields(pParentBE as IBusinessEntity).
-        //defaulkt to same named join
-        
-        return pParentBE:GetKeys().
+        //default to same named join
+        define variable cKeys          as character no-undo.
+        define variable i              as integer  no-undo.
+        define variable hTrueTopBuffer as handle   no-undo.
+        define variable hField         as handle   no-undo.
+        cKeys = pParentBE:GetKeys().
+        // ignores dactivated child buffers (that are moved to top)
+        if DatasetUtil:GetNumTopBuffers(DefaultDataset) = 1 then 
+        do:
+             hTrueTopBuffer = DatasetUtil:GetTopBuffer(DefaultDataset, 1). 
+             do i = 1 to num-entries(cKeys):
+                 hField = hTruetopBuffer:buffer-field(entry(i,cKeys)) no-error. 
+                 if not valid-handle(hField) then 
+                     undo, throw new UnsupportedOperationError(
+                         substitute("Join from &1 to &2 using field &3. Add a GetJoinFields override to &4 if the relation should use a different field name.",
+                                    pParentBe:Resource,Resource,entry(i,cKeys),this-object:GetCLass():TypeName
+                         )
+                     ). 
+             end.     
+        end.
+        return cKeys.
     end method.    
     
     

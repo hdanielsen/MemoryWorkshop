@@ -56,7 +56,7 @@ class DataSource.ItemDS inherits DataSource:
         if phBeforeBuffer:row-state = row-deleted then
         do: 
             FindAndCompareSource(phBeforeBuffer).
-            delete order. //static due to schema delete validation
+            delete item. //static due to schema delete validation
             return true.      
         end.
         else 

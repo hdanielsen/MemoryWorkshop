@@ -58,6 +58,7 @@ interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.
     
     method public character GetKeys().
     method public character GetPublicKeys().
+    method public character GetTextField().
     method public character GetPublicTextField().
     method public character GetJoinPairs(parentBe as IBusinessEntity).
     

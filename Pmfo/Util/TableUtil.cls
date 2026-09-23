@@ -53,6 +53,10 @@ class Pmfo.Util.TableUtil:
         return hTable.    
     end method. 
     
+    method public static handle CreateTableLike(phBuffer as handle):
+        return CreateTableLike(phBuffer,phBuffer:table-handle:name).
+    end method.
+        
     method public static handle CreateTableLike(phBuffer as handle, pcTablename as character):
         define variable hDummyfields as handle extent no-undo.
         define variable cDummy as character no-undo.
@@ -112,16 +116,13 @@ class Pmfo.Util.TableUtil:
         end.
         hTable:temp-table-prepare(pcTablename,valid-handle(phBuffer:table-handle:before-table)).
         hTable:serialize-name = phBuffer:table-handle:serialize-name.
+        // copy serialize name on fields
         do iField = 1 to extent(pCopyFields):
             hTable:default-buffer-handle:buffer-field(pCopyFields[iField]:name):serialize-name = pCopyFields[iField]:serialize-name.
         end.
         return hTable.    
     end method.     
     
-    method public static handle CreateTableLike(phBuffer as handle):
-        return CreateTableLike(phBuffer,phBuffer:table-handle:name).
-    end method.     
-  
     method public static int64 CopyTable(phToHandle as handle,phFromHandle as handle):
         return CopyTable(phToHandle, phFromHandle, "").
     end method.    

@@ -30,9 +30,9 @@ class Business.SupplierBE inherits BusinessEntity:
     {schema/supplier.i}
     {schema/supplierItemXRef.i}
     {schema/item.i}
-    {schema/purchaseorder.i reference-only}
+    {schema/purchaseorder.i}
     
-    // define item table with supplieridnum to expose items as collection under supplier to UI/WEB  
+    // define item table with supplieridnum to expose items as collection directly under supplier to UI/WEB  
     define temp-table ttSupplierItem serialize-name "items" like ttItem use-index zz_seq
         field SupplierIDNum as integer serialize-name "supplierIDNum"
         index supplier-item as primary unique SupplierIDNum itemNum.
@@ -64,40 +64,46 @@ class Business.SupplierBE inherits BusinessEntity:
         super(dataset dsSupplier:handle).
     end constructor.
     
-     method protected override void ValidateData(pRequest as IUpdateDataRequest, input dataset-handle phDataset ): 
+    method protected override void ValidateData(pRequest as IUpdateDataRequest, input dataset-handle phDataset ): 
         ValidateStaticData(dataset-handle phDataset by-reference ). 
     end method.    
    
     method protected void ValidateStaticData(input dataset dsSupplier ):
         define variable iSupplerIdNums as integer extent no-undo. 
         define variable oQuery as IQueryGroup no-undo.
+        
+        // collect deleted supplierids   
         for each biSupplier where row-state(biSupplier) = row-deleted:
             extent(iSupplerIdNums) = (if extent(iSupplerIdNums) = ? then 0 else extent(iSupplerIdNums)) + 1.
             iSupplerIdNums[extent(iSupplerIdNums)] = biSupplier.SupplierIDNum.
         end.    
-        oQuery = new QueryGroup().
-        oQuery:AddEntry(new QueryPredicate("SupplierIDNum",QueryOperatorEnum:InList,iSupplerIdNums)).
-        oQuery:AddEntry(new QueryPredicate("PoStatus",QueryOperatorEnum:Ne,"Received")).
-        SupplierBE:GetData(oQuery, output table ttPurchaseOrder).
         
-        extent(iSupplerIdNums) = ?.
-        for each ttPurchaseOrder break by ttPurchaseOrder.SupplierIDNum :
-            if last-of(ttPurchaseOrder.SupplierIDNum) then 
-            do:
-               extent(iSupplerIdNums) = (if extent(iSupplerIdNums) = ? then 0 else extent(iSupplerIdNums)) + 1.
-               iSupplerIdNums[extent(iSupplerIdNums)] = ttPurchaseOrder.SupplierIDNum.
-            end.
-        end.
-        
+        // if any deleted found fetch active (not received) purchaseOrders to the supplier
         if extent(iSupplerIdNums) <> ? then 
-            undo, throw new BadRequestError(substitute("Suppler Id&1 &2 cannot be deleted. &3 at least one Purchcase Order that has not been received",
-                                               if extent(iSupplerIdNums) > 1 then "s" else "",
-                                               StringUtil:GetMessageFromEntries(Array:ToString(iSupplerIdNums)),
-                                               if extent(iSupplerIdNums) > 1 then "They have" else "It has"
-                                               
-                                            )
-                            ).
+        do:
+            oQuery = new QueryGroup().
+            oQuery:AddEntry(new QueryPredicate("SupplierIDNum",QueryOperatorEnum:InList,iSupplerIdNums)).
+            oQuery:AddEntry(new QueryPredicate("PoStatus",QueryOperatorEnum:Ne,"Received")).
+            SupplierBE:GetData(oQuery, output table ttPurchaseOrder).
             
+            extent(iSupplerIdNums) = ?.
+            for each ttPurchaseOrder break by ttPurchaseOrder.SupplierIDNum :
+                if last-of(ttPurchaseOrder.SupplierIDNum) then 
+                do:
+                   extent(iSupplerIdNums) = (if extent(iSupplerIdNums) = ? then 0 else extent(iSupplerIdNums)) + 1.
+                   iSupplerIdNums[extent(iSupplerIdNums)] = ttPurchaseOrder.SupplierIDNum.
+                end.
+            end.
+            
+            if extent(iSupplerIdNums) <> ? then 
+                undo, throw new BadRequestError(substitute("Suppler Id&1 &2 cannot be deleted. &3 at least one Purchcase Order that has not been received",
+                                                   if extent(iSupplerIdNums) > 1 then "s" else "",
+                                                   StringUtil:GetMessageFromEntries(Array:ToString(iSupplerIdNums)),
+                                                   if extent(iSupplerIdNums) > 1 then "They have" else "It has"
+                                                   
+                                                )
+                                ).
+        end. // if extent(iSupplerIdNums) <> ? (only for delete)    
     end method.
     
     // override to use a the server dataset to fethc data from server

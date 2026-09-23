@@ -26,7 +26,7 @@ class Pmfo.Core.BusinessLogic.UpdateDataRequest implements IUpdateDataRequest:
     define public property MainRequestedBuffer as character        no-undo get. set. 
     
     /* Optional comma separated list of tables that do not need or do not have
-       an update target - read-only - yse Add- and RemoveNoTargetTable to edit */
+       an update target - read-only - use Add- and RemoveNoTargetTable to edit */
     define public property NoTargetTables      as character no-undo get. protected set.
     
           

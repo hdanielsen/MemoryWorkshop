@@ -157,7 +157,6 @@ class Pmfo.Util.DatasetUtil:
     end method.
     
     // true num top-buffers - exclude repos and buffers that are in top-buffers because they are deactivated  
-    
     method public static integer GetNumTopBuffers(pDataset as handle):
         define variable i            as integer no-undo.
         define variable iSkipcount   as integer no-undo.
@@ -255,8 +254,8 @@ class Pmfo.Util.DatasetUtil:
         return ?.
     end method.
     
-    // count top buffers , but not repos ir deactivated relations 
-    //  NOTEL this will return deactivated child bufffers and is typixally only needed
+    // count top buffers , but not repos  
+    // NOTE: this will return deactivated child bufffers and is typixally only needed
     // when the relation is purposedly actived/deactivated 
     // - for example allow update with multiple but allowing activation  relation before save 
     //   when a single record is posted by the client to be duplicated as child of many on save    

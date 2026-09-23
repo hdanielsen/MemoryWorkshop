@@ -21,5 +21,9 @@ class Business.DepartmentBE inherits BusinessEntity:
     constructor DepartmentBE():
         super(dataset dsDepartment:handle).
     end constructor.
-
+    
+    method protected override handle GetTextFieldHandle():
+        return buffer ttDepartment:buffer-field("DeptName").    
+    end method.     
+    
 end class.
