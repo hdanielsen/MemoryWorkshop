@@ -35,6 +35,7 @@ using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
 using Pmfo.Util.JsonUtil from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
+using Pmfo.Util.DatasetUtil from propath.
  
 
 class Pmfo.Tools.Test.TestBase abstract inherits DataService:
@@ -226,6 +227,49 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
         end.   
         return oJson.
     end method.    
+    
+     method protected void DeleteDataAndTrack( phdataset as handle ):
+        define variable i       as integer no-undo.
+        define variable hQuery  as handle no-undo.
+        define variable hBuffer as handle no-undo.
+        define variable hBufferDel as handle no-undo.
+        define variable hTable  as handle no-undo.
+        define variable rRowid as rowid no-undo.
+        
+        DatasetUtil:SetTrackingChanges(phDataset,true).
+        do i = 1 to phDataset:num-buffers.
+            hBuffer = phDataset:get-buffer-handle(i).
+            hTable = hBuffer:table-handle.
+            create buffer hBufferDel for table hTable. 
+            
+            create query hQuery.
+            hQuery:add-buffer(hBuffer).
+            hQuery:query-prepare(substitute("preselect each &1",hBuffer:name)).
+           
+            hQuery:query-open.
+            hQuery:get-first.
+            do while hBuffer:avail:
+                rRowid = hBuffer:rowid.
+                hQuery:get-next.
+                
+                hBufferDel:find-by-rowid(rRowid).
+                hBufferDel:buffer-delete().
+            end.
+            
+            delete object hQuery.
+            delete object hBufferDel.   
+        end.
+        finally:
+            DatasetUtil:SetTrackingChanges(phDataset,false).
+            if valid-handle(hQuery) then
+                delete object hQuery.
+            if valid-handle(hBufferDel) then
+                delete object hBufferDel.   
+            phdataset:write-json ("file","/MemoryWorkshop-test/Temp/delete.json",yes,?,no,yes,yes).    
+        end.            
+     
+    end method.
+ 
     
     
     method protected logical IsJsonArraySortedByProperty ( input poArray as JsonArray, input pcProperty as character, input plAscending as logical ): 

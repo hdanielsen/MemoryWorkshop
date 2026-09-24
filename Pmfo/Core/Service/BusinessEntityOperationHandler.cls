@@ -372,7 +372,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         define variable hBufferDel as handle no-undo.
         define variable hTable  as handle no-undo.
         define variable rRowid as rowid no-undo.
-                  phdataset:write-json ("file","/MemoryWorkshop-test/Temp/befdelete.json",yes,?,no,yes,yes).    
         
         DatasetUtil:SetTrackingChanges(phDataset,true).
         do i = 1 to phDataset:num-buffers.
@@ -403,7 +402,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                 delete object hQuery.
             if valid-handle(hBufferDel) then
                 delete object hBufferDel.   
-            phdataset:write-json ("file","/MemoryWorkshop-test/Temp/delete.json",yes,?,no,yes,yes).    
         end.            
      
     end method.
