@@ -839,8 +839,6 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
     end method.  
     
     method protected character GetNextRowKey(phSourceBuffer as handle,pRowid as rowid): 
-          
-        
         define variable iField          as integer   no-undo.
         
         define variable hFld            as handle    no-undo.
@@ -858,7 +856,10 @@ class Pmfo.Core.DataLayer.DataSource inherits DbQuery implements IDataSource, IU
         define variable dDate           as date      no-undo.
         
         cKeys = ServiceInfo:GetKeys(DataBuffer).
-        if ckeys = "" then
+        if ckeys = "" then 
+            cKeys = GetDataSourceKeys(BufferHandle).
+        
+        if ckeys = "" or cKeys = "rowid" then 
             undo, throw new ApplicationError(subst("Cannot generate next row key for &1 with no unique key",DataBuffer:name)).               
        
         phSourceBuffer:find-by-rowid (pRowid,no-lock).

@@ -29,9 +29,6 @@ class Pmfo.Util.TimeZoneUtil:
         set(pcName as character).
             if TimeZoneName <> pcName then do: 
                 TimeZoneName = PopulateDynamicTimeInformation(pcName).
-                message "here after populate"  
-                                              
-                view-as alert-box.
             end.    
         end.
    
@@ -231,8 +228,7 @@ class Pmfo.Util.TimeZoneUtil:
                     /*                        "Dynamic DST Disabled here? " (get-byte(mDynamicStruct, 429) <> 0)*/
                     /*                        view-as alert-box information title "Remote Time Zone Lookup".    */
                     // return the requested name (called from TimeZoneName setter)     
-                    message "returning" pcname
-                    view-as alert-box.        
+                            
                     return pcname.
                 end. 
             end.

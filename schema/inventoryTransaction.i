@@ -18,6 +18,6 @@ define temp-table ttInventoryTransaction no-undo serialize-name "inventoryTransa
    field TransactionTime                  as datetime    serialize-name "transactionTime"
    field WarehouseNum                     as integer     serialize-name "warehouseNum"
    field zz_seq                           as int64       serialize-hidden
-   index InvTransNum InvTransNum
+   index InvTransNum as unique InvTransNum // not unique in db!  
    index zz_seq as primary zz_seq
    .

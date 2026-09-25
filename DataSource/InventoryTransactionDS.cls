@@ -39,6 +39,10 @@ class DataSource.InventoryTransactionDS inherits DataSource:
         Bind (table-handle hTable bind).        
     end method.
     
+    method public override character GetDataSourceKeys(phNuffer as handle):
+        return "InvTransNum". // No unique key in db! If there are duplicate data in the db then this is a terrible workaround. 
+    end method.
+        
     // override to manage the timein and timeput date tiem fields not mapped 
     // database fields directly
     method override protected void WriteEndTransValidate( input dataset-handle  phDataset):

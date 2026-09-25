@@ -24,6 +24,11 @@ using Pmfo.Core.Manager.ServiceManager from propath.
 using Pmfo.Util.Array from propath.
 using Pmfo.Util.StringUtil from propath.
 using Progress.Lang.Object from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.GetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
+using Pmfo.Core.Error.UnsupportedOperationError from propath.
 
 class Business.SupplierBE inherits BusinessEntity:
 
@@ -33,7 +38,7 @@ class Business.SupplierBE inherits BusinessEntity:
     {schema/purchaseorder.i}
     
     // define item table with supplieridnum to expose items as collection directly under supplier to UI/WEB  
-    define temp-table ttSupplierItem serialize-name "items" like ttItem use-index zz_seq
+    define temp-table ttSupplierItem serialize-name "items" like ttItem use-index zz_seq before-table biSupplierItem
         field SupplierIDNum as integer serialize-name "supplierIDNum"
         index supplier-item as primary unique SupplierIDNum itemNum.
         .
@@ -108,9 +113,34 @@ class Business.SupplierBE inherits BusinessEntity:
     
     // override to use a the server dataset to fethc data from server
     method protected override IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):
+        define variable i as integer no-undo.
         define variable oResponse as IGetDataResponse no-undo.
+        define variable oServerRequest as IGetDataRequest no-undo.
+        define variable oGetTableRequests as IGetDataTableRequest no-undo extent.
         
-        oResponse = DataAccess:FetchData(CreateGetRequest(dataset dsSupplierServer:handle), input-output dataset dsSupplierServer ).
+        /*
+        Throw not implemented  errrorif extarnal dataset is passed. 
+        Since another static dataset with the static ttSuppler is usasd the fetch data from server 
+        we can only allow the internal dataset to be passed here 
+        support for external would eithee require copy from the external to the internal 
+        or a dynamic dataset with a buffer for the static ttSupplier to fetch to server   
+        */   
+        if phDataset <> dataset dsSupplier:handle then 
+            undo, throw new NotImplementedError("Submit of external dataset", "The SupplierBE internal dataset must be used to fetch suppliers.").
+     
+        
+        extent(oGetTableRequests) = dataset dsSupplierServer:num-buffers.
+        // use the suppler request with request properties from client   
+        oGetTableRequests[1]  = pRequest:TableRequests[1].  
+        // create request for the other server side tables
+        do i = 2 to dataset dsSupplierServer:num-buffers:
+            oGetTableRequests[i] = new GetDataTableRequest(dataset dsSupplierServer:get-buffer-handle(i):table-handle:name).
+        end.    
+        oServerRequest = new GetDataRequest(oGetTableRequests).   
+        
+        // TODO the response for supplier is ok, but is should not have xrefs that is not exposed to cleint   
+        oResponse = DataAccess:FetchData(oServerRequest, input-output dataset dsSupplierServer ).
+        
         CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
         
         return oResponse.
@@ -119,39 +149,83 @@ class Business.SupplierBE inherits BusinessEntity:
     
     // override to submit the server dataset with xrefs to dataacces 
     method protected override Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
-         
+        /*
+        Throw not implemented  errrorif extranl dataset is passed. 
+        Since another static dataset with the static ttSuppler is submitted to data access we can only allow the internal dataset to be submitted
+        Support for external would either require copy from the external to the internal or a dynamic dataset with a buffer for the static ttSupplier
+        to send to data access   
+        */   
+        if phDataset <> dataset dsSupplier:handle then 
+            undo, throw new NotImplementedError("Submit of external dataset", "The SupplierBE internal dataset must be used to update/delete suppliers.").
+        
+          phDataset:write-json("file","temp/supplier-delete-client.json",yes,?,no,yes,yes). 
+        
+        
         // create xrefs and items   
-        CreateSupplierXrefs(dataset-handle phDataset by-reference, input dataset dsSupplierServer by-reference).
+        CreateSupplierXrefsForSubmit(dataset-handle phDataset by-reference, input dataset dsSupplierServer by-reference).
+        
+        dataset dsSupplierServer:write-json("file","temp/supplier-delete-server.json",yes,?,no,yes,yes). 
         
         super:SubmitData(poUpdateDataRequest,  input-output dataset dsSupplierServer by-reference).    
+        
         if dataset dsSupplierServer:error then  
             ThrowDatasetError(dataset dsSupplierServer:handle). 
-        empty temp-table ttSupplierItem.
-        // create supplier items to return to UI
-        CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
+        
+        // create supplier items to return to UI - pass true to empty first 
+        CreateSupplierItems(dataset-handle phDataset by-reference, input dataset dsSupplierServer by-reference).
     
     end method.
     
     /* Create data for server dataset from UI dataset 
-       items are created to check optimistic locking. 
+       items are needed as parent of xref. Will also go through optimistic lock check. 
        TODO - allow item values that reflects inventory and changes often to be ommitted for optimistic lock check  
     */   
-    method protected void CreateSupplierXrefs(input dataset dsSupplier, input dataset dsSupplierServer ):
-        temp-table ttSupplierItemXref:tracking-changes = true. 
-        for each ttSupplierItem:
+    method protected void CreateSupplierXrefsForSubmit(input dataset dsSupplier, input dataset dsSupplierServer ):
+        /* While we expose the full item to the client we do not allow modifications of items 
+           only remove from supplier (delete xref) or add to supplier(create xref) 
+          (the same item can be under other suppliers in this dataset) */
+        for each ttSupplierItem where row-state(ttSupplierItem) = row-modified:
+            undo, throw new UnsupportedOperationError("The submitted item has been modified. Only create (add to supplier) or delete (remove from supplier) is supported for items under a Supplier."). 
+        end.
+        
+        for each ttSupplierItem where row-state(ttSupplierItem) = row-created:
             create ttItem.
             buffer-copy ttSupplierItem to ttItem.
+            temp-table ttSupplierItemXref:tracking-changes = true. 
             create ttSupplierItemXRef.
             assign ttSupplierItemXref.SupplierIDNum = ttSupplierItem.SupplierIDNum
                    ttSupplierItemXref.ItemNum       = ttSupplierItem.ItemNum.
+            
+            finally:
+                temp-table ttSupplierItemXref:tracking-changes = false. 
+            end finally.       
+        end.
+       
+        // use for each biSupplierItem to reach the deleted  
+        for each biSupplierItem where row-state(biSupplierItem) = row-deleted:
+            create ttItem.
+            buffer-copy biSupplierItem to ttItem.
+            
+            create ttSupplierItemXRef.
+            assign ttSupplierItemXref.SupplierIDNum = biSupplierItem.SupplierIDNum
+                   ttSupplierItemXref.ItemNum       = biSupplierItem.ItemNum.
+                   
+            // delete with tracking changes on to submit to server 
+            temp-table ttSupplierItemXref:tracking-changes = true. 
+            delete ttSupplierItemXref.
+            finally:
+                temp-table ttSupplierItemXref:tracking-changes = false. 
+            end finally.       
         end.           
+                   
         finally:
             temp-table ttSupplierItemXref:tracking-changes = false. 
         end finally.     
     end method. 
     
     /* Create data for poublic (UI/WEB) dataset from server dataset  */
-    method protected void CreateSupplierItems(input dataset dsSupplier, input dataset dsSupplierServer ):
+    method protected void CreateSupplierItems(input dataset dsSupplier, input dataset dsSupplierServer):
+        empty temp-table ttSupplierItem.
         for each ttSupplierItemXref: 
             find ttItem where ttItem.ItemNum = ttSupplierItemXref.ItemNum.
             create ttSupplierItem. 
