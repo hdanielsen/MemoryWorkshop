@@ -404,7 +404,7 @@ class Pmfo.Core.DataLayer.DataAccess abstract inherits DataService implements ID
         //         so make sure they are thrown and shown to user 
         if phDataset:error then 
             undo, throw new ValidationError(). 
-            
+        
         // setter and destructor for DatasetHandle to avoid memory leak 
         // it cannot be deleted here since the method is not final and can be (and is) overridden 
         DatasetHandle = phDataset.  

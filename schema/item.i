@@ -14,7 +14,8 @@ define temp-table ttItem no-undo serialize-name "items" {1}  before-table biItem
    field Category1                        as character   serialize-name "category1"
    field Category2                        as character   serialize-name "category2"
    field CatPage                          as integer     serialize-name "catPage"
-   field ItemImage                        as blob        serialize-name "itemImage"
+   field ItemImage                        as clob        serialize-name "itemImage"
+   field ItemImageCLob                    as clob        serialize-hidden  
    field ItemName                         as character   serialize-name "itemName"
    field ItemNum                          as integer     serialize-name "itemNum"
    // MinQty - Replenishment threshold.

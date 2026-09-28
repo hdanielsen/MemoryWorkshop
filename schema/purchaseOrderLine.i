@@ -11,9 +11,9 @@ define temp-table ttPurchaseOrderLine no-undo serialize-name "purchaseOrderLines
    field Discount                         as integer     serialize-name "discount"
    field ExtendedPrice                    as decimal     serialize-name "extendedPrice"
    field ItemNum                          as integer     serialize-name "itemNum"
-   field LineNum                          as integer     serialize-name "lineNum"
-   field POLineStatus                     as character   serialize-name "lineStatus"
-   field PONum                            as integer     serialize-name "purchaseOrderNum"
+   field LineNum                          as integer     serialize-name "lineNum"          init ? // allow create of lines before po 
+   field POLineStatus                     as character   serialize-name "lineStatus"       
+   field PONum                            as integer     serialize-name "purchaseOrderNum" init ? // allow create of lines before po
    field Price                            as decimal     serialize-name "price"
    field Qty                              as integer     serialize-name "quantity"
    field zz_seq                           as int64       serialize-hidden

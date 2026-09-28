@@ -46,7 +46,11 @@ class DataSource.PurchaseOrderDS inherits DataSource:
         iNewPoNum =  next-value (NextPonum).
       
         // propagate key change to all related tables and assign to self 
-        UpdateUtil:UpdateKey(buffer ttPurchaseOrder:handle, "PONum",iNewPoNum). 
+        UpdateUtil:UpdateKey(buffer ttPurchaseOrder:handle, "PONum",iNewPoNum).
+        if ttPurchaseOrder.DateEntered <> today then 
+            AddWarning(substitut("New Purchase Order &1 Data Entered was set to today",iNewPoNUm)).
+        ttPurchaseOrder.DateEntered = today.
+         
     end method.
     
 end class.

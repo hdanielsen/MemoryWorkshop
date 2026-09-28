@@ -48,7 +48,7 @@ class Pmfo.Util.TableUtil:
             hField = hTable:default-buffer-handle:buffer-field(phCopyFields[iField]:name). 
             hField:serialize-name = phCopyFields[iField]:serialize-name.
             if lookup(phCopyFields[iField]:name,pcIndexFields) > 0 then
-               hField:serialize-hidden = true.
+                hField:serialize-hidden = true.
         end.
         return hTable.    
     end method. 
@@ -115,6 +115,13 @@ class Pmfo.Util.TableUtil:
             end.     
         end.
         hTable:temp-table-prepare(pcTablename,valid-handle(phBuffer:table-handle:before-table)).
+        /* the before table name is irrelevant since it will be decided by the definition used 
+           in the static name that it is being passed into (bind, by-reference or deep copy) for 
+           static code and dynamic code 
+           should use buffer-handle:name. The code example below is allowed if necessary (not tested here)  
+           hTable:before-table:name = substitute("bi&1",substr(phBuffer:table-handle:name,3)).
+        */   
+         
         hTable:serialize-name = phBuffer:table-handle:serialize-name.
         // copy serialize name on fields
         do iField = 1 to extent(pCopyFields):

@@ -416,7 +416,7 @@ class Pmfo.Util.DatasetUtil:
         
     end method. 
    
-    // use when the from dataset may go out of scope (when the owner is garbage collected)
+     // use when the from dataset may go out of scope (when the owner is garbage collected)
     method public static void CloneChildRelations (pNewdataset as handle,phNewParent as handle, phOriginalParent as handle):
         define variable i as integer no-undo.
         define variable hOriginalBuffer as handle no-undo.
@@ -465,35 +465,7 @@ class Pmfo.Util.DatasetUtil:
         end catch.
     end method. 
     
-    
-    method public static handle GetRecursiveRelation (phHandle as handle):
-        define variable iChild as integer no-undo. 
-        define variable hRelation as handle no-undo.
-        if not valid-handle(phHandle) then
-            undo, throw new IllegalArgumentError("Invalid handle").
-            
-        if phHandle:type = "dataset" then
-        do iChild = 1 to phHandle:num-top-buffers :
-            hRelation = GetRecursiveRelation(phHandle:get-top-buffer (iChild)).
-            if valid-handle(hRelation) then
-                return hRelation.                    
-        end.
-        else do:    
-            if phHandle:type <> "buffer" then
-                undo, throw new IllegalArgumentError(subst("Invalid handle type '&1'",phHandle:type)).
-            do iChild = 1 to phHandle:num-child-relations:
-                if phHandle:get-child-relation (iChild):recursive then 
-                    return phHandle:get-child-relation (iChild).
-                else do:
-                    hRelation = GetRecursiveRelation(phHandle:get-child-relation (iChild):child-buffer).
-                    if valid-handle(hRelation) then
-                        return hRelation.   
-                end.        
-            end.
-        end.       
-        return ?.
-    end method. 
-    
+   
     method public static logical HasBeforeState(phDataset as handle,piState as integer):
         define variable i as integer no-undo.
         define variable hBefore as handle no-undo.
@@ -650,38 +622,26 @@ class Pmfo.Util.DatasetUtil:
         undo, throw new NotFoundError(subst("Entity &1",pcCollections[piStart]),pcCollections[piStart - 1]).
     end.      
     
-    
-    
-/*    method public static void AssertAndEnforceForeignKeys(phDataset as handle):      */
-/*        define variable i       as integer no-undo.                                  */
-/*        define variable hBuffer as handle no-undo.                                   */
-/*        Assert:IsType(phDataset, DataTypeEnum:Dataset).                              */
-/*        do i = 1 to phDataset:num-buffers:                                           */
-/*            hbuffer = phDataset:get-buffer-handle(i).                                */
-/*            AssertAndEnforceForeignKeysBuffer(hBuffer).                              */
-/*        end.                                                                         */
-/*    end method.                                                                      */
-/*                                                                                     */
-/*    method private static void AssertAndEnforceForeignKeysBuffer(phBuffer as handle):*/
-/*        define variable i             as integer   no-undo.                          */
-/*        define variable hChildBuffer  as handle    no-undo.                          */
-/*        define variable hQuery        as handle no-undo.                             */
-/*        Assert:IsType(phBuffer, DataTypeEnum:Buffer).                                */
-/*        if valid-object(phBuffer:parent-relation) then                               */
-/*        do:                                                                          */
-/*            message phBuffer:parent-relation:query:prepare-string                    */
-/*            phBuffer:parent-relation:nested                                          */
-/*            phBuffer:parent-relation:foreign-key-hidden                              */
-/*            hQuery:add-buffer(phBuffer).                                             */
-/*            hQuery:query-prepare(subst("for each &1",phbuffer:name)).                */
-/*            hQuery:query-open().                                                     */
-/*            hQuery:get-first.                                                        */
-/*            do while phBuffer:avail:                                                 */
-/*                hQuery:get-next.                                                     */
-/*            end.                                                                     */
-/*        end.                                                                         */
-/*    end.                                                                             */
-/*                                                                                     */
-    
+    method public static handle CreateDatasetFromMultipleDatasets(phDataSetS as handle extent):
+        define variable iDataset        as integer no-undo.
+        define variable iBuffer         as integer no-undo.
+        define variable hOriginalBuffer as handle no-undo.
+        define variable hBuffer      as handle no-undo.
+        define variable hNewDataset as handle no-undo.
+        
+        create dataset hNewDataset.
+        
+        do iDataset = 1 to extent(phDataSets):
+            do iBuffer = 1 to phDataSets[iDataset]:num-top-buffers:   
+                hOriginalBuffer = phDataSets[iDataset]:get-top-buffer(iBuffer).
+                create buffer hBuffer for table hOriginalBuffer buffer-name hOriginalBuffer:table-handle:name.   
+                hBuffer:serialize-name = hOriginalBuffer:serialize-name.
+                hNewDataset:add-buffer(hBuffer).
+                CopyChildRelations(hNewdataset, hBuffer, hOriginalBuffer).
+            end.
+        end.
+        return hNewDataset.   
+    end method.     
+           
          
 end class.

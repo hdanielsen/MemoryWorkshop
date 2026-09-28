@@ -1,18 +1,12 @@
  
  /*------------------------------------------------------------------------
     File        : FieldValue
-    Purpose     : Hoilds a field value detached from data buffer 
+    Purpose     : Holds a field value detached from data buffer 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Fri May 13 12:42:52 EDT 2022
-    Notes       : As of current there is no buffer handle
-                  It is conceivable that a constgructor or methods may be added to pass a buffer
-                  In that case thew buffer must not be stores since this object 
-                  is to be used detached after the object that holds the buffer is garbage collected
-                  or the buffer is out of scope.
-                - This CAN be resolved by creating an internal private dynamic buffer, but that 
-                  seems as overkill for this usage 
+    Created     : May 2022
+    Notes       :  
  ----------------------------------------------------------------------*/
   
 

@@ -4,9 +4,8 @@
     Purpose     : Basic access properties for entities
     Syntax      : 
     Description : These defines the entity and are cached in the Entity resource
-                  data that the ServiceManager uses and all, except ClientOnly
-                  which is internal, are used to generate the Catalog list that
-                  only shows the name and ther access (allowed methods)
+                  data that the ServiceManager uses and all except ClientOnly
+                  which is internal, are used to generate the resources.json
                -  Change of public will require a refresh of resources and should
                   only be done from the construtor.
                   This refresh shappens automatically when the class is changed

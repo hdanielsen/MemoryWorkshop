@@ -70,7 +70,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
     define public property TotalCountTemplate     as character init "&1@count" no-undo get.
     define public property SuccessEntityName      as character init "@success" no-undo get.
   
-     
     define protected property ServiceManager as IServiceManager no-undo 
         get():
             return cast(Application:ServiceManager,IServiceManager).
@@ -331,10 +330,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                 if valid-handle(hRequestedbuffer) = false then 
                     lReturnDataAfterDelete = true.
                 else if hDataset:get-buffer-handle(1) = hRequestedbuffer then  
-                    lReturnDataAfterDelete = true.
-                else if valid-handle(DatasetUtil:GetRecursiveRelation(hRequestedBuffer)) then
-                    lReturnDataAfterDelete = true.
-                    
+                    lReturnDataAfterDelete = true.           
             end.   
         end.
         

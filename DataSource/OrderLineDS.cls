@@ -49,13 +49,10 @@ class DataSource.OrderLineDS inherits DataSource:
     
     
     method override protected void WriteEndTransValidate( input dataset-handle  phDataset):
-        find item where Item.ItemNum = ttOrderLine.ItemNum.
-        Item.OnOrder = Item.OnOrder + ttOrderLine.Qty.
-              
-        AddWarning("Item on hand is less than min qty","qty"). 
+        
+       
          /*** from item trigger 
-         IF Item.MinQty >
-   ((Item.OnHand - Item.Allocated) + item.onorder) THEN DO:
+         IF Item.MinQty >   ((Item.OnHand - Item.Allocated) + item.onorder) THEN DO:
   
    FIND FIRST supplieritemxref where supplieritemxref.itemnum =
    item.itemnum NO-LOCK NO-ERROR.

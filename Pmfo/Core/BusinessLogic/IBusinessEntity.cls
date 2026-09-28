@@ -33,14 +33,13 @@ interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.
     // get all data 
     method public IGetDataResponse GetData( output dataset-handle phDataset ).
    
-    
     // get requested dataset  
     method public IGetDataResponse GetData( input pRequest as IGetDataRequest,output dataset-handle phDataset ).
    
-    // get requested main table - implementation should not support by-reference. The GetsData that outputs dataset should be used for that
+    // get requested main table - implementation is not expected to support by-reference. (use dataset methods for that) 
     method public logical GetData( input pTableRequest as IGetDataTableRequest, output table-handle phTable).
     
-    // get requested main table - implementation should not support by-reference. The GetsData that outputs dataset should be used for that
+    // get requested main table - implementation is not expected to support by-reference.  (use dataset methods for that)
     method public logical GetData( input pQueryEntry as IQueryEntry, output table-handle phTable). 
    
     method public logical GetData( output table-handle phTable).
@@ -51,7 +50,11 @@ interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.
     
     method public Object UpdateData (input-output dataset-handle phDataset,poUpdateDataRequest as IUpdateDataRequest).     
    
+    /* return dataset for GET request - called by service interface (OperationHandler) layer to get dataset for GetData */
     method public handle GetRequestDataset(pClientRequest as IClientRequest).
+    
+    /* return dataset for POST,PUT,DELETE request - called by service interface (OperationHandler) 
+       layer to get dataset to load client data int and pass to UpdateData */
     method public handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
     
     method public void Clear().

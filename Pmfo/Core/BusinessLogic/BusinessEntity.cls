@@ -2,11 +2,8 @@
  /*------------------------------------------------------------------------
     File        : BusinessEntity
     Purpose     : Abstract class for business logic for a table - exposed as resource   
-    Syntax      : 
-    Description : 
     Author(s)   : hdaniels
-    Notes       : This is a stripped down demo version based on a fully
-                  functioning framework.
+    Notes       : This is a stripped down demo version. 
                 - Application implement concrete subclasses for each entity/table
                   that is exposed by application. The table is implemented as a 
                   temp-table witha corresponding dataset. The table is typically 
@@ -53,16 +50,21 @@ using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataResponse from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableResponse from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataResponse from propath.
 using Pmfo.Core.BusinessLogic.UpdateDataRequest from propath.
 using Pmfo.Core.Common.DataService from propath.
+using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
+using Pmfo.Core.Common.IWarningMessages from propath.
 using Pmfo.Core.DataLayer.IDataAccess from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
+using Pmfo.Core.Error.BadRequestError from propath.
 using Pmfo.Core.Error.IllegalArgumentError from propath.
 using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.IllegalStateError from propath.
 using Pmfo.Core.Error.NotImplementedError from propath.
+using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Core.Error.ValidationError from propath.
 using Pmfo.Core.Manager.IServiceManager from propath.
 using Pmfo.Core.Manager.ISessionManager from propath.
@@ -70,16 +72,10 @@ using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Core.Service.JsonDatasetErrorProcessor from propath.
 using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.DatasetUtil from propath.
+using Pmfo.Util.ErrorStringUtil from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
-using Pmfo.Core.Error.UnsupportedOperationError from propath.
-using Pmfo.Core.Common.WarningMessages from propath.
-using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
-using Pmfo.Core.Common.IWarningMessages from propath.
-using Pmfo.Core.Error.BadRequestError from propath.
-using Pmfo.Util.ErrorStringUtil from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Resource as character no-undo get. protected set.
@@ -173,6 +169,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             CanRead = plCanRead.
         end.    
     
+    
     define public property ClientOnly     as logical        no-undo get. protected set.
     
     define public property WarningMessages as IWarningMessages no-undo 
@@ -182,6 +179,16 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
                undo, throw new IllegalOperationError("Cannot set WarningMessages when the existing WarningMessages has data").
            WarningMessages = pWarningMessages.         
         end. 
+    
+    define protected property WarningMessageTableHandle as handle no-undo 
+        get().
+            if not valid-handle(WarningMessageTableHandle) then 
+               if type-of(WarningMessages,IWarningMessageTableHolder) then 
+                    WarningMessageTableHandle = cast(WarningMessages,IWarningMessageTableHolder):tableHandle.
+            return WarningMessageTableHandle.  
+        end. 
+        set.
+    
     
     define protected property Initialized as logical no-undo get. set. 
     
@@ -409,10 +416,10 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         
         this-object:Clear(). // clear for request for table 
         GetData(oRequest). 
-        
         phTable = Datasets[1]:get-buffer-handle(1):table-handle.
         return phTable:has-records.     
     end method.
+    
     
     method public logical GetData( input poRequest as IGetDataRequest):
         define variable hDataset as handle no-undo.
@@ -421,6 +428,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
       
         return hDataset:get-buffer-handle(poRequest:TableRequests[1]:tablename):table-handle:has-records.
     end method.
+    
     
     method public IGetDataResponse CreateDataResponse(poRequest as IGetDataRequest):
         define variable iTable as integer no-undo.
@@ -556,15 +564,12 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         if phDataset:error then
             ThrowDatasetError(phDataset).
         
-        if valid-object (WarningMessages) then 
-            hWarning = cast(WarningMessages,IWarningMessageTableHolder):tableHandle.
-        
-        oResponse = DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset, output table-handle hWarning append).        
+        oResponse = DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset, output table-handle WarningMessageTableHandle append).        
         
         return oResponse. 
     end method.
     
-    method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):
+    method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):        
         return DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
     end method.
     

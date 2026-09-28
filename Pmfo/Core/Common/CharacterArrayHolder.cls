@@ -5,7 +5,7 @@
     Syntax      : 
     Description : 
     Author(s)   : hdanielsen PSC
-    Created     : Tue Jun 07 09:40:26 EDT 2016
+    Created     : Jun 2016
     Notes       : OpenEdge.Core does not have implementnion of this  
   ----------------------------------------------------------------------*/
 block-level on error undo, throw.

@@ -5,7 +5,7 @@
     Syntax      : 
     Description : Field value as object
     Author(s)   : hdaniels
-    Created     : Fri May 13 12:31:35 EDT 2022
+    Created     : May 2022
     Notes       : 
   ----------------------------------------------------------------------*/
 

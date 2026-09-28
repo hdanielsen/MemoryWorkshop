@@ -12,34 +12,30 @@
 
 block-level on error undo, throw.
 
- 
 using OpenEdge.Core.Assert from propath.
 using OpenEdge.Core.Collections.Collection from propath.
 using OpenEdge.Core.Collections.ICollection from propath.
-using OpenEdge.Core.Collections.IIterator from propath.
 using OpenEdge.Core.Collections.IList from propath.
 using Pmfo.Core.BusinessLogic.GetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.GetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
+using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.Parser.KeyValueParser from propath.
 using Pmfo.Core.BusinessLogic.QueryDefinition from propath.
+using Pmfo.Core.BusinessLogic.RequestTypeEnum from propath.
 using Pmfo.Core.Error.BadRequestError from propath.
 using Pmfo.Core.Error.IllegalArgumentError from propath.
-using Pmfo.Core.Error.IllegalOperationError from propath.
 using Pmfo.Core.Error.NotFoundError from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
 using Pmfo.Core.Error.UnsupportedOperationError from propath.
 using Pmfo.Core.Service.IClientGetRequest from propath.
 using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Util.DatasetUtil from propath.
 using Pmfo.Util.ServiceInfo from propath.
-using Pmfo.Core.BusinessLogic.RequestTypeEnum from propath.
-using Pmfo.Core.Common.IMethod from propath.
-using Pmfo.Core.Error.NotImplementedError from propath.
-using Pmfo.Core.BusinessLogic.IQueryDefinition from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
  
-
+ 
 class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract: 
      define protected property HasWarnings as logical no-undo get. set.
       
@@ -51,16 +47,11 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
              HasWarnings = true.
          end.   
     define protected property MainRequestedBufferName    as character  no-undo get. set.
-    define private variable MsgTemplate     as character no-undo
-            init "Dataset with serialize-name &1 does not match collection &2".
       
     constructor public DataRequestBuilder ( ):
         super ().
     end constructor.
     
-/*    method public IGetDataRequest BuildGetDataRequest(pClientRequest as IClientRequest, input phDataset as handle ):*/
-/*        return BuildGetDataRequest(pClientRequest,phDataset,?).                                                     */
-/*    end method.                                                                                                     */
    
     method public void AssertURIQuery(pClientRequest as IClientRequest, pRequestType  as RequestTypeEnum, input phhandle as handle):
         define variable hDataset as handle no-undo.
@@ -68,12 +59,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
             hDataset = phhandle:dataset.
         else     
             hDataset = phhandle.
-         
-       // if type-of(pCLientRequest,IClientGetRequest) and RequestTypeEnum:MultiTable:Equals(pRequestType) = false  then
-        //    cast(pCLientRequest,IClientGetRequest):AssertUriQuery(pRequestType,hDataset).
-      //  else   
-        //    pClientRequest:AssertUriQuery(pRequestType).    
-            
     end method.    
     
     method public void AssertAliases(pClientRequest as IClientRequest):
@@ -88,7 +73,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
         define variable oRequestType  as RequestTypeEnum no-undo.
         define variable oRequest      as IGetDataRequest no-undo.
         define variable oTableRequest as IGetDataTableRequest no-undo.
-        define variable oMethod       as IMethod         no-undo.
         define variable lNoerror      as logical         no-undo.
         AssertDataset(pClientRequest, phDataset).
          
@@ -124,12 +108,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
         if oRequests:Size > 0 then 
         do:
             oRequest = CreateGetDataRequest(pClientRequest,cast(oRequests:ToArray(),IGetDataTableRequest),oRequestType).
-             
-/*            if HasWarnings then                                   */
-/*            do:                                                   */
-/*                cast(oRequest,GetDataRequest):Warnings = Warnings.*/
-/*            end.                                                  */
-           // oRequest:External = pclientRequest:Method > "".
             if type-of(pClientRequest,IClientGetRequest) then
                 oRequest:Timeout = cast(pClientRequest,IClientGetRequest):Timeout .
             
@@ -137,22 +115,9 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
             do:  
                 oRequest:MainRequestedBuffer = MainRequestedBufferName.
                 oTableRequest = cast(oRequest:GetTableRequest(phDataset:get-buffer-handle(MainRequestedBufferName)),IGetDataTableRequest).
-/*                if valid-object(oTableRequest:NamedQuery) then                                          */
-/*                do:                                                                                     */
-/*                    // TODO report BUG??? - the table request is apparently garbage collected as soon as*/
-/*                    // oMethod:SingleObject or pClientRequest:serviceMethod is called                   */
-/*                    oMethod = pClientRequest:ServiceMethod.                                             */
-/*                    oRequest:NoError = oMethod:SingleObject.                                            */
-/*                                                                                                        */
-/*                end.                                                                                    */
             end.
             else do:
                 undo, throw new NotImplementedError("Process without finnding MainRequestBuffer"). 
-             //   oMethod = pClientRequest:ServiceMethod.
-              //  if valid-object(oMethod) then
-              //  do:
-                //    cast(oRequest,GetDataRequest):NamedQuery = CreateNamedQuery(pClientRequest,extent(pClientRequest:Collections) - 1).
-               // end.     
             end.     
             
             if pClientRequest:HasALias then 
@@ -184,8 +149,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
     
     method protected RequestTypeEnum ProcessTableRequests(input pRequests as ICollection, pClientRequest as IClientRequest, input phBuffer as handle, piCollection as integer):
         define variable oTableRequest     as IGetDataTableRequest no-undo.
-        define variable oMethod           as IMethod no-undo.
-         
         define variable oRequestType      as RequestTypeEnum no-undo.
         
         oTableRequest = new GetDataTableRequest(phBuffer:table-handle:name).
@@ -200,48 +163,16 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
         else do: 
             if extent(pClientRequest:Collections) > piCollection then
             do: 
-                        undo, throw new UnsupportedOperationError(subst("Request with no key provided for parent resource '&1'",
-                                                                        pClientRequest:Collections[piCollection])).
-               
-/*                oMethod = pClientRequest:ServiceMethod.                                                                                            */
-/*                if valid-object(oMethod) then                                                                                                      */
-/*                do:                                                                                                                                */
-/*                    if pClientRequest:KeyWheres[piCollection] = "" then                                                                            */
-/*                        undo, throw new UnsupportedOperationError(subst("Request for &1 &2 in child with no key provided for parent resource '&3'",*/
-/*                                                                        oMethod:BaseTypeName,                                                      */
-/*                                                                        oMethod:name,                                                              */
-/*                                                                        pClientRequest:Collections[piCollection])).                                */
-/*                                                                                                                                                   */
-/*                end.                                                                                                                               */
+                undo, throw new UnsupportedOperationError(subst("Request with no key provided for parent resource '&1'",
+                                                                pClientRequest:Collections[piCollection])).
             end.
             oRequestType = ProcessParentTable(pRequests,pClientRequest,phBuffer,piCollection,oTableRequest ).
         end. 
         return oRequestType.
     end method.
     
-    
     method protected logical HasUniqueParentJoin( pClientRequest as IClientRequest, input phBuffer as handle): 
-/*        define variable oIterator     as IIterator no-undo.                                     */
-/*        define variable oRelation     as IRelationDefinition no-undo.                           */
-/*        if valid-handle(phBuffer:parent-relation) then                                          */
-/*        do:                                                                                     */
-/*            oIterator = pClientRequest:Relations:Iterator().                                    */
-/*            do while oIterator:HasNext():                                                       */
-/*                oRelation = cast(oIterator:Next(),IRelationDefinition).                         */
-/*                if  oRelation:ParentName = phBuffer:parent-relation:parent-buffer:serialize-name*/
-/*                and oRelation:PublicName = phBuffer:serialize-name then                         */
-/*                do:                                                                             */
-/*                    // if one to one or manytoone the join is unique and does not need a key    */
-/*                    if RelationTypeEnum:OneToOne:Equals(oRelation:Cardinality)                  */
-/*                    or RelationTypeEnum:ManyToOne:Equals(oRelation:Cardinality) then            */
-/*                    do:                                                                         */
-/*                        return true.                                                            */
-/*                    end.                                                                        */
-/*                end.                                                                            */
-/*            end.                                                                                */
-/*         end.                                                                                   */
-         return true.
-       //  return false.
+        return true.
     end method.       
  
     method protected RequestTypeEnum ProcessParentTable( input pRequests as ICollection, pClientRequest as IClientRequest, input phBuffer as handle, piCollection as integer, pTableRequest as IGetDataTableRequest):
@@ -317,31 +248,11 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
                                                       piCollection     as integer,
                                                       pTableRequest    as IGetDataTableRequest):
         define variable oRequestType     as RequestTypeEnum no-undo.
-        define variable oMethod           as IMethod no-undo.
         define variable lSetNamedQuery as logical no-undo.
         define variable cUsedAliases as character no-undo.
         define variable lHasUniqueParent as logical no-undo.
         
         MainRequestedBufferName = phBuffer:name. 
-      //  pTableRequest:ExternalPaging = true. // return serialize-name in multi-column context prop  
-     //   pTableRequest:IsMainTable = true. // tell server where to support/apply innerjoin   
-        
-      //  oMethod = pClientRequest:ServiceMethod. 
-        
-/*        if valid-object(oMethod) then                                                                                              */
-/*        do:                                                                                                                        */
-/*            if type-of(oMethod,IFunction) then                                                                                     */
-/*            do:                                                                                                                    */
-/*               // as of current only assign request type if singleObject is true. Otherwise let the main table request decide below*/
-/*                if oMethod:SingleObject then                                                                                       */
-/*                    oRequestType = RequestTypeEnum:SingleRow.                                                                      */
-/*                                                                                                                                   */
-/*               // do at bottom so we are sure that url is parsed.                                                                  */
-/*               // TODO messy - cleanup - the alias support requires that we parse the urlquery before                              */
-/*               // so that we can pass Aliases to CreateNamedQuery                                                                  */
-/*                lSetNamedquery = true.                                                                                             */
-/*            end.                                                                                                                   */
-/*        end.                                                                                                                       */
         if pClientRequest:KeyWheres[piCollection] > "" then 
         do:
             assign
@@ -351,35 +262,9 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
             // Don't assign if assigned from method:singleRow above
             if not valid-object(oRequestType) then     
                 oRequestType = RequestTypeEnum:SingleRow.
-            // validate method resource binding  
-/*            if valid-object(oMethod) and type-of(oMethod,IFunction) and cast(oMethod,IFunction):Binding = MethodBindingEnum:Collection then                 */
-/*                undo, throw new IllegalOperationError(subst("'&1' &2 cannot be invoked for resource url '&3' that has a key",                               */
-/*                                                            oMethod:name,                                                                                   */
-/*                                                            lc(oMethod:BaseTypeName),                                                                       */
-/*                                                            subst("/&1(&2)",pClientRequest:collections[piCollection],pClientRequest:KeyWheres[piCollection])*/
-/*                                                           )                                                                                                */
-/*                                                      ).                                                                                                    */
         end.
         else // collection      
         do:
-           // move up here after code freeze 6/20/2023
-           // lHasUniqueParent = HasUniqueParentJoin(pClientRequest, phBuffer) .
-                
-/*            if valid-object(oMethod)                                                                                                                                 */
-/*            and type-of(oMethod,IFunction)                                                                                                                           */
-/*            and cast(oMethod,IFunction):Binding = MethodBindingEnum:Entity then                                                                                      */
-/*            do:                                                                                                                                                      */
-/*                lHasUniqueParent = HasUniqueParentJoin(pClientRequest, phBuffer) .                                                                                   */
-/*                // if there ius auniwu parent jon then we have a key to bind to a single entiity                                                                     */
-/*                if lHasUniqueParent = false then                                                                                                                     */
-/*                    undo, throw new IllegalOperationError(subst("'&1' &2 cannot be invoked for resource url '&3' without a key that uniquely identifes the resource",*/
-/*                                                                oMethod:name,                                                                                        */
-/*                                                                oMethod:BaseTypeName,                                                                                */
-/*                                                                subst("/&1",pClientRequest:collections[piCollection])                                                */
-/*                                                                )                                                                                                    */
-/*                                                            ).                                                                                                       */
-/*                                                                                                                                                                     */
-/*            end.                                                                                                                                                     */
             // Don't assign if assigned from method:singleRow above
             if not valid-object(oRequestType) then
             do: 
@@ -389,34 +274,11 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
         
         AssertURIQuery(pClientRequest, oRequestType, phBuffer).  
         
-/*        if lSetNamedQuery then                                                       */
-/*           pTableRequest:NamedQuery = CreateNamedQuery(pClientRequest, piCollection).*/
-/*                                                                                     */
         if type-of(pClientRequest,IClientGetRequest) then 
             ProcessMainTableRequest(pRequests,cast(pClientRequest,IClientGetRequest),pTableRequest,phBuffer,piCollection,oRequestType).
         return oRequestType.
     end method.
     
-/*    method protected INamedQuery CreateNamedQuery(pClientRequest  as IClientRequest, piCollection as integer) :                                             */
-/*        define variable oMethod       as IMethod no-undo.                                                                                                   */
-/*        define variable oNamedQuery   as INamedQuery no-undo.                                                                                               */
-/*        define variable cUsedAliases  as character no-undo.                                                                                                 */
-/*        oMethod = pClientRequest:ServiceMethod.                                                                                                             */
-/*                                                                                                                                                            */
-/*        if pClientRequest:KeyWheres[piCollection + 1] > "" then                                                                                             */
-/*        do:                                                                                                                                                 */
-/*             oNamedQuery = cast(oMethod,IFunction):CreateNamedQuery(pClientRequest:KeyWheres[piCollection + 1],pClientRequest:Aliases, output cUsedAliases).*/
-/*             pClientRequest:AddUsedAliases(cUsedAliases).                                                                                                   */
-/*        end.                                                                                                                                                */
-/*        else do:                                                                                                                                            */
-/*           if oMethod:IsParametersRequired() then                                                                                                           */
-/*                     // not found or bad request...                                                                                                         */
-/*                     // decided to use not found since the URI is wrong and this is also a client programmer error                                          */
-/*               undo, throw new NotFoundError(subst("&1 Function without parameters",pClientRequest:ServiceURI)).                                            */
-/*          oNamedQuery = cast(oMethod,IFunction):CreateNamedQuery().                                                                                         */
-/*        end.                                                                                                                                                */
-/*        return oNamedQuery.                                                                                                                                 */
-/*    end method.                                                                                                                                             */
     
     method protected  abstract void ProcessMainTableRequest(pRequests        as ICollection, 
                                                             pClientRequest   as IClientGetRequest,

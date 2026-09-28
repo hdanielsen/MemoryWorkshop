@@ -1,13 +1,11 @@
  
  /*------------------------------------------------------------------------
-    File        : ImageTypes
+    File        : MimeTypes
     Purpose     : 
     Syntax      : 
     Description : 
     Author(s)   : hdaniels
-    Created     : Fri Jun 04 12:21:45 EDT 2021
-    Notes       : 
-    06/20/25 jhl 9829 Added doc and ppt mimetypes
+    Created     : Jun 2021
   ----------------------------------------------------------------------*/
 
  

@@ -7,10 +7,6 @@
     {
       "Manager": "Ccs.Common.ISessionManager",
       "Implementation": "Pmfo.Core.Manager.SessionManager"
-    }, 
-    {
-      "Manager": "Pmfo.Core.Manager.ILoggingManager",
-      "Implementation": "Pmfo.Core.Manager.LoggingManager"
     }
   ]
 }

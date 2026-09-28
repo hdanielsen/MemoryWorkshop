@@ -10,11 +10,16 @@
 
 block-level on error undo, throw.
 
+using Business.ItemBE from propath.
+using Ccs.BusinessLogic.QueryOperatorEnum from propath.
 using Pmfo.Core.BusinessLogic.BusinessEntity from propath.
+using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.BusinessLogic.IUpdateDataRequest from propath.
-using Pmfo.Core.BusinessLogic.IBusinessEntityFinder from propath.
-using Pmfo.Core.BusinessLogic.BusinessEntityFinder from propath.
-using Pmfo.Core.Error.BadRequestError from propath.
+using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
+using Pmfo.Core.Manager.ServiceManager from propath.
+using Pmfo.Util.Array from propath.
+using Pmfo.Util.DatasetUtil from propath.
+using Progress.Lang.Object from propath.
 
 class Business.PurchaseOrderBE inherits BusinessEntity:
 
@@ -22,8 +27,11 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
     {schema/purchaseOrder.i}
     {schema/purchaseOrderLine.i}
     {schema/item.i reference-only}
+    {schema/supplierItemXref.i reference-only}
+    {schema/supplier.i reference-only}
     
-    define property MAX_STOCK as integer init 20000 no-undo get.
+     // use to update inventory from purchaseorderline changes - Submitdata will grab the data from there and submit with purchaseorder 
+    define protected property ItemBe as ItemBE no-undo get. set.
     
     define dataset dsPurchaseOrder for ttPurchaseOrder,ttPurchaseOrderLine
         data-relation order-lines for ttPurchaseOrder, ttPurchaseOrderLine relation-fields(PONum,PONum) nested foreign-key-hidden
@@ -38,26 +46,90 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
     end method.    
     
     method protected void ValidateStaticData(input dataset dsPurchaseOrder ):
-        define variable oItemFinder as IBusinessEntityFinder no-undo.
-        oItemFinder = new BusinessEntityFinder('items').
-        oItemFinder:Bind(output table ttItem bind).
-         
-        for each ttPurchaseOrderLine:
-            find ttItem where ttItem.itemNum = ttPurchaseOrderLine.ItemNum no-error.
-            if not avail item then do: 
-                oItemFinder:Find(ttPurchaseOrderLine.ItemNum, output table ttItem append). 
-                find ttItem where ttItem.itemNum = ttPurchaseOrderLine.ItemNum no-error.
-            end.
-            if not avail ttItem then 
-                undo, throw new BadRequestError(substitute("Item &1 does not exits",ttPurchaseOrderLine.ItemNum)).
-           
-            if ttItem.OnHand + ttItem.OnOrder + ttPurchaseOrderLine.Qty >= MAX_STOCK then
-                undo, throw new BadRequestError(substitute("There are &1 items on hand and &2 items on order. You cannot purchase &3 &4 items as it will exceed max allowed stock of &5",
-                                                           ttItem.OnHand,ttItem.OnOrder, ttPurchaseOrderLine.qty, ttItem.ItemName,MAX_STOCK)). 
-                 
-        end.    
+        ItemBE = cast(ServiceManager:CreateBusinessEntity('items'),ItemBE).
+        ItemBe:ValidateAndUpdateInventory(this-object, table ttPurchaseOrder by-reference, table ttPurchaseOrderLine by-reference).
     end method.    
     
+    // create purchaseOrders for a list of items and corresponding supplierItemXref   
+    method public handle CreatePurchaseOrdersForItems(input table ttitem, input table ttsupplierItemXref, output dataset dsPurchaseOrder):  
+        define variable oSupplierItemXrefBE as IBusinessEntity no-undo.
+        define variable iMinOrder           as integer no-undo.
+        define variable iPoNum              as integer no-undo.
+        define variable iPolinenum          as integer no-undo.
+        define variable oSupplierBE         as IBusinessEntity no-undo.
+        
+        temp-table ttPurchaseOrder:tracking-changes     = true.
+        temp-table ttPurchaseOrderLine:tracking-changes = true.
+              
+        for each ttSupplierItemXref break by ttSupplierItemXRef.ItemNum:                                                                                             
+            if first-of(ttSupplierItemXref.ItemNum) then
+            do:
+                find ttItem where ttitem.ItemNum = ttSupplierItemXref.ItemNum.
+                create ttPurchaseOrderLine.
+                assign
+                    ttPurchaseOrderLine.ItemNum      = ttItem.ItemNum
+                    ttPurchaseOrderLine.Price        = ttItem.Price
+                    ttPurchaseOrderLine.POLineStatus = "Ordered"
+                    ttPurchaseOrderLine.Qty          = min(ttItem.ReOrder,ttItem.MinQty - ((ttItem.OnHand - ttItem.Allocated) + ttitem.onorder))
+                    .
+            end.
+        end.
+
+        oSupplierBE = ServiceManager:CreateBusinessEntity("Suppliers").
+
+        for each ttSupplierItemXref break by ttSupplierItemXRef.SupplierIDNum:
+            if first-of(ttSupplierItemXref.SupplierIdNum) then
+            do:
+                if can-find(first ttPurchaseOrderLine where ttPurchaseOrderLine.ItemNum = ttSupplierItemXref.SupplierIdNum
+                                                       and ttPurchaseOrderLine.PONum   = 0) then
+                do:
+                    oSupplierItemXrefBE:GetData(new QueryPredicate("SupplierIdNum",QueryOperatorEnum:Eq,ttSupplierItemXref.SupplierIdNum), output table ttSupplier) .
+
+                    assign
+                        iPonum     = iPonum + 1
+                        iPolinenum = 0.
+
+                    create ttPurchaseOrder.
+                    assign
+                        ttPurchaseOrder.PONum         = iPoNum
+                        ttPurchaseorder.POStatus      = "Ordered"
+                        ttPurchaseorder.SupplierIDNum = ttSupplieritemxref.supplieridnum
+                        .
+                    find ttSupplier where ttSupplier.SupplierIDNum = ttSupplieritemxref.supplieridnum.
+                    for each ttPurchaseOrderLine where ttPurchaseOrderLine.ItemNum = ttSupplierItemXref.SupplierIdNum
+                                                   and ttPurchaseOrderLine.PONum   = 0.
+                        assign
+                            iPolinenum                        = IPOlineNum + 1
+                            ttPurchaseOrderLine.LineNum       = IPOLineNUm
+                            ttPurchaseOrderLine.Discount      = ttSupplier.discount
+                            ttPurchaseOrderLine.ExtendedPrice = (ttPurchaseOrderLine.Price * ttPurchaseOrderLine.qty) * (1 - ttPurchaseOrderLine.Discount)
+                            .
+                    end.
+                end.
+            end.
+        end.
+        
+        finally:
+            temp-table ttPurchaseOrder:tracking-changes     = false.
+            temp-table ttPurchaseOrderLine:tracking-changes = false.
+        end finally.    
+    end method.
+    
+    // override to submit the server dataset with xrefs to dataacces 
+    method protected override Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
+        define variable hDataset as handle no-undo.
+        if valid-object(ItemBE)  then  
+            hDataset = DatasetUtil:CreateDatasetFromMultipleDatasets(Array:ToArray(dataset dsPurchaseOrder:handle,ItemBE:GetItemInventoryDataForSubmit())).
+        else 
+            hDataset = dataset dsPurchaseOrder:handle.
+       
+        super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference).         
+        finally:
+            if valid-object(hDataset) and hDataset:dynamic then 
+                delete object hDataset.   
+        end.
+    end method.    
+   
     
     
 end class.

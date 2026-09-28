@@ -9,26 +9,21 @@
     Notes       : 
   ----------------------------------------------------------------------*/
 
-using Progress.Lang.*.
-using Pmfo.Core.BusinessLogic.QueryBuilder.QueryWalker.
-using Pmfo.Core.Common.IColumnColumnMap from propath.
-using Ccs.BusinessLogic.IQuerySortEntry from propath.
-using OpenEdge.Core.Collections.ICollection from propath.
-using OpenEdge.Core.Collections.Collection from propath.
-using Pmfo.Core.BusinessLogic.QueryGroup from propath.
-using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
-using Ccs.Common.Support.ICharacterArrayHolder from propath.
-using Pmfo.Core.DataLayer.IDataSourceMap from propath.
-using Pmfo.Core.Error.IllegalOperationError from propath.
-using Pmfo.Core.BusinessLogic.CompareQueryPredicate from propath.
-using Ccs.BusinessLogic.JoinEnum from propath.
-using Pmfo.Core.BusinessLogic.QueryBuilder.QueryEntryBuilder from propath.
-using Pmfo.Core.BusinessLogic.QueryEntry from propath.
-using Pmfo.Core.BusinessLogic.ModuloQueryPredicate from propath.
-using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
-using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 
 block-level on error undo, throw.
+
+using Ccs.Common.Support.ICharacterArrayHolder from propath.
+using OpenEdge.Core.Collections.Collection from propath.
+using OpenEdge.Core.Collections.ICollection from propath.
+using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
+using Pmfo.Core.BusinessLogic.IQueryPredicate from propath.
+using Pmfo.Core.BusinessLogic.QueryBuilder.QueryWalker from propath.
+using Pmfo.Core.BusinessLogic.QueryEntry from propath.
+using Pmfo.Core.BusinessLogic.QueryGroup from propath.
+using Pmfo.Core.BusinessLogic.QueryPredicate from propath.
+using Pmfo.Core.Common.IColumnColumnMap from propath.
+using Pmfo.Core.DataLayer.IDataSourceMap from propath.
+using Pmfo.Core.Error.IllegalOperationError from propath.
 
 class Pmfo.Core.BusinessLogic.QueryBuilder.QueryEntryBuilder inherits QueryWalker: 
 
@@ -112,30 +107,7 @@ class Pmfo.Core.BusinessLogic.QueryBuilder.QueryEntryBuilder inherits QueryWalke
         if cdbfield = ? then 
             undo, throw new IllegalOperationError(subst("'&1' is not a valid field name in the temp-table",pPredicate:fieldname)).
         
-        // NOTE: we create new objects since these preficates may be used on client after this and will fail if we changed the 
-        // field name to databaser field name   
-        if type-of(pPredicate,CompareQueryPredicate) then 
-        do:
-            oPredicate = cast(pPredicate,QueryPredicate).
-            if extent(oPredicate:StringValues) <> ? then
-                 oNewPredicate = new CompareQueryPredicate(cDbField,oPredicate:Operator,oPredicate:StringValues).
-            else
-                 oNewPredicate = new CompareQueryPredicate(cDbField,oPredicate:Operator,oPredicate:StringValue).
-            cast(oNewPredicate,CompareQueryPredicate):Strength = cast(pPredicate,CompareQueryPredicate):Strength.
-                
-        end.
-        else if type-of(pPredicate,ModuloQueryPredicate) then 
-        do:
-            oPredicate = cast(pPredicate,QueryPredicate).
-            oNewPredicate = new ModuloQueryPredicate(
-                               cDbField,
-                               cast(oPredicate,ModuloQueryPredicate):ModuloBase,
-                               cast(oPredicate,ModuloQueryPredicate):ModuloOperator,
-                               integer(oPredicate:StringValue)).
-                 
-        end.
-        
-        else if type-of(pPredicate,QueryPredicate) then 
+        if type-of(pPredicate,QueryPredicate) then 
         do:
             oPredicate = cast(pPredicate,QueryPredicate).
             if extent(oPredicate:StringValues) <> ? then

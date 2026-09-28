@@ -54,14 +54,14 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         end.
     
     define protected property NameService as INameService no-undo 
-       get():
+        get():
            if not valid-object(NameService) then 
            do:
                NameService = cast(Application:ServiceManager:getService(get-class(INameService)),INameService).
            end.
            return NameService.
-       end.        
-       set. 
+        end.        
+        set. 
           
     constructor public ResourceBE (  ):
         super (dataset dsResources:handle).

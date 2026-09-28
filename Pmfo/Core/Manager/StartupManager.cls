@@ -28,19 +28,7 @@ using Progress.Lang.Error from propath.
 class Pmfo.Core.Manager.StartupManager inherits Manager implements IStartupManager use-widget-pool:
      
     define public static property ConfigDirectory  as char no-undo init "config" get. set.
-    define public static property EnvConfigDirectory  as char no-undo 
-        get():
-            define variable cCatalina as character no-undo.
-            // use PAS config , but ensure that the dir is valid also when 
-            // running outideof PAS (i.e. unit test)
-            cCatalina = os-getenv("CATALINA_BASE").
-            if cCatalina > "" then
-                EnvConfigDirectory = FileUtil:AppendToPath(cCatalina,"conf/pmfo").
-            else     
-                EnvConfigDirectory = ConfigDirectory.
-            return EnvConfigDirectory.    
-        end. 
-        set.
+    
     define private static property mInstance as IStartupManager no-undo get. set.
     
     define protected property Managers as IMap no-undo 
@@ -50,10 +38,7 @@ class Pmfo.Core.Manager.StartupManager inherits Manager implements IStartupManag
             return Managers.    
         end. 
         set. 
-/*    
-    define private temp-table ttGeneral no-undo serialize-name "General"
-        field iStopAfter as integer serialize-name "Timeout".
-*/
+        
     define private temp-table ttImplMapping no-undo serialize-name "ManagerMapping"
         field Manager        as character
         field Implementation as character
@@ -72,11 +57,6 @@ class Pmfo.Core.Manager.StartupManager inherits Manager implements IStartupManag
             end.
             return Instance.
         end get.
-        private set.
-
-    /* The STOP-AFTER value used to set a time-out value for each interface request. */
-    define public property interfaceStopAfter as integer initial 20 no-undo
-        get.
         private set.
 
     constructor private StartupManager ( ):
@@ -108,12 +88,6 @@ class Pmfo.Core.Manager.StartupManager inherits Manager implements IStartupManag
         else
             undo, throw new ApplicationError(substitute("Required config file [startup.json] not found in [&1]", ConfigDirectory)).
 
-/*        find first ttGeneral no-lock no-error.                    */
-/*        if available(ttGeneral) and ttGeneral.iStopAfter ne 0 then*/
-/*            interfaceStopAfter = ttGeneral.iStopAfter.            */
-
-        if session:debug-alert or session:error-stack-trace then
-            interfaceStopAfter = -1.
     end method.
 
     /* Instantiate and initialize all configured managers. */

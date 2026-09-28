@@ -99,12 +99,12 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
     
       
     define public property CodeTableSourceName     as character no-undo get. set.
-    define public property CheckForNewResources    as logical no-undo get. set. 
-    define public property DataSourceDirectory     as char no-undo get. set.
-    define public property DataAccessDirectory     as char no-undo get. set.
-    define public property EntityDirectory         as char no-undo get. set.
+    define public property CheckForNewResources    as logical   no-undo get. set. 
+    define public property DataSourceDirectory     as character no-undo get. set.
+    define public property DataAccessDirectory     as character no-undo get. set.
+    define public property EntityDirectory         as character no-undo get. set.
     // after web in url  
-    define public property ServiceNames            as char no-undo init "api" get. protected set.    
+    define public property ServiceNames            as character no-undo init "api" get. protected set.    
     
     define temp-table ttScopedService no-undo
         // as of current we only have dataset handle, which allows us to use index
@@ -115,8 +115,6 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
         field service as Object
         index idxScope as primary unique scope service
         .
-    
-     
     
     // not in interface as of current - override in subclass initialize
     define public property CodeTableKeyType as character init "character" no-undo 

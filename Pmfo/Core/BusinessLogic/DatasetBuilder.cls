@@ -55,8 +55,6 @@ class Pmfo.Core.BusinessLogic.DatasetBuilder:
                 delete object hNewDataset. 
             undo, throw e.      
         end catch.  
-       
-                  
     end method.
     
     
