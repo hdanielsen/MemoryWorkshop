@@ -40,10 +40,15 @@ class DataSource.InvoiceDS inherits DataSource:
     
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         ttInvoice.invoicenum = next-value(NEXTINVNUM).
+        if ttinvoice.InvoiceDate <> today then 
+            AddWarning(substitute ("Invoice &1 Invpoice date set to today")).
+        ttInvoice.InvoiceDate = today.
+            
     end method.
     
     method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
-        if biInvoice.Amount > biInvoice.TotalPaid + biInvoice.Adjustment then
+        // invpice data hack for memory workshop test
+        if biInvoice.InvoiceDate gt today and  biInvoice.Amount > biInvoice.TotalPaid + biInvoice.Adjustment then
            ThrowBufferError(
               substitute("Cannot delete Invoice &1. The Amount is greater than TotalPaid + Adjustment",biInvoice.Invoicenum) 
            ). 

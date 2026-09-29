@@ -6,10 +6,10 @@
     Description : 
     Author(s)   : hdaniels
     Created     : Wed Apr 03 07:11:59 EDT 2019
-    Notes       : Simulated visitor that doesn't need an accept in each class 
-                  This allows use of the shipped query classes
-                  Note that many of the query classes are already exctended
-                  so we might change this to a real visitor 
+    Notes       : Pseudo visitor that doesn't need an accept in each class 
+            TODO: The reason for not havIng an accept was done to use the CCS classes.
+                  These are no longer inherited so this can be changed
+                  (seem to work fine as-is though )  
  ----------------------------------------------------------------------*/
 block-level on error undo, throw.
 

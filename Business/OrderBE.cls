@@ -23,8 +23,6 @@ class Business.OrderBE inherits BusinessEntity:
     {schema/order.i}
     {schema/orderline.i}
     
-    {schema/item.i reference-only}
-    
     define dataset dsOrder for ttOrder, ttOrderLine
        data-relation order-lines for ttOrder, ttOrderLine relation-fields(orderNum,orderNum) nested foreign-key-hidden
        .
@@ -60,6 +58,7 @@ class Business.OrderBE inherits BusinessEntity:
                 assign ttOrderline.ExtendedPrice = dExtendedPrice.          
             end.
         end.    
+        // Call Item Be to validate and update item allocated - will be added to the submiot dataset in SubmitData
         ItemBE = cast(ServiceManager:CreateBusinessEntity('items'),ItemBE).
         ItemBe:ValidateAndUpdateInventory(this-object, table ttOrderLine by-reference).
             
@@ -77,11 +76,7 @@ class Business.OrderBE inherits BusinessEntity:
         super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference).         
         finally:
             if valid-object(hDataset) and hDataset:dynamic then
-            do: 
-                message "delete hdataset" 
-                view-as alert-box.
                 delete object hDataset.
-            end.       
         end.
     end method.    
    

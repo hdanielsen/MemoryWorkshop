@@ -312,13 +312,10 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         define variable i as integer no-undo.
         /* The dataset:serialize-name is exposed as resource name, to be used in 
            the url to locate this business entity. 
-           For cases where the dataset has more than one top level we use 
-           the resource name as the table in GetDataTableRequest as a request 
-           for all top level tables. This ensures that the data service never need 
-           to know the exact schema to build a request. (Most ABL Data services 
-           either caches the schema or requires a getDataset call to build the
-           request or they delegate the request building to tht entity )    
-           So to manage ambiguity between dataset and buffer in the table request 
+           For cases where the dataset has more than one top level the resource name as the table 
+	   in GetDataTableRequest as a request for all top level tables. 
+	   This ensures that the data service never need to know the exact schema to build a request. 
+         - To manage ambiguity between dataset and buffer in the table request 
            management with the ability to support direct requests for the top 
            single buffer serialize-name in the url (most requests)
            and also support using resouce name to retriece all top level 
@@ -570,6 +567,9 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.
     
     method protected IGetDataResponse FetchData(input pRequest as IGetDataRequest, input-output dataset-handle phDataset):        
+        // input-output is to pass schema since all Datasources used reference-only- 
+        // get rid of data - if we need to support append the add dedicated support somehow   
+        this-object:Clear().
         return DataAccess:FetchData(pRequest, input-output dataset-handle phdataset).
     end method.
     

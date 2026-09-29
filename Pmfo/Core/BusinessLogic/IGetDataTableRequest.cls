@@ -43,7 +43,7 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
         Notes:   Typically used as an alternative to the QueryString
     ------------------------------------------------------------------------------*/
     define public property QueryDefinition as IQueryDefinition no-undo
-    get.
+    get. set.
 
     /*------------------------------------------------------------------------------
         Purpose: Returns the Query String for this table
@@ -72,7 +72,9 @@ interface Pmfo.Core.BusinessLogic.IGetDataTableRequest:
     ------------------------------------------------------------------------------*/
     define public property TableName as character no-undo
     get. 
-     
+    
+    define public property SelectFields   as character no-undo get. set. 
+         
     /* Returns   paging context */
     define public property FindUnique          as logical     no-undo  get. set.
     define public property Count               as logical     no-undo  get. set.

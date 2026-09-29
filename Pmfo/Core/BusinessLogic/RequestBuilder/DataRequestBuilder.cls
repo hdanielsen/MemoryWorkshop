@@ -37,15 +37,9 @@ using Pmfo.Util.ServiceInfo from propath.
  
  
 class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract: 
-     define protected property HasWarnings as logical no-undo get. set.
+    define protected property HasWarnings as logical no-undo get. set.
       
-     define protected property Warnings as IList  
-         get.     
-         set(pColl as IList):
-             
-             Warnings = pColl.
-             HasWarnings = true.
-         end.   
+     
     define protected property MainRequestedBufferName    as character  no-undo get. set.
       
     constructor public DataRequestBuilder ( ):
@@ -119,11 +113,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
             else do:
                 undo, throw new NotImplementedError("Process without finnding MainRequestBuffer"). 
             end.     
-            
-            if pClientRequest:HasALias then 
-            do: 
-                pClientRequest:AssertUriQueryAliases(). 
-            end.    
             return oRequest.
         end.
         else 
@@ -289,22 +278,9 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.DataRequestBuilder abstract:
     
     
     method protected final IQueryDefinition GetKeyDefinition(phBuffer as handle,piCollection as integer, pClientRequest as IClientRequest ):
-         define variable cKeys as character no-undo.
          define variable cKeyExpression as character no-undo.
          cKeyExpression = pClientRequest:KeyWheres[piCollection].
-         // if collection 2 and redirect check if there is key that need to be added  with the parent entity as the key value
-         // The current usage is meta data related where we redirect to a subclass with data for one specific entity
-         if piCollection = 1 and pClientRequest:RedirectFrom > ""  then
-         do:
-            // The redirect is to a top table,  but we support a fixed join to the entityname for meta classes 
-            // This requires that the redirected table has entityname as the first entry in the unique key 
-            cKeys = ServiceInfo:GetKeys(phBuffer).
-            if num-entries(cKeys) = 2 and entry(1,cKeys) = "EntityName" then  
-            do:
-                cKeyExpression = subst("EntityName='&1',&2=&3",pClientRequest:RedirectFrom,entry(2,cKeys),pClientRequest:KeyWheres[piCollection]).            
-            end.
-        end.
-        return new QueryDefinition(GetKeyEntry(true,phBuffer,cKeyExpression)).
+         return new QueryDefinition(GetKeyEntry(true,phBuffer,cKeyExpression)).
     end method. 
     
     method protected final IQueryEntry GetKeyEntry(phBuffer as handle,pcKeyValue as char ).

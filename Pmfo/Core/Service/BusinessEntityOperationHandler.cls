@@ -17,7 +17,6 @@ using OpenEdge.Core.Collections.ICollection from propath.
 using OpenEdge.Core.Collections.IIterator from propath.
 using OpenEdge.Core.Collections.IStringStringMap from propath.
 using OpenEdge.Core.String from propath.
-using OpenEdge.Logging.ISupportLogging from propath.
 using OpenEdge.Net.HTTP.HttpHeader from propath.
 using OpenEdge.Net.HTTP.HttpHeaderBuilder from propath.
 using OpenEdge.Net.HTTP.IHttpResponse from propath.
@@ -60,16 +59,15 @@ using Progress.Lang.Object from propath.
 using Pmfo.Core.Error.ApplicationError from propath.
  
  
-class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler implements IBusinessEntityOperationHandler,ISupportLogging: 
+class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler implements IBusinessEntityOperationHandler: 
     /*------------------------------------------------------------------------------
      Purpose:
      Notes:
     ------------------------------------------------------------------------------*/
-    define public property NextPageLinkTemplate   as character init "&1@nextPageLink" no-undo get. 
-    define public property NextBatchLinkTemplate  as character init "&1@nextBatchLink" no-undo get. 
-    define public property TotalCountTemplate     as character init "&1@count" no-undo get.
-    define public property SuccessEntityName      as character init "@success" no-undo get.
-  
+    define protected property NextPageLinkTemplate   as character init "&1@nextPageLink" no-undo get. 
+    define protected property NextBatchLinkTemplate  as character init "&1@nextBatchLink" no-undo get. 
+    define protected property TotalCountTemplate     as character init "&1@count" no-undo get.
+    
     define protected property ServiceManager as IServiceManager no-undo 
         get():
             return cast(Application:ServiceManager,IServiceManager).
@@ -79,101 +77,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         super ().        
     end constructor.
   
-   /*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/
-
-    method protected JsonObject ExtractRequestedTable(pJsonObject as JsonObject,pcSerializeName as characte):
-        define variable oJsonObject       as JsonObject no-undo.
-        define variable oJsonArray        as JsonArray  no-undo.
-        define variable oJsonSingleObject as JsonObject no-undo.
-        
-        oJsonObject = new JsonObject().
-         
-        oJsonArray = JsonUtil:GetArrayFromSingleParents(pJsonObject,pcSerializeName).
-        
-        if not valid-object(oJsonArray) then
-        do:
-            oJsonSingleObject = JsonUtil:GetObjectFromSingleParents(pJsonObject,pcSerializeName).
-            if valid-object(oJsonSingleObject) then
-            do:
-                oJsonObject:Add(pcSerializeName,oJsonSingleObject). 
-                return oJsonObject.
-            end.
-            else
-                undo, throw new NotFoundError(subst("Collection '&1'",pcSerializeName)).
-        end.    
-         
-        oJsonObject:Add(pcSerializeName,oJsonArray). 
-        return oJsonObject.
-        catch e1 as NotFoundError :
-            undo, throw e1.    
-        end catch.
-        catch e2 as Progress.Lang.Error :
-            undo, throw new NotFoundError(subst("Collection '&1'",pcSerializeName),e2).
-        end catch. 
-    end method.
-    
-    method protected JsonObject ExtractRequestedRow(pJsonObject as JsonObject,phBuffer as handle, plUpdate as logical, pTableRequests as IGetDataTableRequest extent, plNoError as logical):
-        define variable oJsonObject    as JsonObject  no-undo.
-        define variable oJsonRow       as JsonObject  no-undo.
-        define variable iExtent        as integer     no-undo.
-        
-        phBuffer:find-unique().
-        
-        oJsonObject = new JsonObject().
-        oJsonRow = JsonUtil:GetObjectFromSingleParents(pJsonObject,phBuffer:serialize-name).
-        oJsonObject:Add(phBuffer:serialize-name,cast(oJsonRow:Clone(),JsonObject)).
-        return oJsonObject.
-        catch e as Progress.Lang.Error :
-            if e:GetMessageNum(1) = 138 then
-            do:
-                if plNoError then
-                do:
-                    oJsonObject = new JsonObject().
-                    oJsonObject:AddNull(phBuffer:serialize-name).
-                    return oJsonObject.
-                end.
-                do iExtent = 1 to extent(pTableRequests):
-                     
-                    if pTableRequests[iExtent]:TableName = phBuffer:table-handle:name then
-                    do:    
-                        undo, throw new TableNotFoundError(phBuffer, pTableRequests[iExtent], e).
-                    end.
-                end.
-            end.
-            // don't throw 404 for update
-            if plUpdate = false  then
-                undo, throw new NotFoundError(subst("Requested row for &1",phBuffer:serialize-name),e).
-            else // this is not an expected error after update , but may happen for example if the dataset buffer serialize-names
-                 // are lost/wrong      
-                undo, throw e.
-        end catch. 
-    end method.
-        
-    // subclass hook 
-    method protected void AddBusinessEntityProperties(pJson as JsonObject, pBusinessEntity as IBusinessEntity, pClientRequest  as ICLientRequest ):
-    end.   
-     
-    method protected RowStateEnum GetMethodRowStateEnum (pcMethod as char, plAction as logical):
-        if plAction then
-        do:
-            // allow PUT since we mistakenly used that on somne requests
-            // but it will be made into create ny JsonReader 
-            if pcMethod = "POST" or pcMethod = "PUT" then
-                return RowStateEnum:Action.
-            undo, throw new IllegalArgumentError(subst("Method '&1' and Action true",pcMethod)).    
-        end.
-        case pcMethod:
-            when "GET"    then return RowStateEnum:None.
-            when "PUT"    then return RowStateEnum:Modified.
-            when "POST"   then return RowStateEnum:Created.
-            when "DELETE" then return RowStateEnum:Deleted.
-            otherwise 
-                undo, throw new IllegalArgumentError(subst("Method '&1'",pcMethod)).
-        end.
-    end method.
     
     method public override JsonObject ExecuteUpdate
                                   (pcMethod as character,
@@ -184,13 +87,13 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                                    pEntity as IEntity):
         
         define variable oClientUpdateRequest  as IClientUpdateRequest no-undo.
-        define variable jsonRequest           as JsonObject no-undo.
-        define variable jsonDatasetRequest    as JsonObject no-undo.
+        define variable oJsonRequest          as JsonObject no-undo.
+        define variable oJsonDatasetRequest    as JsonObject no-undo.
  
         define variable hDataset              as handle no-undo.
         define variable oUpdateDataRequest    as IUpdateDataRequest no-undo. 
-        define variable jsonResponse          as JsonObject no-undo.
-        define variable jsonWrapperResponse   as JsonObject no-undo.
+        define variable oJsonResponse          as JsonObject no-undo.
+        define variable oJsonWrapperResponse   as JsonObject no-undo.
         
         define variable oGetDataRequest       as IGetDataRequest no-undo. 
         define variable hRequestedBuffer      as handle no-undo.
@@ -233,8 +136,8 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
                 undo, throw new IllegalArgumentError(subst("Method parameter '&1'",pcMethod)).
         end case.
         
-        jsonRequest  = cast(pMessageBody,JsonObject).
-        lBeforeImage = JsonUtil:HasBeforeImage(jsonRequest).
+        oJsonRequest  = cast(pMessageBody,JsonObject).
+        lBeforeImage = JsonUtil:HasBeforeImage(oJsonRequest).
                
         oClientUpdateRequest = CreateClientUpdateRequest(oBusinessEntity,pcMethod,pcServiceURI,pURIQuery,cast(pMessageBody,JsonObject)).
         hDataset             = oBusinessEntity:GetUpdateRequestDataset(oClientUpdateRequest,output lBeforeImageRequired, output  oUpdateDataRequest ).
@@ -268,7 +171,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
             end.
         end case.
         
-        jsonDatasetRequest = JsonUtil:WrapRequestForDataset(jsonRequest, hDataset, hRequestedBuffer:name).
+        oJsonDatasetRequest = JsonUtil:WrapRequestForDataset(oJsonRequest, hDataset, hRequestedBuffer:name).
                    
         if lBeforeImage = false then 
         do: 
@@ -293,9 +196,9 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         end.
         
         do on error undo, throw:
-            hDataset:read-json ("JsonObject",jsonDatasetRequest,"append"). // empty, but if there is data replace is correct
+            hDataset:read-json ("JsonObject",oJsonDatasetRequest,"append"). // empty, but if there is data replace is correct
             catch e as Progress.Lang.Error :
-                HandleLoadError(e, pcMethod, hDataset, jsonDatasetRequest).
+                HandleLoadError(e, pcMethod, hDataset, oJsonDatasetRequest).
             end.    
          end.  
         
@@ -315,8 +218,8 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         if valid-handle(hRequestedBuffer) = false and oUpdateDataRequest:MainRequestedBuffer > "" then  
              hRequestedBuffer = hdataset:get-buffer-handle (oUpdateDataRequest:MainRequestedBuffer).
              
-        jsonResponse = new JsonObject().
-        hDataset:write-json ("JsonObject",jsonResponse,no,?,no,yes).
+        oJsonResponse = new JsonObject().
+        hDataset:write-json ("JsonObject",oJsonResponse,no,?,no,yes).
         if pcMethod = "DELETE" then 
         do:
             // support respone with refreshed data after delete - added for recursive cases where 
@@ -340,9 +243,9 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
             return ?.  // flag to caller to return http 204 no content  
         
         
-        jsonWrapperResponse = new JsonObject().   
-        jsonWrapperResponse:Add(ResponseNodeName, jsonResponse).
-        return jsonWrapperResponse.
+        oJsonWrapperResponse = new JsonObject().   
+        oJsonWrapperResponse:Add(ResponseNodeName, oJsonResponse).
+        return oJsonWrapperResponse.
        
     end method.
     

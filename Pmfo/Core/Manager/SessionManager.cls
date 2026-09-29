@@ -110,5 +110,4 @@ class Pmfo.Core.Manager.SessionManager inherits Manager implements ISessionManag
     method protected void ImportConfig(pJson as JsonObject):
     end method.    
     
-    
 end class.

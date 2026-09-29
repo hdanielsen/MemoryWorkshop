@@ -46,6 +46,7 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
     end method.    
     
     method protected void ValidateStaticData(input dataset dsPurchaseOrder ):
+        // Call Item Be to validate and update item onorder - the updates items will be added to the submiot dataset in SubmitData
         ItemBE = cast(ServiceManager:CreateBusinessEntity('items'),ItemBE).
         ItemBe:ValidateAndUpdateInventory(this-object, table ttPurchaseOrder by-reference, table ttPurchaseOrderLine by-reference).
     end method.    

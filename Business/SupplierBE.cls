@@ -36,7 +36,6 @@ class Business.SupplierBE inherits BusinessEntity:
     {schema/supplierItemXRef.i}
     {schema/item.i}
     {schema/purchaseOrder.i reference-only}
-    {schema/purchaseOrderLine.i reference-only}
     
     // define item table with supplieridnum to expose items as collection directly under supplier to UI/WEB  
     define temp-table ttSupplierItem serialize-name "items" like ttItem use-index zz_seq before-table biSupplierItem
@@ -58,14 +57,6 @@ class Business.SupplierBE inherits BusinessEntity:
         data-relation xref-item for ttSupplierItemXref, ttItem relation-fields(ItemNum,ItemNum) nested foreign-key-hidden
         .
     
-    define property PurchaseOrderBE as IBusinessEntity no-undo 
-        get():
-            if not valid-object(PurchaseOrderBE) then 
-                PurchaseOrderBE = ServiceManager:CreateBusinessEntity("purchaseOrders").
-            return PurchaseOrderBE.     
-        end get.
-        set.    
-    
     constructor SupplierBE():
         super(dataset dsSupplier:handle).
     end constructor.
@@ -75,24 +66,27 @@ class Business.SupplierBE inherits BusinessEntity:
     end method.    
    
     method protected void ValidateStaticData(input dataset dsSupplier ):
-        define variable iDeleteSupplerIdNums as integer extent no-undo. 
-        define variable oQuery               as IQueryGroup no-undo.
-        define variable hPurchaseOrderTable  as handle     no-undo.
-        
+        define variable iDeleteSupplerIdNums as integer extent  no-undo. 
+        define variable oQuery               as IQueryGroup     no-undo.
+        define variable hPurchaseOrderTable  as handle          no-undo.
+        define variable oPurchaseOrderBE     as IBusinessEntity no-undo.
+         
+        oPurchaseOrderBE = ServiceManager:CreateBusinessEntity("purchaseOrders").
         // collect deleted supplierids   
         for each biSupplier where row-state(biSupplier) = row-deleted:
             extent(iDeleteSupplerIdNums) = (if extent(iDeleteSupplerIdNums) = ? then 0 else extent(iDeleteSupplerIdNums)) + 1.
             iDeleteSupplerIdNums[extent(iDeleteSupplerIdNums)] = biSupplier.SupplierIDNum.
         end.    
         
-        // if any deleted found fetch active (not received) purchaseOrders to the supplier
+        // if any deleted found fetch not received purchaseOrders to the supplier
         if extent(iDeleteSupplerIdNums) <> ? then 
         do:
             oQuery = new QueryGroup().
             oQuery:AddEntry(new QueryPredicate("SupplierIDNum",QueryOperatorEnum:InList,iDeleteSupplerIdNums)).
             oQuery:AddEntry(new QueryPredicate("PoStatus",QueryOperatorEnum:Ne,"Received")).
             // NOTE GetData(with output table does not support by-reference -    
-            PurchaseOrderBE:GetData(oQuery, output table-handle hPurchaseOrderTable).
+            oPurchaseOrderBE:GetData(oQuery, output table-handle hPurchaseOrderTable).
+            // if any records returned that are not received we cannot delete so throw error 
             if hPurchaseOrderTable:has-records then    
                 ThrowHasNonReceievedPurchaseOrdersError(input table-handle hPurchaseOrderTable by-reference).  
         end.    
@@ -113,7 +107,7 @@ class Business.SupplierBE inherits BusinessEntity:
         end.
             
         if extent(iSupplerIdNums) <> ? then 
-                undo, throw new BadRequestError(substitute("Suppler Id&1 &2 cannot be deleted. &3 at least one Purchcase Order that has not been received",
+                undo, throw new BadRequestError(substitute("Supplier Id&1 &2 cannot be deleted. &3 at least one Purchcase Order that has not been received",
                                                    if extent(iSupplerIdNums) > 1 then "s" else "",
                                                    StringUtil:GetMessageFromEntries(Array:ToString(iSupplerIdNums)),
                                                    if extent(iSupplerIdNums) > 1 then "They have" else "It has"
@@ -151,9 +145,9 @@ class Business.SupplierBE inherits BusinessEntity:
         end.    
         oServerRequest = new GetDataRequest(oGetTableRequests).   
         
-        // TODO the response for supplier is ok, but is should not have xrefs that is not exposed to cleint   
-        oResponse = DataAccess:FetchData(oServerRequest, input-output dataset dsSupplierServer ).
+        oResponse = super:FetchData(oServerRequest, input-output dataset dsSupplierServer by-reference ).
         
+        //create suppler items from the item and xref in the respone to return to the client  
         CreateSupplierItems(dataset-handle phDataset by-reference , input dataset dsSupplierServer by-reference).
         
         return oResponse.
@@ -163,7 +157,7 @@ class Business.SupplierBE inherits BusinessEntity:
     // override to submit the server dataset with xrefs to dataacces 
     method protected override Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
         /*
-        Throw not implemented  errrorif extranl dataset is passed. 
+        Throw not implemented  errror if external dataset is passed. 
         Since another static dataset with the static ttSuppler is submitted to data access we can only allow the internal dataset to be submitted
         Support for external would either require copy from the external to the internal or a dynamic dataset with a buffer for the static ttSupplier
         to send to data access   

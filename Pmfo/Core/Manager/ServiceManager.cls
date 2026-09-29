@@ -21,13 +21,10 @@ using OpenEdge.Web.DataObject.ServiceRegistryImpl from propath.
 using OpenEdge.Web.DataObject.ServiceRegistryLoader from propath.
 using OpenEdge.Web.DataObject.Writer.OperationHandlerRegistry from propath.
 using OpenEdge.Web.SendExceptionError from propath.
-using Pmfo.Core.BusinessLogic.EntityRequestTypeEnum from propath.
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
 using Pmfo.Core.BusinessLogic.IEntity from propath.
 using Pmfo.Core.BusinessLogic.IGetDataRequest from propath.
-using Pmfo.Core.Common.IMimeTypes from propath.
 using Pmfo.Core.Common.INameService from propath.
-using Pmfo.Core.Common.MimeTypes from propath.
 using Pmfo.Core.Common.NameService from propath.
 using Pmfo.Core.DataLayer.DynamicDataAccess from propath.
 using Pmfo.Core.DataLayer.DynamicDataSource from propath.
@@ -497,10 +494,6 @@ class Pmfo.Core.Manager.ServiceManager inherits Manager implements IServiceManag
             when get-class(ServiceRegistryLoader) then
             do:
                 // ignore - let the DataObjectHandler default kick in
-            end.
-            when get-class(IMimeTypes) then
-            do:
-                oService = new MimeTypes().
             end.
             when get-class(INameService) then
             do:

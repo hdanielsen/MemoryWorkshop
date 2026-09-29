@@ -53,21 +53,18 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
                                                             piCollection     as integer,
                                                             poRequestType    as RequestTypeEnum):
          
-        define variable cOption        as character           no-undo.
         define variable iSkip          as int64               no-undo.
         define variable iNumRecords    as int64               no-undo.
         define variable cFilter        as character           no-undo.
         define variable cSort          as character           no-undo. 
-        define variable cApplyFilter   as character no-undo.
         define variable cPagingContext as character           no-undo.
        
         define variable oFilterParser    as FilterParser        no-undo.
         define variable lCount           as logical             no-undo.    
-        define variable oParamEntry      as IQueryEntry         no-undo.
-        define variable oTableRequest    as GetDataTableRequest no-undo. 
+        define variable oTableRequest    as IGetDataTableRequest no-undo. 
         define variable oQueryDefinition as IQueryDefinition    no-undo.
-        define variable oApplyQueryDefinition as IQueryDefinition    no-undo.
         define variable oFieldExpressionParser as FieldExpressionParser no-undo.
+        
         oTableRequest = cast(pTableRequest,GetDataTableRequest). 
         if RequestTypeEnum:SingleRow:Equals(poRequestType) = false then
         do:
@@ -94,8 +91,7 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
             
             cFilter = pClientRequest:Filter.  
             cSort   = pClientRequest:Sort.  
-           // cApplyFilter = pClientRequest:ApplyFilter.
-            if cFilter > "" or cSort > "" or cApplyFilter > "" then 
+            if cFilter > "" or cSort > ""  then 
             do:
                 // the field map holder is empty at this point, it is passed in for reuse here latere
                 // pass the expanded relations to validate qualified references   
@@ -103,61 +99,13 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
                 if cFilter > "" or cSort > "" then 
                 do:
                     oQueryDefinition = oFilterParser:GetQueryDefinition(phBuffer,cFilter, cSort).  
-                    if oFilterParser:HasWarnings then 
-                    do: 
-                        // hackety hack
-                        Warnings = oFilterParser:Warnings. 
-                    end.    
-                    
                     if cFilter > "" and pclientRequest:Wildcards then 
                     do:
                        new QueryWildcardConverter():Traverse(oQueryDefinition). 
                     end.     
-                    
-                    // for a function we may have used keywhere to build a filter already so add it to the new definition 
-                  //  if valid-object(oTableRequest:QueryDefinition) and valid-object(oTableRequest:QueryDefinition:QuerySelection) then 
-                    //    oQueryDefinition:AddEntry(oTableRequest:QueryDefinition:QuerySelection).
-                     oTableRequest:QueryDefinition = oQueryDefinition.
+                    oTableRequest:QueryDefinition = oQueryDefinition.
                 end.
-                if cApplyFilter > "" then 
-                do:
-                    oApplyQueryDefinition = oFilterParser:GetQueryDefinition(phBuffer,cApplyFilter,"").  
-                    if oFilterParser:HasWarnings then 
-                    do: 
-                        // hackety hack
-                        Warnings = oFilterParser:Warnings. 
-                    end.    
-                  //  if valid-object(oTableRequest:QueryDefinition) and valid-object(oTableRequest:QueryDefinition:QuerySelection) then 
-                    //    oApplyQueryDefinition:AddEntry(oTableRequest:QueryDefinition:QuerySelection).
-                     oTableRequest:QueryDefinition = oApplyQueryDefinition.
-                end.
-                
             end.  
-            // ClientExpand is used to exclude the specifically requested expands from the qualified filter refs in
-            // GetDataTableRequest:GetInnerjoins output parameter for server joins   
-/*            if pClientRequest:Expand > "" then                                                                                 */
-/*                oTableRequest:ClientExpands = GetJoinTables(phBuffer,                                                          */
-/*                                                            pClientRequest:Expand,                                             */
-/*                                                            true). //ignore errors since expond may be completely managed in BE*/
-/*            // we will merge these innerjoins in GetDataTableRequest:GetInnerjoins                                             */
-/*            if pClientRequest:ExpandInnerJoins > "" then                                                                       */
-/*            do on error undo, throw:                                                                                           */
-/*                oTableRequest:InnerJoinExpands = GetJoinTables(phBuffer,                                                       */
-/*                                                               pClientRequest:ExpandInnerJoins,                                */
-/*                                                               false). // don't ignore error                                   */
-/*                catch e as IllegalArgumentError :                                                                              */
-/*                     undo, throw new IllegalStateError("One or more of the expand(s) with innerjoin=true is invalid",e).       */
-/*                end catch.                                                                                                     */
-/*            end.                                                                                                               */
-/*            if pClientRequest:ApplyInnerJoins > "" then                                                                        */
-/*            do on error undo, throw:                                                                                           */
-/*                oTableRequest:InnerJoinAggregates = GetJoinTables(phBuffer,                                                    */
-/*                                                                  pClientRequest:ApplyInnerJoins,                              */
-/*                                                                  false).  // don't ignore error                               */
-/*                catch e as IllegalArgumentError :                                                                              */
-/*                     undo, throw new IllegalStateError("One or more of the qualified aggregates is invalid",e).                */
-/*                end catch.                                                                                                     */
-/*            end.                                                                                                               */
         end.
         // if select get the unqualified fields  for the main table from the option
         if pClientRequest:Select > "" then
@@ -258,13 +206,10 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
     **/
     method protected void AddTableRequestTree( prequests as ICollection, pClientRequest as IClientGetRequest, phBuffer as handle, pcRelativePath as character, plSkipRepos as logical):
         define variable oTableRequest    as GetDataTableRequest no-undo.
-        define variable cFieldMap        as character no-undo. 
-        define variable oFilterParser    as FilterParser no-undo.
-        define variable cClientFilter    as character no-undo.
-        define variable cClientSort      as character no-undo.
-        oTableRequest = new GetDataTableRequest(phBuffer:table-handle:name).
-        
+        define variable oFilterParser    as FilterParser        no-undo.
         define variable oQueryDefinition as IQueryDefinition    no-undo.
+        
+        oTableRequest = new GetDataTableRequest(phBuffer:table-handle:name).
         
         if valid-object(pClientRequest) and pClientRequest:Select > "" then
         do:
@@ -272,32 +217,6 @@ class Pmfo.Core.BusinessLogic.RequestBuilder.QueryRequestBuilder inherits DataRe
         end.
         
         pRequests:Add(oTableRequest).
-        if type-of(pClientRequest,IClientGetRequest) then 
-        do:
-/*            cClientFilter = cast(pClientRequest,IClientGetRequest):GetChildFilter(pcRelativePath).                                    */
-/*            cClientSort  = cast(pClientRequest,IClientGetRequest):GetChildSort(pcRelativePath).                                       */
-/*            if cClientFilter > ""  or cClientSort > "" then                                                                           */
-/*            do:                                                                                                                       */
-/*                oFilterParser    = new FilterParser(FieldMapHolder,pClientRequest:ExpandedRelations).                                 */
-/*                oQueryDefinition = oFilterParser:GetQueryDefinition(phBuffer,cClientFilter,cClientSort).                              */
-/*                                                                                                                                      */
-/*                if oFilterParser:HasWarnings then                                                                                     */
-/*                do:                                                                                                                   */
-/*                    Warnings = oFilterParser:Warnings.                                                                                */
-/*                end.                                                                                                                  */
-/*/*                                                                                                                                  */*/
-/*/*               // if cFilter > "" and pclientRequest:Wildcards then                                                               */*/
-/*/*               // do:                                                                                                             */*/
-/*/*                 //   new QueryWildcardConverter():Traverse(oQueryDefinition).                                                    */*/
-/*/*               // end.                                                                                                            */*/
-/*/*                // for a function we may have used keywhere to build a filter already so add it to the new definition             */*/
-/*/*                if valid-object(oTableRequest:QueryDefinition) and valid-object(oTableRequest:QueryDefinition:QuerySelection) then*/*/
-/*/*                    oQueryDefinition:AddEntry(oTableRequest:QueryDefinition:QuerySelection).                                      */*/
-/*/*                                                                                                                                  */*/
-/*                oTableRequest:QueryDefinition = oQueryDefinition.                                                                     */
-/*            end.                                                                                                                      */
-        end.
-        
         AddTableChildrenToRequestTree(prequests,pClientRequest, phBuffer, pcRelativePath, plSkipRepos). 
     end method.
     

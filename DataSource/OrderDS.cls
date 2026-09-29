@@ -74,17 +74,5 @@ class DataSource.OrderDS inherits DataSource:
   
     end method.    
     
-     // override to use static delete due to schema validation
-    method public override logical SaveRow(phBeforeBuffer as handle):       
-        if phBeforeBuffer:row-state = row-deleted then
-        do: 
-            FindAndCompareSource(phBeforeBuffer).
-            delete order. //static due to schema delete validation
-            return true.      
-        end.
-        else 
-            return super:SaveRow(phBeforeBuffer).
-           
-    end method.   
     
 end class.

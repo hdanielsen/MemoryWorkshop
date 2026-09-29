@@ -9,13 +9,13 @@
     Description : 
     Author(s)   : hdaniels
     Created     : Fri Apr 05 23:38:00 EDT 2019
-    Notes       : Use FilterParser subclass for parsing of public filter ans sort with 
+    Notes       : Use FilterParser subclass for parsing of public filter and sort with 
                   public field names (serialize-names) and forward slash as qualifier
                 - Use KeyValueParser for key expressions with no spaces
                   and comma deleimiter.   
                 - does not handle functions as value
                 - Expression MUST have spaces between tokens 
-                  = is not word delimiter
+                - = is not word delimiter
                 - The QueryBuilder will use the output objects here 
                   and build a database query   
   ----------------------------------------------------------------------*/
@@ -43,27 +43,10 @@ using Pmfo.Util.BufferUtil from propath.
 using Pmfo.Util.QueryUtil from propath.
 using Pmfo.Util.StringUtil from propath.
  
- 
- 
-
 class Pmfo.Core.BusinessLogic.Parser.BaseFilterParser: 
     
-     define public property HasWarnings as logical no-undo get. set.
+    define public property HasWarnings as logical no-undo get. set.
       
-     define public property Warnings as IList  
-         get():
-             if not valid-object(Warnings) then 
-                 Warnings = new List().
-             return Warnings.    
-         end.     
-         set(pColl as IList):
-             Warnings = pColl.
-             HasWarnings = true.
-         end.      
-    /*------------------------------------------------------------------------------
-     Purpose:
-     Notes:
-    ------------------------------------------------------------------------------*/
     define protected property TableDelimiter as character  init "."  get. set.
      
     constructor public BaseFilterParser ():
