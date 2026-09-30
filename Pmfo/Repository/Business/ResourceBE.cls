@@ -338,7 +338,7 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
                 delete object hWarning.
         end.
     end method.
-    
+     
     // this is specialized to build the request from time stamp info in the DataAccess
     method override public IGetDataResponse GetData( output dataset-handle phDataset ):
         define variable cRefreshTables        as character extent no-undo.
