@@ -120,9 +120,9 @@ class Business.PurchaseOrderBE inherits BusinessEntity:
     method protected override Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
         define variable hDataset as handle no-undo.
         if valid-object(ItemBE)  then  
-            hDataset = DatasetUtil:CreateDatasetFromMultipleDatasets(Array:ToArray(dataset dsPurchaseOrder:handle,ItemBE:GetItemInventoryDataForSubmit())).
+            hDataset = DatasetUtil:CreateDatasetFromMultipleDatasets(Array:ToArray(phDataset,ItemBE:GetItemInventoryDataForSubmit())).
         else 
-            hDataset = dataset dsPurchaseOrder:handle.
+            hDataset = phDataset.
        
         super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference).         
         finally:

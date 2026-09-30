@@ -18,10 +18,13 @@ using Pmfo.Core.Service.IClientRequest from propath.
 using Pmfo.Core.BusinessLogic.IGetDataTableRequest from propath.
 using Pmfo.Core.BusinessLogic.IQueryEntry from propath.
 using Pmfo.Core.BusinessLogic.IBusinessEntity from propath.
+using Pmfo.Core.Common.IWarningMessages from propath.
  
 interface Pmfo.Core.BusinessLogic.IBusinessEntity inherits IEntity, IService.  
     define public property Datasets       as handle extent no-undo get. 
-   
+    
+    define public property WarningMessages as IWarningMessages no-undo get. 
+       
     method public void getDataset (output dataset-handle phDataset).
     
     // fill all data

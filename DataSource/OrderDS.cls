@@ -43,7 +43,6 @@ class DataSource.OrderDS inherits DataSource:
     method override protected void CreateBeginTransValidate( input dataset-handle  phDataset):
         define variable iNewOrderNum as integer no-undo.
         iNewOrderNum = next-value (NextOrdnum).
-        
         // propagate key change to all related tables and assign to self 
         UpdateUtil:UpdateKey(buffer ttOrder:handle, "OrderNum",iNewOrderNum).
         
@@ -54,7 +53,7 @@ class DataSource.OrderDS inherits DataSource:
         end.    
         if ttOrder.promiseDate = ? or ttOrder.promiseDate le ttOrder.OrderDate then
         do: 
-            AddWarning("Promise Data was set to two weeks from now").
+            AddWarning("Promise Date was set to two weeks from now").
             assign ttOrder.promiseDate = today + 14.
         end. 
          

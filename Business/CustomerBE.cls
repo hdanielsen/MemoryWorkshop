@@ -28,24 +28,5 @@ class Business.CustomerBE inherits BusinessEntity:
         super(dataset dsCustomer:handle).
     end constructor.
 
-    method protected override handle PrepareRequestDataset(pClientRequest as IClientRequest):
-        define variable hDataset as handle no-undo.
-        define variable cExpand as character no-undo.
-        define variable oDatasetBuilder as DatasetBuilder no-undo.
-        
-        hDataset = super:PrepareRequestDataset(pCLientRequest).
-        if type-of(pClientRequest,IClientGetRequest) then do:
-            cExpand = cast(pClientRequest,IClientGetRequest):Expand.
-            if cExpand > "" then 
-            do: 
-                oDatasetBuilder = new DatasetBuilder().
-                hDataset = oDatasetBuilder:CreateExpandDataset(this-object, cExpand).
-            end.
-        end.     
-        
    
-        return hdataset.
-        
-    end method.       
-
 end class.

@@ -76,6 +76,9 @@ using Pmfo.Util.ErrorStringUtil from propath.
 using Progress.Json.ObjectModel.JsonObject from propath.
 using Progress.Lang.Error from propath.
 using Progress.Lang.Object from propath.
+using Pmfo.Core.BusinessLogic.DatasetBuilder from propath.
+using Pmfo.Core.Service.IClientGetRequest from propath.
+using Pmfo.Core.Common.WarningMessages from propath.
 
 class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService implements IBusinessEntity : 
     define public property Resource as character no-undo get. protected set.
@@ -192,15 +195,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     define protected property Initialized as logical no-undo get. set. 
     
-    // avoid memory leak by keeping only one requested dynamic dataset (set in GetRequestDataset or GetUpdateRequestDataset) 
-    // and deleting previous and providing a handle for the destructor to delete when done   
-    define protected property RequestDatasetHandle as handle get. 
-        set(ph as handle):
-            if valid-handle(RequestDatasetHandle) and RequestDatasetHandle:dynamic and RequestDatasetHandle <> ph then
-                delete object RequestDatasetHandle no-error.
-            RequestDatasetHandle = ph.
-        end.     
-    
+     
     define protected property DataAccess as IDataAccess no-undo 
         get():
             if not valid-object(DataAccess) then 
@@ -303,6 +298,7 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.    
     
     method protected void ValidateData(poUpdateDataRequest as IUpdateDataRequest, input dataset-handle phDataset):
+        WarningMessages = new WarningMessages().
     end method.
     
     method protected void ReceiveBuffer( pRequest as IGetDataTableRequest,pResponse as IGetDataTableResponse, phBuffer as handle):
@@ -553,7 +549,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     end method.    
     
     method protected Object SubmitData(input poUpdateDataRequest as IUpdateDataRequest, input-output dataset-handle phDataset):
-        define variable hWarning  as handle no-undo.
         define variable oResponse as Object no-undo. 
         // Use of BufferError outside managed hooks may end here if not managed  
         // (this is considered part of the framework, as it allows BufferError to be used also outside of 
@@ -593,29 +588,29 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
     
     // final to make sure we set RequestDatasetHandle - needed if a dynamic dataset is used
     method public final handle GetRequestDataset(pClientRequest as IClientRequest):
-        RequestDatasetHandle = PrepareRequestDataset(pClientRequest).
-        return RequestDatasetHandle.
-    end method.
-    
-    // separated from GetRequestDataset to allow override of dataset for the request  
-    method protected handle PrepareRequestDataset(pClientRequest as IClientRequest):
-        return Datasets[1].
+        define variable cExpand as character no-undo.
+        define variable oDatasetBuilder as DatasetBuilder no-undo.
+        define variable Hdataset as handle no-undo.
+        hDataset = DefaultDataset.
+        if type-of(pClientRequest,IClientGetRequest) then do:
+            cExpand = cast(pClientRequest,IClientGetRequest):Expand.
+            if cExpand > "" then 
+            do: 
+                oDatasetBuilder = new DatasetBuilder().
+                hDataset = oDatasetBuilder:CreateExpandDataset(this-object, cExpand).
+            end.
+        end.
+        return hDataset.         
     end method.
     
     // final to make sure we set RequestDatasetHandle 
     method public final handle GetUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
-        RequestDatasetHandle = PrepareUpdateRequestDataset(pClientRequest, output plBeforeImageRequired, output pUpdateRequest).
-        return RequestDatasetHandle.
-    end method.    
-    
-    // separated from GetUpdateRequestdataset to allow override of dataset for the request  
-    method protected handle PrepareUpdateRequestDataset(pClientRequest as IClientRequest,output plBeforeImageRequired as logical, output pUpdateRequest as IUpdateDataRequest).
         define variable hDataset     as handle no-undo.
         define variable hMainBuffer  as handle no-undo.
        
         plBeforeImageRequired = (pClientRequest:Method = "PUT").
         
-        hDataset = PrepareRequestDataset(pClientRequest). 
+        hDataset = GetRequestDataset(pClientRequest). 
         
         if valid-object(hDataset) then
         do:
@@ -837,7 +832,20 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
             undo, throw new IllegalStateError(substitute("Resource '&1' Class &2 is not initialized. Cannot execute data operation. Make sure Initialize override calls super",Resource,this-object:GetClass():TypeName)). 
     end method.  
     
-     method protected void BufferError(phBuffer as handle,pcMsg as character):
+      // IFetchDelegator - NOT in IBusinessEntity
+    method public void AddWarning(pcMsg as character):
+        AddWarning(pcMsg,"").
+    end method. 
+    
+    method protected void AddWarning(pcMsg as character, pcField as character):
+        if not valid-object(WarningMessages) then 
+            WarningMessages = new WarningMessages().
+            // undo, throw new UnsupportedOperationError("AddWarning called outside request scope"). 
+        WarningMessages:Add(Resource, pcMsg, pcField).
+    end method. 
+    
+    
+    method protected void BufferError(phBuffer as handle,pcMsg as character):
         // the ErrorStringUtil only works  with changed records that has error attributes
         // TODO - add error object and collection that can provide the same capabilities 
         // - cellect many errors and return table, key and field info   

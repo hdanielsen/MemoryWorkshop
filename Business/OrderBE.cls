@@ -42,9 +42,12 @@ class Business.OrderBE inherits BusinessEntity:
         define variable dExtendedPrice as decimal no-undo.
         
         for each ttOrder where row-state(ttOrder) > 0:
+           
             if ttOrder.shipDate = ? then 
-                BufferError(buffer ttOrder:handle,substitute ("Order &1 does not have Shipdate",ttOrder.OrderNum),"shipdate").
-                
+            do:
+                AddWarning("Shipdate was not submitted on Order. Set to today + 7").
+                ttOrder.shipDate = today +  7.
+            end.     
             for each ttOrderline where ttOrderLine.Ordernum = ttOrder.OrderNum and row-state(ttOrderLine) > 0:
                 dExtendedPrice = ttOrderline.Price * ttOrderLine.Qty * (1 - (ttOrderLine.Discount / 100)).
                 if ttOrderline.ExtendedPrice > 0 and ttOrderline.ExtendedPrice <> dExtendedPrice then 
@@ -69,13 +72,16 @@ class Business.OrderBE inherits BusinessEntity:
         define variable hDataset as handle no-undo.
         // use itembe to submit items with onorder updated  
         if valid-object(ItemBE)  then    
-            hDataset = DatasetUtil:CreateDatasetFromMultipleDatasets(Array:ToArray(ItemBE:GetItemInventoryDataForSubmit(),dataset dsOrder:handle)).
+            hDataset = DatasetUtil:CreateDatasetFromMultipleDatasets(Array:ToArray(ItemBE:GetItemInventoryDataForSubmit(),phDataset)).
         else 
-            hDataset = dataset dsOrder:handle.
+            hDataset = phDataset.
        
-        super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference).         
+        super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference). 
+        message phdataset hDataset
+        view-as alert-box. 
         finally:
-            if valid-object(hDataset) and hDataset:dynamic then
+            // do not delete if phdataset is dynamic 
+            if valid-object(hDataset) and hDataset <> phDataset and hDataset:dynamic  then
                 delete object hDataset.
         end.
     end method.    

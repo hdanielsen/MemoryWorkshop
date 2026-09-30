@@ -214,26 +214,25 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
  
         oResponse = oBusinessEntity:UpdateData(input-output dataset-handle hDataset by-reference,oUpdateDataRequest).
         
-        // anticipate set of main requested buffer for multi table reqest that may have changed the relations to one top 
-        if valid-handle(hRequestedBuffer) = false and oUpdateDataRequest:MainRequestedBuffer > "" then  
-             hRequestedBuffer = hdataset:get-buffer-handle (oUpdateDataRequest:MainRequestedBuffer).
              
         oJsonResponse = new JsonObject().
         hDataset:write-json ("JsonObject",oJsonResponse,no,?,no,yes).
+        message "wraning mes" valid-object(oBusinessEntity:WarningMessages) 
+        view-as alert-box.
+        if valid-object(oBusinessEntity:WarningMessages) then
+        do:
+            ojsonResponse:Add(WarningEntityName,oBusinessEntity:WarningMessages:ToJsonArray()).
+            lReturnDataAfterDelete = true.              
+        end.  
+        
         if pcMethod = "DELETE" then 
         do:
-            // support respone with refreshed data after delete - added for recursive cases where 
+            // support respone with refreshed data after delete   
             // the delete may be posted for a record further down the tree and parents may be updated an not deleted 
              
             if hDataset:get-buffer-handle(1):table-handle:has-records then
             do: 
-                // TODO - clean up
-                // The else stuff below is aquick fix to keep behavior for recursive 
-                // but avoid for delete of requested child where the parent is not returned in the json 
-                if valid-handle(hRequestedbuffer) = false then 
-                    lReturnDataAfterDelete = true.
-                else if hDataset:get-buffer-handle(1) = hRequestedbuffer then  
-                    lReturnDataAfterDelete = true.           
+                 lReturnDataAfterDelete = true.           
             end.   
         end.
         
@@ -241,6 +240,7 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
         // (delete returns data  = for example delete from recursive tree may return refreshed tree)    
         if pcMethod = "DELETE" and lReturnDataAfterDelete = false then
             return ?.  // flag to caller to return http 204 no content  
+        
         
         
         oJsonWrapperResponse = new JsonObject().   
