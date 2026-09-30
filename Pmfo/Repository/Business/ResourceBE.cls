@@ -334,7 +334,8 @@ class Pmfo.Repository.Business.ResourceBE inherits BusinessEntity:
         
         // TODO - support warnings for REsource? 
         finally:
-            delete object hWarning.
+            if valid-object(hWarning) then
+                delete object hWarning.
         end.
     end method.
     
