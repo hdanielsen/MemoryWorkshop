@@ -217,8 +217,6 @@ class Pmfo.Core.Service.BusinessEntityOperationHandler inherits OperationHandler
              
         oJsonResponse = new JsonObject().
         hDataset:write-json ("JsonObject",oJsonResponse,no,?,no,yes).
-        message "wraning mes" valid-object(oBusinessEntity:WarningMessages) 
-        view-as alert-box.
         if valid-object(oBusinessEntity:WarningMessages) then
         do:
             ojsonResponse:Add(WarningEntityName,oBusinessEntity:WarningMessages:ToJsonArray()).
