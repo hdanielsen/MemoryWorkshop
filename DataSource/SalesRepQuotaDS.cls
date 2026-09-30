@@ -11,6 +11,7 @@
 block-level on error undo, throw.
 
 using Pmfo.Core.DataLayer.DataSource from propath.
+using Pmfo.Core.Error.NotImplementedError from propath.
 
 class DataSource.SalesRepQuotaDS inherits DataSource:
 
@@ -35,7 +36,16 @@ class DataSource.SalesRepQuotaDS inherits DataSource:
     method override protected void PrepareSaveBuffer( input pBuffer as handle ):
         define variable hTable as handle no-undo.
         hTable = pBuffer:table-handle.
-        this-object:Bind (table-handle hTable bind).        
+        Bind (table-handle hTable bind).        
+    end method.
+    
+    
+    method override protected void WriteBeginTransValidate( input dataset-handle  phDataset):
+        undo, throw new NotImplementedError("Save using SalesRepDS").
+    end method.    
+    
+    method override protected void DeleteBeginTransValidate( input dataset-handle  phDataset):
+        undo, throw new NotImplementedError("Delete using SalesRepDS").
     end method.
     
     method public void BeforeFill( input dataset-handle phDataset ):
