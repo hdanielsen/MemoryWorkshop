@@ -27,5 +27,6 @@ using Pmfo.Repository.Business.ResourceBE from propath.
 //using Pmfo.Core.Common.IWarningMessageTableHolder from propath.
 
 define variable oResourceBe as ResourceBE   no-undo.
-
+oResourceBe = new ResourceBE().
+oResourceBE:ReadFromSourceAndCacheData().
 return "0". // PCT needs this to detect a successful run 
