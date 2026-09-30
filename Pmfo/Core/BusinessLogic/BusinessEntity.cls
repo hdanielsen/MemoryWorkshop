@@ -555,7 +555,6 @@ class Pmfo.Core.BusinessLogic.BusinessEntity abstract inherits DataService imple
         // the validate hooks
         if phDataset:error then
             ThrowDatasetError(phDataset).
-        
         oResponse = DataAccess:SubmitData(poUpdateDataRequest, input-output dataset-handle phDataset, output table-handle WarningMessageTableHandle append).        
         
         return oResponse. 

@@ -77,8 +77,6 @@ class Business.OrderBE inherits BusinessEntity:
             hDataset = phDataset.
        
         super:SubmitData(poUpdateDataRequest, input-output dataset-handle hDataset by-reference). 
-        message phdataset hDataset
-        view-as alert-box. 
         finally:
             // do not delete if phdataset is dynamic 
             if valid-object(hDataset) and hDataset <> phDataset and hDataset:dynamic  then

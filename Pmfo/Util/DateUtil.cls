@@ -153,8 +153,6 @@ class Pmfo.Util.DateUtil:
             if iSeconds < 0 then
                undo, throw new IllegalArgumentError('Seconds must be positive').
         end.
-       message ihours iminutes iseconds
-       view-as alert-box.
         return (ihours * 60 * 60) + (iMinutes * 60) + iSeconds.     
         catch e1 as IllegalArgumentError :
             undo, throw e1.
