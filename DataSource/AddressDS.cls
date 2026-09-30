@@ -58,7 +58,6 @@ class DataSource.AddressDS inherits DataSource:
         define variable cSort       as character no-undo.
         define variable iCount      as integer   no-undo.
         define variable iNumRecords as integer   no-undo.
-        define variable lDelete     as logical   no-undo.
         define variable iBuffer     as integer   no-undo.
         define variable cFilter     as character no-undo.
         
@@ -71,39 +70,35 @@ class DataSource.AddressDS inherits DataSource:
             cSort = GetRequest:SortExpression.
             cFilter = GetRequest:QueryString.
             iNumRecords = GetRequest:NumRecords. 
-            message GetRequest:QueryDefinition:QuerySelection:ToString() skip
-                    GetRequest:QueryDefinition:GetPredicateFieldReferences() skip
-                  "has"  GetRequest:QueryDefinition:HasPredicate("country")
-                    
-                    
-            view-as alert-box.
         end. 
-        message cFilter
-            view-as alert-box.
+        
         if cSort > "" or iNumRecords > 0 then 
         do:
             create query hQuery.
             hQuery:add-buffer(DataBuffer).
             hQuery:query-prepare(trim(substitute("for each &1 &2",
-                DataBuffer:name,
-                if cSort > "" then cSort else "")
-                )
-                ).
+                                                  DataBuffer:name,
+                                                  if cSort > "" then cSort else "")
+                                      )
+                                ).
            
             hQuery:query-open().
             hQuery:get-first.
             do while DataBuffer:avail:
                 iCount = iCount + 1.
                 hQuery:get-next.
-                if lDelete = false and iNumRecords > 0 and iCount > iNumRecords then do:
-                    lDelete = true. 
+                if iNumRecords > 0 and iCount > iNumRecords then do:
                     NextRowKey = DataBuffer::AddressId.
                     NumRecords = iCount - 1.
+                    leave.
                 end.    
-                if lDelete then DataBuffer:buffer-delete.
-                else DataBuffer::zz_seq = iCount. // sorting for json
+                DataBuffer::zz_seq = iCount. // sorting for json
             end.
         end.
+        
+        for each ttAddress where zz_seq = 0: 
+            delete ttaddress.
+        end. 
         
         return no-apply. // prevent auto fill that still happens     
         finally:

@@ -21,7 +21,7 @@ define temp-table ttAddress no-undo serialize-name "addresses" {1}  before-table
    field shipToCount                      as integer     serialize-name "shipToCount"
    field supplierCount                    as integer     serialize-name "supplierCount"
    field warehouseCount                   as integer     serialize-name "warehouseCount"
-   field addressId                        as character   serialize-name "tempId"
+   field addressId                        as character   serialize-name "id"
    field zz_seq                           as int64       serialize-name "seq"
    index key as unique addressid 
    index Address as unique Address Address2 City Country PostalCode
