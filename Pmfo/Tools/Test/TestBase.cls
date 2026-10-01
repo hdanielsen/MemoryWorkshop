@@ -265,7 +265,6 @@ class Pmfo.Tools.Test.TestBase abstract inherits DataService:
                 delete object hQuery.
             if valid-handle(hBufferDel) then
                 delete object hBufferDel.   
-            phdataset:write-json ("file","/MemoryWorkshop-test/Temp/delete.json",yes,?,no,yes,yes).    
         end.            
      
     end method.

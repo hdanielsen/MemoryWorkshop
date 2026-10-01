@@ -1,0 +1,553 @@
+{"resources": {
+  "entities": [
+    {
+      "CanCreate": false,
+      "CanDelete": false,
+      "ClassName": "Business.AddressBE",
+      "ClientOnly": false,
+      "KeyList": "addressId",
+      "Resource": "addresses",
+      "Public": true,
+      "ReadOnly": true,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.BenefitsBE",
+      "ClientOnly": false,
+      "KeyList": "EmpNum",
+      "Resource": "benefits",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.BillToBE",
+      "ClientOnly": false,
+      "KeyList": "CustNum,BillToID",
+      "Resource": "billTos",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.BinBE",
+      "ClientOnly": false,
+      "KeyList": "BinNum",
+      "Resource": "bins",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.CustomerBE",
+      "ClientOnly": false,
+      "KeyList": "CustNum",
+      "Resource": "customers",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.DepartmentBE",
+      "ClientOnly": false,
+      "KeyList": "DeptCode",
+      "Resource": "departments",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.EmployeeBE",
+      "ClientOnly": false,
+      "KeyList": "EmpNum",
+      "Resource": "employees",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.FamilyBE",
+      "ClientOnly": false,
+      "KeyList": "EmpNum,RelativeName",
+      "Resource": "families",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.FeedbackBE",
+      "ClientOnly": false,
+      "KeyList": "",
+      "Resource": "feedbacks",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.InventoryTransactionBE",
+      "ClientOnly": false,
+      "KeyList": "InvTransNum",
+      "Resource": "inventoryTransactions",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.InvoiceBE",
+      "ClientOnly": false,
+      "KeyList": "Invoicenum",
+      "Resource": "invoices",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.ItemBE",
+      "ClientOnly": false,
+      "KeyList": "ItemNum",
+      "Resource": "items",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.LocalDefaultBE",
+      "ClientOnly": false,
+      "KeyList": "LocalDefNum",
+      "Resource": "localDefaults",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": false,
+      "CanDelete": false,
+      "ClassName": "Business.MemoryObjectBE",
+      "ClientOnly": true,
+      "KeyList": "name,handle",
+      "Resource": "memoryObjects",
+      "Public": true,
+      "ReadOnly": true,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.OrderLineBE",
+      "ClientOnly": false,
+      "KeyList": "OrderNum,LineNum",
+      "Resource": "orderLines",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.OrderBE",
+      "ClientOnly": false,
+      "KeyList": "OrderNum",
+      "Resource": "orders",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": false,
+      "CanDelete": false,
+      "ClassName": "Business.PublicNameBE",
+      "ClientOnly": true,
+      "KeyList": null,
+      "Resource": "publicNames",
+      "Public": true,
+      "ReadOnly": true,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.PurchaseOrderLineBE",
+      "ClientOnly": false,
+      "KeyList": "PONum,LineNum",
+      "Resource": "purchaseOrderLines",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.PurchaseOrderBE",
+      "ClientOnly": false,
+      "KeyList": "PONum",
+      "Resource": "purchaseOrders",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.RefCallBE",
+      "ClientOnly": false,
+      "KeyList": "CallNum",
+      "Resource": "refCalls",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.SalesRepQuotaBE",
+      "ClientOnly": false,
+      "KeyList": "SalesRep,Month",
+      "Resource": "salesRepQuotas",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.SalesRepBE",
+      "ClientOnly": false,
+      "KeyList": "SalesRep",
+      "Resource": "salesReps",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.ShipToBE",
+      "ClientOnly": false,
+      "KeyList": "CustNum,ShipToID",
+      "Resource": "shipTos",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.StateBE",
+      "ClientOnly": false,
+      "KeyList": "State",
+      "Resource": "states",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.SupplierItemXrefBE",
+      "ClientOnly": false,
+      "KeyList": "ItemNum,SupplierIDNum",
+      "Resource": "supplierItemXrefs",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.SupplierBE",
+      "ClientOnly": false,
+      "KeyList": "SupplierIDNum",
+      "Resource": "suppliers",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.TimeSheetBE",
+      "ClientOnly": false,
+      "KeyList": "EmpNum,DayRecorded",
+      "Resource": "timeSheets",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.VacationBE",
+      "ClientOnly": false,
+      "KeyList": "EmpNum,StartDate",
+      "Resource": "vacations",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    },
+    {
+      "CanCreate": true,
+      "CanDelete": true,
+      "ClassName": "Business.WarehouseBE",
+      "ClientOnly": false,
+      "KeyList": "WarehouseNum",
+      "Resource": "warehouses",
+      "Public": true,
+      "ReadOnly": false,
+      "TypeName": "Pmfo.Core.BusinessLogic.IBusinessEntity"
+    }
+  ],
+  "dataSources": [
+    {
+      "EntityName": "addresses",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.AddressDS"
+    },
+    {
+      "EntityName": "benefits",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.BenefitsDS"
+    },
+    {
+      "EntityName": "billTos",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.BillToDS"
+    },
+    {
+      "EntityName": "bins",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.BinDS"
+    },
+    {
+      "EntityName": "customers",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.CustomerDS"
+    },
+    {
+      "EntityName": "departments",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.DepartmentDS"
+    },
+    {
+      "EntityName": "employees",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.EmployeeDS"
+    },
+    {
+      "EntityName": "families",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.FamilyDS"
+    },
+    {
+      "EntityName": "feedbacks",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.FeedbackDS"
+    },
+    {
+      "EntityName": "inventoryTransactions",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.InventoryTransactionDS"
+    },
+    {
+      "EntityName": "invoices",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.InvoiceDS"
+    },
+    {
+      "EntityName": "items",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.ItemDS"
+    },
+    {
+      "EntityName": "localDefaults",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.LocalDefaultDS"
+    },
+    {
+      "EntityName": "orderLines",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.OrderLineDS"
+    },
+    {
+      "EntityName": "orders",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.OrderDS"
+    },
+    {
+      "EntityName": "purchaseOrderLines",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.PurchaseOrderLineDS"
+    },
+    {
+      "EntityName": "purchaseOrders",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.PurchaseOrderDS"
+    },
+    {
+      "EntityName": "refCalls",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.RefCallDS"
+    },
+    {
+      "EntityName": "salesRepQuotas",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.SalesRepQuotaDS"
+    },
+    {
+      "EntityName": "salesReps",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.SalesRepDS"
+    },
+    {
+      "EntityName": "shipTos",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.ShipToDS"
+    },
+    {
+      "EntityName": "states",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.StateDS"
+    },
+    {
+      "EntityName": "supplierItemXrefs",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.SupplierItemXrefDS"
+    },
+    {
+      "EntityName": "suppliers",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.SupplierDS"
+    },
+    {
+      "EntityName": "timeSheets",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.TimeSheetDS"
+    },
+    {
+      "EntityName": "vacations",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.VacationDS"
+    },
+    {
+      "EntityName": "warehouses",
+      "TableName": "",
+      "TypeCode": "",
+      "TypeKey": 0,
+      "Type": "Class",
+      "ClassName": "DataSource.WarehouseDS"
+    }
+  ],
+  "dataSourceErrors": [
+    {
+      "entityName": "entityNames",
+      "numContainerReferences": 1,
+      "isRequestedByBusinessEntity": false
+    },
+    {
+      "entityName": "propertyNames",
+      "numContainerReferences": 1,
+      "isRequestedByBusinessEntity": false
+    }
+  ]
+}}
